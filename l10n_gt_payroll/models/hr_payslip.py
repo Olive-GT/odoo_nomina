@@ -7,6 +7,16 @@ from odoo import models
 class HrPayslip(models.Model):
     _inherit = "hr.payslip"
 
+    def _l10n_gt_param(self, code):
+        """Valor de un parámetro legal vigente a la fecha del recibo (§7.3).
+
+        Reemplaza a payslip.rule_parameter(), inexistente en Odoo 18.
+        """
+        self.ensure_one()
+        return self.env["hr.rule.parameter"]._get_parameter_from_code(
+            code, self.date_to
+        )
+
     # ------------------------------------------------------------------
     # Días trabajados
     # ------------------------------------------------------------------

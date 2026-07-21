@@ -35,7 +35,7 @@ result = payslip._l10n_gt_ordinary_salary()
         <field name="amount_select">code</field>
         <field name="amount_python_compute"><![CDATA[
 # §4.2 Monto pactado (>= mínimo legal), proporcional a días trabajados
-minimo = payslip.rule_parameter('l10n_gt_bonif_incentivo_min')
+minimo = payslip._l10n_gt_param('l10n_gt_bonif_incentivo_min')
 monto = contract.l10n_gt_bonif_incentivo or minimo
 if not payslip._l10n_gt_is_full_period():
     monto = (monto / 30.0) * payslip._l10n_gt_worked_days()
@@ -57,7 +57,7 @@ result = monto
         <field name="l10n_gt_afecto_isr" eval="True"/>
         <field name="amount_python_compute"><![CDATA[
 # §4.3.2 valor hora ordinaria x factor x horas
-factor = payslip.rule_parameter('l10n_gt_he_diurna_factor')
+factor = payslip._l10n_gt_param('l10n_gt_he_diurna_factor')
 horas = inputs.HE_DIURNA.amount if inputs.HE_DIURNA else 0.0
 valor_hora = contract.wage / 240.0
 result_qty = horas
@@ -78,7 +78,7 @@ result = valor_hora * factor * horas
         <field name="l10n_gt_afecto_igss" eval="True"/>
         <field name="l10n_gt_afecto_isr" eval="True"/>
         <field name="amount_python_compute"><![CDATA[
-factor = payslip.rule_parameter('l10n_gt_he_nocturna_factor')
+factor = payslip._l10n_gt_param('l10n_gt_he_nocturna_factor')
 horas = inputs.HE_NOCTURNA.amount if inputs.HE_NOCTURNA else 0.0
 valor_hora = contract.wage / 240.0
 result_qty = horas
@@ -143,7 +143,7 @@ result = inputs.BONIF.amount if inputs.BONIF else 0.0
         <field name="amount_select">code</field>
         <field name="amount_python_compute"><![CDATA[
 # §4.9.2 base afecta (ordinario + HE + comisiones) x tasa laboral
-tasa = payslip.rule_parameter('l10n_gt_igss_laboral')
+tasa = payslip._l10n_gt_param('l10n_gt_igss_laboral')
 result = -(categories.GTIGSS * tasa)
 ]]></field>
     </record>
@@ -188,7 +188,7 @@ result = -(inputs.OTRDED.amount if inputs.OTRDED else 0.0)
         <field name="appears_on_payslip" eval="False"/>
         <field name="amount_python_compute"><![CDATA[
 # §4.15 no descuenta al empleado; se usa para costos/póliza
-tasa = payslip.rule_parameter('l10n_gt_igss_patronal')
+tasa = payslip._l10n_gt_param('l10n_gt_igss_patronal')
 result = categories.GTIGSS * tasa
 ]]></field>
     </record>

@@ -77,16 +77,30 @@ class HrEmployee(models.Model):
     def _compute_vacation(self):
         today = fields.Date.today()
         for emp in self:
-            start = emp.contract_id.date_start if emp.contract_id else False
-            if start:
-                anios = ((today - start).days + 1) / 365.0
-                emp.l10n_gt_vacation_accrued = round(anios * 15.0, 2)
-            else:
-                emp.l10n_gt_vacation_accrued = 0.0
+            emp.l10n_gt_vacation_accrued = emp._l10n_gt_vacation_accrued_at(today)
             emp.l10n_gt_vacation_taken = sum(emp.l10n_gt_vacation_taken_ids.mapped("days"))
             emp.l10n_gt_vacation_pending = (
                 emp.l10n_gt_vacation_accrued - emp.l10n_gt_vacation_taken
             )
+
+    def _l10n_gt_vacation_accrued_at(self, date_ref):
+        """Días de vacaciones acumulados a una fecha de corte (15 días/año)."""
+        self.ensure_one()
+        start = self.contract_id.date_start if self.contract_id else False
+        if not start or not date_ref:
+            return 0.0
+        anios = ((date_ref - start).days + 1) / 365.0
+        return round(anios * 15.0, 2)
+
+    def _l10n_gt_vacation_pending_at(self, date_ref):
+        """Días pendientes a una fecha de corte (para liquidaciones §4.6)."""
+        self.ensure_one()
+        accrued = self._l10n_gt_vacation_accrued_at(date_ref)
+        taken = sum(
+            t.days for t in self.l10n_gt_vacation_taken_ids
+            if t.date_to and t.date_to <= date_ref
+        )
+        return max(0.0, accrued - taken)
 
 
 class L10nGtVacationTaken(models.Model):

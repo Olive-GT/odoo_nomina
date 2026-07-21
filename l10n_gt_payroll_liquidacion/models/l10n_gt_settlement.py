@@ -139,8 +139,8 @@ class L10nGtSettlement(models.Model):
         self.aguinaldo_prop = self._prop_benefit("aguinaldo")
         self.bono14_prop = self._prop_benefit("bono14")
 
-        # --- Vacaciones pendientes (§4.6) ---
-        dias_vac = max(0.0, emp.l10n_gt_vacation_pending)
+        # --- Vacaciones pendientes a la fecha de retiro (§4.6) ---
+        dias_vac = emp._l10n_gt_vacation_pending_at(self.date_end)
         daily_avg = emp._l10n_gt_daily_average(
             self._six_months_ago(), self.date_end)
         self.vacaciones = dias_vac * daily_avg
