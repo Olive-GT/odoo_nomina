@@ -2,12 +2,12 @@
 <odoo>
     <menuitem id="menu_benefit_run"
               name="Aguinaldo / Bono 14"
-              parent="hr_payroll.menu_hr_payroll_root"
+              parent="l10n_gt_payroll.menu_l10n_gt_payroll_root"
               action="action_benefit_run"
               sequence="50"/>
     <menuitem id="menu_vacation_taken"
               name="Vacaciones gozadas"
-              parent="hr_payroll.menu_hr_payroll_root"
+              parent="l10n_gt_payroll.menu_l10n_gt_payroll_root"
               action="action_vacation_taken"
               sequence="55"/>
 </odoo>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Menú raíz propio de la nómina GT (independiente de hr_payroll, cuyo
+         id de menú raíz varía entre versiones). §3 del diseño. -->
+    <menuitem id="menu_l10n_gt_payroll_root"
+              name="Nómina GT"
+              sequence="85"/>
+
+    <menuitem id="menu_l10n_gt_payroll_operations"
+              name="Operación"
+              parent="menu_l10n_gt_payroll_root"
+              sequence="10"/>
+
+    <menuitem id="menu_l10n_gt_payroll_config"
+              name="Configuración"
+              parent="menu_l10n_gt_payroll_root"
+              sequence="90"/>
+
+</odoo>

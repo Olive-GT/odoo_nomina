@@ -2,7 +2,7 @@
 <odoo>
     <menuitem id="menu_settlement"
               name="Liquidaciones laborales"
-              parent="hr_payroll.menu_hr_payroll_root"
+              parent="l10n_gt_payroll.menu_l10n_gt_payroll_root"
               action="action_settlement"
               sequence="40"/>
 </odoo>
