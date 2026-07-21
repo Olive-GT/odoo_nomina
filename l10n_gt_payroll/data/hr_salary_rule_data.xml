@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo noupdate="1">
+<!-- Sin noupdate: las reglas son código y deben actualizarse en cada upgrade. -->
+<odoo>
 
     <!-- ================================================================
          Reglas salariales de la Nómina Ordinaria (Guatemala) - capítulo 4

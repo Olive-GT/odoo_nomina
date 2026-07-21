@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo noupdate="1">
+<!-- Sin noupdate: las reglas son código y deben actualizarse en cada upgrade.
+     La secuencia conserva su number_next (campo no presente en el XML). -->
+<odoo>
 
     <!-- 4.11 Anticipos -->
     <record id="rule_antic" model="hr.salary.rule">

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo noupdate="1">
+<!-- Sin noupdate: la regla es código y debe actualizarse en cada upgrade. -->
+<odoo>
 
     <!-- 4.10 Retención de ISR asalariados.
          La regla solo LEE la retención mensual de la proyección vigente. -->
