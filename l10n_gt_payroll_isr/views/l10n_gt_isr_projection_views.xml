@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_isr_projection_form" model="ir.ui.view">
+        <field name="name">l10n.gt.isr.projection.form</field>
+        <field name="model">l10n.gt.isr.projection</field>
+        <field name="arch" type="xml">
+            <form string="Proyección ISR">
+                <header>
+                    <button name="action_generate" string="Generar / Recalcular"
+                            type="object" class="btn-primary"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="employee_id"/>
+                            <field name="year"/>
+                        </group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Detalle mensual">
+                            <field name="line_ids">
+                                <list>
+                                    <field name="month_name"/>
+                                    <field name="sueldo_afecto"/>
+                                    <field name="igss"/>
+                                    <field name="aguinaldo"/>
+                                    <field name="bono14"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Deducciones comprobables">
+                            <field name="deduction_ids">
+                                <list>
+                                    <field name="deduction_type"/>
+                                    <field name="amount"/>
+                                    <field name="description"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                    <group class="oe_subtotal_footer" colspan="2">
+                        <field name="renta_bruta_anual"/>
+                        <field name="renta_exenta"/>
+                        <field name="deduccion_personal"/>
+                        <field name="igss_anual"/>
+                        <field name="deducciones_comprobables"/>
+                        <field name="renta_imponible"/>
+                        <field name="isr_anual"/>
+                        <field name="retencion_mensual" class="oe_subtotal_footer_separator"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_isr_projection_list" model="ir.ui.view">
+        <field name="name">l10n.gt.isr.projection.list</field>
+        <field name="model">l10n.gt.isr.projection</field>
+        <field name="arch" type="xml">
+            <list string="Proyecciones ISR">
+                <field name="employee_id"/>
+                <field name="year"/>
+                <field name="renta_imponible"/>
+                <field name="isr_anual"/>
+                <field name="retencion_mensual"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_isr_projection" model="ir.actions.act_window">
+        <field name="name">Proyecciones de ISR</field>
+        <field name="res_model">l10n.gt.isr.projection</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

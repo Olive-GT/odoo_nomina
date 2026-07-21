@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- §6.6 Reporte de IGSS -->
+    <template id="report_igss">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="run">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <div class="text-center">
+                            <h3 t-field="run.company_id.name"/>
+                            <h4>Reporte de IGSS — <span t-field="run.name"/></h4>
+                        </div>
+                        <t t-set="rows" t-value="run._l10n_gt_igss_rows()"/>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Empleado</th><th>Afiliación / DPI</th>
+                                    <th class="text-end">Salario afecto</th>
+                                    <th class="text-end">Cuota laboral</th>
+                                    <th class="text-end">Cuota patronal</th>
+                                    <th class="text-end">Total por pagar</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="tb" t-value="0"/><t t-set="tl" t-value="0"/>
+                                <t t-set="tp" t-value="0"/><t t-set="tt" t-value="0"/>
+                                <tr t-foreach="rows" t-as="r">
+                                    <td><span t-esc="r['employee']"/></td>
+                                    <td><span t-esc="r['affiliation'] or r['dpi']"/></td>
+                                    <td class="text-end"><span t-esc="'%.2f' % r['base']"/></td>
+                                    <td class="text-end"><span t-esc="'%.2f' % r['laboral']"/></td>
+                                    <td class="text-end"><span t-esc="'%.2f' % r['patronal']"/></td>
+                                    <td class="text-end"><span t-esc="'%.2f' % r['total']"/></td>
+                                    <t t-set="tb" t-value="tb + r['base']"/>
+                                    <t t-set="tl" t-value="tl + r['laboral']"/>
+                                    <t t-set="tp" t-value="tp + r['patronal']"/>
+                                    <t t-set="tt" t-value="tt + r['total']"/>
+                                </tr>
+                                <tr class="fw-bold">
+                                    <td colspan="2">TOTALES</td>
+                                    <td class="text-end"><span t-esc="'%.2f' % tb"/></td>
+                                    <td class="text-end"><span t-esc="'%.2f' % tl"/></td>
+                                    <td class="text-end"><span t-esc="'%.2f' % tp"/></td>
+                                    <td class="text-end"><span t-esc="'%.2f' % tt"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

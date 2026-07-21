@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <!-- Circunscripciones económicas de Guatemala (salario mínimo 2026).
+         Los montos son ejemplos de arranque; se ajustan por parámetro anual. -->
+    <record id="zone_ci" model="l10n.gt.economic.zone">
+        <field name="name">CE1 - Actividades no agrícolas</field>
+        <field name="code">CE1</field>
+    </record>
+    <record id="zone_ce2" model="l10n.gt.economic.zone">
+        <field name="name">CE2 - Actividades agrícolas</field>
+        <field name="code">CE2</field>
+    </record>
+    <record id="zone_maquila" model="l10n.gt.economic.zone">
+        <field name="name">Exportadora y de maquila</field>
+        <field name="code">MAQ</field>
+    </record>
+
+    <record id="min_wage_ci_2026" model="l10n.gt.minimum.wage">
+        <field name="zone_id" ref="zone_ci"/>
+        <field name="date_from">2026-01-01</field>
+        <field name="amount">3516.60</field>
+    </record>
+    <record id="min_wage_ce2_2026" model="l10n.gt.minimum.wage">
+        <field name="zone_id" ref="zone_ce2"/>
+        <field name="date_from">2026-01-01</field>
+        <field name="amount">3414.90</field>
+    </record>
+    <record id="min_wage_maq_2026" model="l10n.gt.minimum.wage">
+        <field name="zone_id" ref="zone_maquila"/>
+        <field name="date_from">2026-01-01</field>
+        <field name="amount">3220.50</field>
+    </record>
+
+</odoo>

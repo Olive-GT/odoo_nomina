@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <!-- Categorías propias GT (las estándar BASIC/ALW/DED/GROSS/NET/COMP
+         provienen de hr_payroll). -->
+
+    <!-- Base salarial afecta a IGSS: salario ordinario + horas extra +
+         comisiones. Excluye Bonificación Incentivo (§4.9.4). Al agrupar estos
+         conceptos en una categoría propia, la base IGSS = categories.GTIGSS.
+         Se define como HIJA de BASIC para que categories.BASIC (usada por las
+         vistas/campos calculados de hr_payroll Enterprise: basic_wage) siga
+         reflejando la remuneración base. Odoo propaga los totales al padre. -->
+    <record id="GTIGSS" model="hr.salary.rule.category">
+        <field name="name">Remuneración afecta a IGSS (Guatemala)</field>
+        <field name="code">GTIGSS</field>
+        <field name="parent_id" ref="hr_payroll.BASIC"/>
+    </record>
+
+    <record id="GT_PREST" model="hr.salary.rule.category">
+        <field name="name">Prestaciones (Guatemala)</field>
+        <field name="code">GT_PREST</field>
+    </record>
+
+    <record id="GT_PATRONAL" model="hr.salary.rule.category">
+        <field name="name">Aportes patronales / Costo empresa (Guatemala)</field>
+        <field name="code">GT_PATRONAL</field>
+    </record>
+
+</odoo>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- §6.1 Boleta de pago (formato anexo 8.2) -->
+    <template id="report_boleta">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <div class="text-center">
+                            <h3 t-field="doc.company_id.name"/>
+                            <h4>Comprobante de Pago</h4>
+                        </div>
+                        <table class="table table-sm table-borderless">
+                            <tr>
+                                <td><strong>Empleado:</strong> <span t-field="doc.employee_id.name"/></td>
+                                <td><strong>Código:</strong> <span t-field="doc.employee_id.barcode"/></td>
+                            </tr>
+                            <tr>
+                                <td><strong>DPI:</strong> <span t-field="doc.employee_id.l10n_gt_dpi"/></td>
+                                <td><strong>Puesto:</strong> <span t-field="doc.employee_id.job_id.name"/></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Período:</strong>
+                                    <span t-field="doc.date_from"/> al <span t-field="doc.date_to"/></td>
+                                <td><strong>Departamento:</strong> <span t-field="doc.employee_id.department_id.name"/></td>
+                            </tr>
+                        </table>
+
+                        <div class="row">
+                            <div class="col-6">
+                                <h5>Devengados</h5>
+                                <table class="table table-sm">
+                                    <tr t-foreach="doc.line_ids.filtered(lambda l: l.total &gt; 0 and l.category_id.code in ('GTIGSS','ALW','BASIC'))" t-as="line">
+                                        <td><span t-field="line.name"/></td>
+                                        <td class="text-end"><span t-field="line.total"/></td>
+                                    </tr>
+                                    <tr class="fw-bold">
+                                        <td>Total ingresos</td>
+                                        <td class="text-end"><span t-esc="'%.2f' % doc._l10n_gt_line('GROSS')"/></td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-6">
+                                <h5>Deducciones</h5>
+                                <table class="table table-sm">
+                                    <tr t-foreach="doc.line_ids.filtered(lambda l: l.total &lt; 0)" t-as="line">
+                                        <td><span t-field="line.name"/></td>
+                                        <td class="text-end"><span t-esc="'%.2f' % (-line.total)"/></td>
+                                    </tr>
+                                    <tr class="fw-bold">
+                                        <td>Total deducciones</td>
+                                        <td class="text-end">
+                                            <span t-esc="'%.2f' % doc._l10n_gt_lines_by_category('DED','out')"/>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-12 text-end">
+                                <h4>Salario líquido:
+                                    <span t-esc="'%.2f' % doc._l10n_gt_line('NET')"/>
+                                </h4>
+                            </div>
+                        </div>
+
+                        <div class="row mt-5">
+                            <div class="col-6 offset-3 text-center">
+                                <p>_______________________________</p>
+                                <p>Recibí conforme<br/><span t-field="doc.employee_id.name"/></p>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

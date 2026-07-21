@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_l10n_gt_economic_zone_user,l10n.gt.economic.zone user,model_l10n_gt_economic_zone,hr.group_hr_user,1,0,0,0
+access_l10n_gt_economic_zone_manager,l10n.gt.economic.zone manager,model_l10n_gt_economic_zone,hr.group_hr_manager,1,1,1,1
+access_l10n_gt_minimum_wage_user,l10n.gt.minimum.wage user,model_l10n_gt_minimum_wage,hr.group_hr_user,1,0,0,0
+access_l10n_gt_minimum_wage_manager,l10n.gt.minimum.wage manager,model_l10n_gt_minimum_wage,hr.group_hr_manager,1,1,1,1

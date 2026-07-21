@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <menuitem id="menu_isr_projection"
+              name="Proyecciones de ISR"
+              parent="hr_payroll.menu_hr_payroll_root"
+              action="action_isr_projection"
+              sequence="70"/>
+
+    <menuitem id="menu_isr_deduction"
+              name="Deducciones comprobables ISR"
+              parent="hr_payroll.menu_hr_payroll_root"
+              action="action_isr_deduction"
+              sequence="71"/>
+
+</odoo>

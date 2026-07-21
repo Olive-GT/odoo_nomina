@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <!-- 4.10 Retención de ISR asalariados.
+         La regla solo LEE la retención mensual de la proyección vigente. -->
+    <record id="rule_isr" model="hr.salary.rule">
+        <field name="name">Retención ISR</field>
+        <field name="code">ISR</field>
+        <field name="sequence">120</field>
+        <field name="category_id" ref="hr_payroll.DED"/>
+        <field name="struct_id" ref="l10n_gt_payroll.structure_gt_ordinaria"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = employee.l10n_gt_isr_applies and payslip._l10n_gt_isr_retencion() > 0</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = -payslip._l10n_gt_isr_retencion()</field>
+    </record>
+
+</odoo>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- §6.8 Reporte de costos de personal -->
+    <template id="report_costos">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="run">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <div class="text-center">
+                            <h3 t-field="run.company_id.name"/>
+                            <h4>Costos de Personal — <span t-field="run.name"/></h4>
+                        </div>
+                        <t t-set="rows" t-value="run._l10n_gt_costos_rows()"/>
+                        <table class="table table-sm" style="font-size:10px;">
+                            <thead>
+                                <tr>
+                                    <th>Empleado</th>
+                                    <th class="text-end">Ordinario</th>
+                                    <th class="text-end">Bonif. Inc.</th>
+                                    <th class="text-end">H. Extra</th>
+                                    <th class="text-end">Comisiones</th>
+                                    <th class="text-end">IGSS pat.</th>
+                                    <th class="text-end">IRTRA</th>
+                                    <th class="text-end">INTECAP</th>
+                                    <th class="text-end">Costo total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="rows" t-as="r">
+                                    <td><span t-esc="r['employee']"/></td>
+                                    <td class="text-end"><span t-esc="'%.2f' % r['ordinario']"/></td>
+                                    <td class="text-end"><span t-esc="'%.2f' % r['bonif']"/></td>
+                                    <td class="text-end"><span t-esc="'%.2f' % r['he']"/></td>
+                                    <td class="text-end"><span t-esc="'%.2f' % r['comis']"/></td>
+                                    <td class="text-end"><span t-esc="'%.2f' % r['igss_pat']"/></td>
+                                    <td class="text-end"><span t-esc="'%.2f' % r['irtra']"/></td>
+                                    <td class="text-end"><span t-esc="'%.2f' % r['intecap']"/></td>
+                                    <td class="text-end"><span t-esc="'%.2f' % r['total']"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

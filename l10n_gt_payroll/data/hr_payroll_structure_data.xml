@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <!-- Estructura de la nómina ordinaria mensual GT -->
+    <record id="structure_gt_ordinaria" model="hr.payroll.structure">
+        <field name="name">Nómina Ordinaria (Guatemala)</field>
+        <field name="type_id" ref="structure_type_gt_mensual"/>
+    </record>
+
+</odoo>

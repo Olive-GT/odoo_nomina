@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- §6.15 Informe del Empleador (formato anexo 8.4).
+         Scaffold funcional con los campos principales; los ~40 campos completos y
+         los códigos de nomenclatura MinTrab se afinan contra la plantilla oficial
+         vigente (idealmente exportado a Excel con report_xlsx). -->
+    <template id="report_informe">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="run">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <div class="text-center">
+                            <h3 t-field="run.company_id.name"/>
+                            <h5>Informe del Empleador</h5>
+                        </div>
+                        <table class="table table-sm table-bordered" style="font-size:8px;">
+                            <thead>
+                                <tr>
+                                    <th>No.</th>
+                                    <th>Primer nombre</th><th>Segundo nombre</th>
+                                    <th>Primer apellido</th><th>Segundo apellido</th>
+                                    <th>DPI</th><th>NIT</th><th>Afil. IGSS</th>
+                                    <th>Fecha nac.</th><th>Puesto</th>
+                                    <th class="text-end">Salario mensual</th>
+                                    <th class="text-end">Bonif. (250)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="run.slip_ids" t-as="slip">
+                                    <td><span t-field="slip.employee_id.barcode"/></td>
+                                    <td><span t-field="slip.employee_id.l10n_gt_first_name"/></td>
+                                    <td><span t-field="slip.employee_id.l10n_gt_middle_name"/></td>
+                                    <td><span t-field="slip.employee_id.l10n_gt_first_surname"/></td>
+                                    <td><span t-field="slip.employee_id.l10n_gt_second_surname"/></td>
+                                    <td><span t-field="slip.employee_id.l10n_gt_dpi"/></td>
+                                    <td><span t-field="slip.employee_id.l10n_gt_nit"/></td>
+                                    <td><span t-field="slip.employee_id.l10n_gt_igss_affiliation"/></td>
+                                    <td><span t-field="slip.employee_id.birthday"/></td>
+                                    <td><span t-field="slip.employee_id.job_id.name"/></td>
+                                    <td class="text-end"><span t-esc="'%.2f' % slip._l10n_gt_line('SALORD')"/></td>
+                                    <td class="text-end"><span t-esc="'%.2f' % min(250.0, slip._l10n_gt_line('BONINC'))"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p style="font-size:8px;" class="text-muted">
+                            Nota: reporte funcional. Los campos completos del Informe del
+                            Empleador (§6.15) y los códigos MinTrab (nacionalidad, estado civil,
+                            pueblo de pertenencia, nivel académico, temporalidad, etc.) se
+                            completan según la plantilla oficial vigente, preferiblemente en Excel.
+                        </p>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

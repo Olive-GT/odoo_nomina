@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="action_report_poliza" model="ir.actions.report">
+        <field name="name">Póliza contable de nómina</field>
+        <field name="model">hr.payslip.run</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">l10n_gt_payroll_account.report_poliza</field>
+        <field name="report_file">l10n_gt_payroll_account.report_poliza</field>
+        <field name="binding_model_id" ref="hr_payroll.model_hr_payslip_run"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_poliza">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2 class="text-center">Póliza contable de nómina</h2>
+                        <p class="text-center"><span t-field="doc.name"/></p>
+                        <t t-set="rows" t-value="doc._l10n_gt_poliza_data()"/>
+                        <t t-set="total_debit" t-value="sum(r['debit'] for r in rows)"/>
+                        <t t-set="total_credit" t-value="sum(r['credit'] for r in rows)"/>
+                        <table class="table table-sm mt-4">
+                            <thead>
+                                <tr>
+                                    <th>Cuenta</th>
+                                    <th class="text-end">Débito</th>
+                                    <th class="text-end">Crédito</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="rows" t-as="row">
+                                    <td><span t-esc="row['name']"/></td>
+                                    <td class="text-end"><span t-esc="'%.2f' % row['debit']"/></td>
+                                    <td class="text-end"><span t-esc="'%.2f' % row['credit']"/></td>
+                                </tr>
+                                <tr class="fw-bold">
+                                    <td>Totales</td>
+                                    <td class="text-end"><span t-esc="'%.2f' % total_debit"/></td>
+                                    <td class="text-end"><span t-esc="'%.2f' % total_credit"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

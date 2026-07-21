@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <!-- ================================================================
+         Reglas salariales de la Nómina Ordinaria (Guatemala) - capítulo 4
+         Base IGSS = categories.GTIGSS (ordinario + horas extra + comisiones)
+         ================================================================ -->
+
+    <!-- 4.1 Salario ordinario -->
+    <record id="rule_salord" model="hr.salary.rule">
+        <field name="name">Salario ordinario</field>
+        <field name="code">SALORD</field>
+        <field name="sequence">10</field>
+        <field name="category_id" ref="GTIGSS"/>
+        <field name="struct_id" ref="structure_gt_ordinaria"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="l10n_gt_afecto_igss" eval="True"/>
+        <field name="l10n_gt_afecto_isr" eval="True"/>
+        <field name="l10n_gt_es_ordinario" eval="True"/>
+        <field name="amount_python_compute"><![CDATA[
+# §4.1.2 / §4.1.4 Salario completo, proporcional o por tramos de contrato
+result = payslip._l10n_gt_ordinary_salary()
+]]></field>
+    </record>
+
+    <!-- 4.2 Bonificación Incentivo (no afecta IGSS ni ISR) -->
+    <record id="rule_boninc" model="hr.salary.rule">
+        <field name="name">Bonificación Incentivo</field>
+        <field name="code">BONINC</field>
+        <field name="sequence">20</field>
+        <field name="category_id" ref="hr_payroll.ALW"/>
+        <field name="struct_id" ref="structure_gt_ordinaria"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute"><![CDATA[
+# §4.2 Monto pactado (>= mínimo legal), proporcional a días trabajados
+minimo = payslip.rule_parameter('l10n_gt_bonif_incentivo_min')
+monto = contract.l10n_gt_bonif_incentivo or minimo
+if not payslip._l10n_gt_is_full_period():
+    monto = (monto / 30.0) * payslip._l10n_gt_worked_days()
+result = monto
+]]></field>
+    </record>
+
+    <!-- 4.3 Horas extra diurnas -->
+    <record id="rule_hextd" model="hr.salary.rule">
+        <field name="name">Horas extra diurnas</field>
+        <field name="code">HEXTD</field>
+        <field name="sequence">30</field>
+        <field name="category_id" ref="GTIGSS"/>
+        <field name="struct_id" ref="structure_gt_ordinaria"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = bool(inputs.HE_DIURNA) and not contract.l10n_gt_exclude_overtime</field>
+        <field name="amount_select">code</field>
+        <field name="l10n_gt_afecto_igss" eval="True"/>
+        <field name="l10n_gt_afecto_isr" eval="True"/>
+        <field name="amount_python_compute"><![CDATA[
+# §4.3.2 valor hora ordinaria x factor x horas
+factor = payslip.rule_parameter('l10n_gt_he_diurna_factor')
+horas = inputs.HE_DIURNA.amount if inputs.HE_DIURNA else 0.0
+valor_hora = contract.wage / 240.0
+result_qty = horas
+result = valor_hora * factor * horas
+]]></field>
+    </record>
+
+    <!-- 4.3 Horas extra nocturnas -->
+    <record id="rule_hextn" model="hr.salary.rule">
+        <field name="name">Horas extra nocturnas</field>
+        <field name="code">HEXTN</field>
+        <field name="sequence">40</field>
+        <field name="category_id" ref="GTIGSS"/>
+        <field name="struct_id" ref="structure_gt_ordinaria"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = bool(inputs.HE_NOCTURNA) and not contract.l10n_gt_exclude_overtime</field>
+        <field name="amount_select">code</field>
+        <field name="l10n_gt_afecto_igss" eval="True"/>
+        <field name="l10n_gt_afecto_isr" eval="True"/>
+        <field name="amount_python_compute"><![CDATA[
+factor = payslip.rule_parameter('l10n_gt_he_nocturna_factor')
+horas = inputs.HE_NOCTURNA.amount if inputs.HE_NOCTURNA else 0.0
+valor_hora = contract.wage / 240.0
+result_qty = horas
+result = valor_hora * factor * horas
+]]></field>
+    </record>
+
+    <!-- 4.5 Comisiones -->
+    <record id="rule_comis" model="hr.salary.rule">
+        <field name="name">Comisiones</field>
+        <field name="code">COMIS</field>
+        <field name="sequence">50</field>
+        <field name="category_id" ref="GTIGSS"/>
+        <field name="struct_id" ref="structure_gt_ordinaria"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = bool(inputs.COMIS)</field>
+        <field name="amount_select">code</field>
+        <field name="l10n_gt_afecto_igss" eval="True"/>
+        <field name="l10n_gt_afecto_isr" eval="True"/>
+        <field name="amount_python_compute"><![CDATA[
+result = inputs.COMIS.amount if inputs.COMIS else 0.0
+]]></field>
+    </record>
+
+    <!-- 4.4 Bonificaciones adicionales -->
+    <record id="rule_bonif" model="hr.salary.rule">
+        <field name="name">Bonificaciones adicionales</field>
+        <field name="code">BONIF</field>
+        <field name="sequence">60</field>
+        <field name="category_id" ref="hr_payroll.ALW"/>
+        <field name="struct_id" ref="structure_gt_ordinaria"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = bool(inputs.BONIF)</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute"><![CDATA[
+result = inputs.BONIF.amount if inputs.BONIF else 0.0
+]]></field>
+    </record>
+
+    <!-- Total devengado (§2.6) -->
+    <record id="rule_gross" model="hr.salary.rule">
+        <field name="name">Total de ingresos (devengado)</field>
+        <field name="code">GROSS</field>
+        <field name="sequence">100</field>
+        <field name="category_id" ref="hr_payroll.GROSS"/>
+        <field name="struct_id" ref="structure_gt_ordinaria"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <!-- categories.BASIC incluye GTIGSS (categoría hija): ordinario+HE+comisiones -->
+        <field name="amount_python_compute">result = categories.BASIC + categories.ALW</field>
+    </record>
+
+    <!-- 4.9 IGSS laboral -->
+    <record id="rule_igsslab" model="hr.salary.rule">
+        <field name="name">IGSS laboral</field>
+        <field name="code">IGSSLAB</field>
+        <field name="sequence">110</field>
+        <field name="category_id" ref="hr_payroll.DED"/>
+        <field name="struct_id" ref="structure_gt_ordinaria"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = employee.l10n_gt_igss_applies</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute"><![CDATA[
+# §4.9.2 base afecta (ordinario + HE + comisiones) x tasa laboral
+tasa = payslip.rule_parameter('l10n_gt_igss_laboral')
+result = -(categories.GTIGSS * tasa)
+]]></field>
+    </record>
+
+    <!-- 4.13 Otras deducciones -->
+    <record id="rule_otrded" model="hr.salary.rule">
+        <field name="name">Otras deducciones</field>
+        <field name="code">OTRDED</field>
+        <field name="sequence">150</field>
+        <field name="category_id" ref="hr_payroll.DED"/>
+        <field name="struct_id" ref="structure_gt_ordinaria"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = bool(inputs.OTRDED)</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute"><![CDATA[
+result = -(inputs.OTRDED.amount if inputs.OTRDED else 0.0)
+]]></field>
+    </record>
+
+    <!-- 4.14 Salario líquido -->
+    <record id="rule_net" model="hr.salary.rule">
+        <field name="name">Salario líquido</field>
+        <field name="code">NET</field>
+        <field name="sequence">200</field>
+        <field name="category_id" ref="hr_payroll.NET"/>
+        <field name="struct_id" ref="structure_gt_ordinaria"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = categories.BASIC + categories.ALW + categories.DED</field>
+    </record>
+
+    <!-- 4.15 IGSS patronal (costo empresa, no afecta líquido) -->
+    <record id="rule_igsspat" model="hr.salary.rule">
+        <field name="name">IGSS patronal (12.67%)</field>
+        <field name="code">IGSSPAT</field>
+        <field name="sequence">300</field>
+        <field name="category_id" ref="GT_PATRONAL"/>
+        <field name="struct_id" ref="structure_gt_ordinaria"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = employee.l10n_gt_igss_applies</field>
+        <field name="amount_select">code</field>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="amount_python_compute"><![CDATA[
+# §4.15 no descuenta al empleado; se usa para costos/póliza
+tasa = payslip.rule_parameter('l10n_gt_igss_patronal')
+result = categories.GTIGSS * tasa
+]]></field>
+    </record>
+
+</odoo>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_payslip_run_form_gt_account" model="ir.ui.view">
+        <field name="name">hr.payslip.run.form.gt.account</field>
+        <field name="model">hr.payslip.run</field>
+        <field name="inherit_id" ref="l10n_gt_payroll.view_payslip_run_form_l10n_gt"/>
+        <field name="arch" type="xml">
+            <field name="l10n_gt_state" position="before">
+                <button name="action_gt_generate_move" string="Generar póliza contable"
+                        type="object"
+                        invisible="l10n_gt_state not in ('confirmed','posted')"
+                        groups="l10n_gt_payroll.group_payroll_manager"/>
+                <button name="%(action_report_poliza)d" string="Imprimir póliza"
+                        type="action"
+                        invisible="l10n_gt_state in ('draft','computing')"/>
+            </field>
+        </field>
+    </record>
+
+</odoo>

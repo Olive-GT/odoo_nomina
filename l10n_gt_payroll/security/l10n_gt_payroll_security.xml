@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="module_category_l10n_gt_payroll" model="ir.module.category">
+        <field name="name">Nómina Guatemala</field>
+        <field name="sequence">95</field>
+    </record>
+
+    <!-- §7.4 Seguridad y permisos -->
+    <record id="group_payroll_user" model="res.groups">
+        <field name="name">Nómina GT / Usuario</field>
+        <field name="category_id" ref="module_category_l10n_gt_payroll"/>
+        <field name="implied_ids" eval="[(4, ref('hr_payroll.group_hr_payroll_user'))]"/>
+    </record>
+
+    <record id="group_payroll_manager" model="res.groups">
+        <field name="name">Nómina GT / Responsable</field>
+        <field name="category_id" ref="module_category_l10n_gt_payroll"/>
+        <field name="implied_ids" eval="[
+            (4, ref('group_payroll_user')),
+            (4, ref('hr_payroll.group_hr_payroll_manager')),
+        ]"/>
+    </record>
+
+</odoo>

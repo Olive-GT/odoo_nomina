@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- §6.14 Libro de Salarios (Acuerdo Ministerial 124-2019, formato anexo 8.3).
+         Scaffold funcional con las columnas legales; el layout/exportación exacta
+         se afina contra la plantilla oficial vigente del cliente. -->
+    <template id="report_libro">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="run">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <div class="text-center">
+                            <h3 t-field="run.company_id.name"/>
+                            <h5>Libro de Salarios — <span t-field="run.name"/></h5>
+                            <p style="font-size:9px;">Libro para la operación de salarios de
+                            trabajadores permanentes, autorizado por el Ministerio de Trabajo y
+                            Previsión Social. Art. 102 Decreto 1441 y Ac. Min. 124-2019.</p>
+                        </div>
+                        <table class="table table-sm table-bordered" style="font-size:9px;">
+                            <thead>
+                                <tr>
+                                    <th>Trabajador</th><th>DPI</th><th>Afiliación IGSS</th>
+                                    <th>Período</th><th class="text-end">Días</th>
+                                    <th class="text-end">Ordinario</th>
+                                    <th class="text-end">Extra</th>
+                                    <th class="text-end">Bonif. Inc.</th>
+                                    <th class="text-end">IGSS</th>
+                                    <th class="text-end">ISR</th>
+                                    <th class="text-end">Líquido</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="run.slip_ids" t-as="slip">
+                                    <td><span t-field="slip.employee_id.name"/></td>
+                                    <td><span t-field="slip.employee_id.l10n_gt_dpi"/></td>
+                                    <td><span t-field="slip.employee_id.l10n_gt_igss_affiliation"/></td>
+                                    <td><span t-field="slip.date_from"/> - <span t-field="slip.date_to"/></td>
+                                    <td class="text-end"><span t-esc="'%.0f' % slip._l10n_gt_worked_days()"/></td>
+                                    <td class="text-end"><span t-esc="'%.2f' % slip._l10n_gt_line('SALORD')"/></td>
+                                    <td class="text-end">
+                                        <span t-esc="'%.2f' % (slip._l10n_gt_line('HEXTD') + slip._l10n_gt_line('HEXTN'))"/>
+                                    </td>
+                                    <td class="text-end"><span t-esc="'%.2f' % slip._l10n_gt_line('BONINC')"/></td>
+                                    <td class="text-end"><span t-esc="'%.2f' % (-slip._l10n_gt_line('IGSSLAB'))"/></td>
+                                    <td class="text-end"><span t-esc="'%.2f' % (-slip._l10n_gt_line('ISR'))"/></td>
+                                    <td class="text-end"><span t-esc="'%.2f' % slip._l10n_gt_line('NET')"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

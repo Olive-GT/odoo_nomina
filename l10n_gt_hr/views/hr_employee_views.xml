@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_employee_form_l10n_gt" model="ir.ui.view">
+        <field name="name">hr.employee.form.l10n.gt</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <!-- Identificación GT en la pestaña de RRHH -->
+            <notebook position="inside">
+                <page string="Datos Guatemala" name="l10n_gt">
+                    <group>
+                        <group string="Identificación">
+                            <field name="l10n_gt_dpi"/>
+                            <field name="l10n_gt_nit"/>
+                        </group>
+                        <group string="IGSS / ISR">
+                            <field name="l10n_gt_igss_applies"/>
+                            <field name="l10n_gt_igss_affiliation"
+                                   invisible="not l10n_gt_igss_applies"/>
+                            <field name="l10n_gt_isr_applies"/>
+                        </group>
+                    </group>
+                    <group string="Nombres y apellidos (Informe del Empleador)">
+                        <group>
+                            <field name="l10n_gt_first_name"/>
+                            <field name="l10n_gt_middle_name"/>
+                            <field name="l10n_gt_third_name"/>
+                        </group>
+                        <group>
+                            <field name="l10n_gt_first_surname"/>
+                            <field name="l10n_gt_second_surname"/>
+                            <field name="l10n_gt_married_surname"/>
+                        </group>
+                    </group>
+                    <group string="Datos complementarios (MinTrab)">
+                        <group>
+                            <field name="l10n_gt_children_count"/>
+                            <field name="l10n_gt_profession"/>
+                            <field name="l10n_gt_academic_level"/>
+                        </group>
+                        <group>
+                            <field name="l10n_gt_ethnic_group"/>
+                            <field name="l10n_gt_disability_type"/>
+                        </group>
+                    </group>
+                </page>
+            </notebook>
+        </field>
+    </record>
+
+</odoo>

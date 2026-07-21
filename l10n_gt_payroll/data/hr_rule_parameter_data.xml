@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <!-- Parámetros legales versionados por fecha (§7.3).
+         El recálculo histórico usa el valor vigente del período. -->
+
+    <!-- ============ IGSS ============ -->
+    <record id="rp_igss_laboral" model="hr.rule.parameter">
+        <field name="name">IGSS laboral (tasa)</field>
+        <field name="code">l10n_gt_igss_laboral</field>
+    </record>
+    <record id="rpv_igss_laboral_2026" model="hr.rule.parameter.value">
+        <field name="rule_parameter_id" ref="rp_igss_laboral"/>
+        <field name="date_from">2020-01-01</field>
+        <field name="parameter_value">0.0483</field>
+    </record>
+
+    <record id="rp_igss_patronal" model="hr.rule.parameter">
+        <field name="name">IGSS patronal total (tasa)</field>
+        <field name="code">l10n_gt_igss_patronal</field>
+    </record>
+    <record id="rpv_igss_patronal_2026" model="hr.rule.parameter.value">
+        <field name="rule_parameter_id" ref="rp_igss_patronal"/>
+        <field name="date_from">2020-01-01</field>
+        <field name="parameter_value">0.1267</field>
+    </record>
+
+    <!-- Desglose patronal para el reporte de costos de personal (§6.8, §4.15.2) -->
+    <record id="rp_igss_patronal_igss" model="hr.rule.parameter">
+        <field name="name">Cuota patronal IGSS (tasa)</field>
+        <field name="code">l10n_gt_igss_patronal_igss</field>
+    </record>
+    <record id="rpv_igss_patronal_igss" model="hr.rule.parameter.value">
+        <field name="rule_parameter_id" ref="rp_igss_patronal_igss"/>
+        <field name="date_from">2020-01-01</field>
+        <field name="parameter_value">0.1067</field>
+    </record>
+
+    <record id="rp_irtra" model="hr.rule.parameter">
+        <field name="name">IRTRA (tasa)</field>
+        <field name="code">l10n_gt_irtra</field>
+    </record>
+    <record id="rpv_irtra" model="hr.rule.parameter.value">
+        <field name="rule_parameter_id" ref="rp_irtra"/>
+        <field name="date_from">2020-01-01</field>
+        <field name="parameter_value">0.01</field>
+    </record>
+
+    <record id="rp_intecap" model="hr.rule.parameter">
+        <field name="name">INTECAP (tasa)</field>
+        <field name="code">l10n_gt_intecap</field>
+    </record>
+    <record id="rpv_intecap" model="hr.rule.parameter.value">
+        <field name="rule_parameter_id" ref="rp_intecap"/>
+        <field name="date_from">2020-01-01</field>
+        <field name="parameter_value">0.01</field>
+    </record>
+
+    <!-- ============ Bonificación Incentivo ============ -->
+    <record id="rp_bonif_incentivo_min" model="hr.rule.parameter">
+        <field name="name">Bonificación Incentivo mínima (Q)</field>
+        <field name="code">l10n_gt_bonif_incentivo_min</field>
+    </record>
+    <record id="rpv_bonif_incentivo_min" model="hr.rule.parameter.value">
+        <field name="rule_parameter_id" ref="rp_bonif_incentivo_min"/>
+        <field name="date_from">2020-01-01</field>
+        <field name="parameter_value">250.0</field>
+    </record>
+
+    <!-- ============ Horas extra ============ -->
+    <record id="rp_he_diurna" model="hr.rule.parameter">
+        <field name="name">Factor hora extra diurna</field>
+        <field name="code">l10n_gt_he_diurna_factor</field>
+    </record>
+    <record id="rpv_he_diurna" model="hr.rule.parameter.value">
+        <field name="rule_parameter_id" ref="rp_he_diurna"/>
+        <field name="date_from">2020-01-01</field>
+        <field name="parameter_value">1.5</field>
+    </record>
+
+    <record id="rp_he_nocturna" model="hr.rule.parameter">
+        <field name="name">Factor hora extra nocturna</field>
+        <field name="code">l10n_gt_he_nocturna_factor</field>
+    </record>
+    <record id="rpv_he_nocturna" model="hr.rule.parameter.value">
+        <field name="rule_parameter_id" ref="rp_he_nocturna"/>
+        <field name="date_from">2020-01-01</field>
+        <field name="parameter_value">2.0</field>
+    </record>
+
+    <!-- ============ ISR asalariados (§4.10) ============ -->
+    <record id="rp_isr_ded_personal" model="hr.rule.parameter">
+        <field name="name">ISR - Deducción personal sin comprobación (Q)</field>
+        <field name="code">l10n_gt_isr_deduccion_personal</field>
+    </record>
+    <record id="rpv_isr_ded_personal" model="hr.rule.parameter.value">
+        <field name="rule_parameter_id" ref="rp_isr_ded_personal"/>
+        <field name="date_from">2020-01-01</field>
+        <field name="parameter_value">48000.0</field>
+    </record>
+
+    <record id="rp_isr_tramo2_limite" model="hr.rule.parameter">
+        <field name="name">ISR - Límite tramo 1 (Q)</field>
+        <field name="code">l10n_gt_isr_tramo2_limite</field>
+    </record>
+    <record id="rpv_isr_tramo2_limite" model="hr.rule.parameter.value">
+        <field name="rule_parameter_id" ref="rp_isr_tramo2_limite"/>
+        <field name="date_from">2020-01-01</field>
+        <field name="parameter_value">300000.0</field>
+    </record>
+
+    <record id="rp_isr_tramo1_tasa" model="hr.rule.parameter">
+        <field name="name">ISR - Tasa tramo 1</field>
+        <field name="code">l10n_gt_isr_tramo1_tasa</field>
+    </record>
+    <record id="rpv_isr_tramo1_tasa" model="hr.rule.parameter.value">
+        <field name="rule_parameter_id" ref="rp_isr_tramo1_tasa"/>
+        <field name="date_from">2020-01-01</field>
+        <field name="parameter_value">0.05</field>
+    </record>
+
+    <record id="rp_isr_tramo2_tasa" model="hr.rule.parameter">
+        <field name="name">ISR - Tasa tramo 2 (excedente)</field>
+        <field name="code">l10n_gt_isr_tramo2_tasa</field>
+    </record>
+    <record id="rpv_isr_tramo2_tasa" model="hr.rule.parameter.value">
+        <field name="rule_parameter_id" ref="rp_isr_tramo2_tasa"/>
+        <field name="date_from">2020-01-01</field>
+        <field name="parameter_value">0.07</field>
+    </record>
+
+    <record id="rp_isr_tramo2_fijo" model="hr.rule.parameter">
+        <field name="name">ISR - Importe fijo tramo 2 (Q)</field>
+        <field name="code">l10n_gt_isr_tramo2_fijo</field>
+    </record>
+    <record id="rpv_isr_tramo2_fijo" model="hr.rule.parameter.value">
+        <field name="rule_parameter_id" ref="rp_isr_tramo2_fijo"/>
+        <field name="date_from">2020-01-01</field>
+        <field name="parameter_value">15000.0</field>
+    </record>
+
+</odoo>

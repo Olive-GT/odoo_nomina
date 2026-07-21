@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- §6.2 Planilla general de nómina (formato anexo 8.1) -->
+    <template id="report_planilla">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="run">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <div class="text-center">
+                            <h3 t-field="run.company_id.name"/>
+                            <h4>Planilla General de Nómina</h4>
+                            <p><span t-field="run.name"/> —
+                               <span t-field="run.date_start"/> al <span t-field="run.date_end"/></p>
+                        </div>
+                        <table class="table table-sm" style="font-size:10px;">
+                            <thead>
+                                <tr>
+                                    <th>Código</th><th>Empleado</th><th>DPI</th>
+                                    <th>Departamento</th><th>Puesto</th>
+                                    <th class="text-end">Salario ordinario</th>
+                                    <th class="text-end">Total ingresos</th>
+                                    <th class="text-end">Total deducciones</th>
+                                    <th class="text-end">Salario líquido</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="t_ord" t-value="0"/>
+                                <t t-set="t_ing" t-value="0"/>
+                                <t t-set="t_ded" t-value="0"/>
+                                <t t-set="t_net" t-value="0"/>
+                                <tr t-foreach="run.slip_ids" t-as="slip">
+                                    <td><span t-field="slip.employee_id.barcode"/></td>
+                                    <td><span t-field="slip.employee_id.name"/></td>
+                                    <td><span t-field="slip.employee_id.l10n_gt_dpi"/></td>
+                                    <td><span t-field="slip.employee_id.department_id.name"/></td>
+                                    <td><span t-field="slip.employee_id.job_id.name"/></td>
+                                    <td class="text-end"><span t-esc="'%.2f' % slip._l10n_gt_line('SALORD')"/></td>
+                                    <td class="text-end"><span t-esc="'%.2f' % slip._l10n_gt_line('GROSS')"/></td>
+                                    <td class="text-end"><span t-esc="'%.2f' % slip._l10n_gt_lines_by_category('DED','out')"/></td>
+                                    <td class="text-end"><span t-esc="'%.2f' % slip._l10n_gt_line('NET')"/></td>
+                                    <t t-set="t_ord" t-value="t_ord + slip._l10n_gt_line('SALORD')"/>
+                                    <t t-set="t_ing" t-value="t_ing + slip._l10n_gt_line('GROSS')"/>
+                                    <t t-set="t_ded" t-value="t_ded + slip._l10n_gt_lines_by_category('DED','out')"/>
+                                    <t t-set="t_net" t-value="t_net + slip._l10n_gt_line('NET')"/>
+                                </tr>
+                                <tr class="fw-bold">
+                                    <td colspan="5">TOTALES</td>
+                                    <td class="text-end"><span t-esc="'%.2f' % t_ord"/></td>
+                                    <td class="text-end"><span t-esc="'%.2f' % t_ing"/></td>
+                                    <td class="text-end"><span t-esc="'%.2f' % t_ded"/></td>
+                                    <td class="text-end"><span t-esc="'%.2f' % t_net"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

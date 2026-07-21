@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_employee_form_vacations_gt" model="ir.ui.view">
+        <field name="name">hr.employee.form.vacations.gt</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="l10n_gt_hr.view_employee_form_l10n_gt"/>
+        <field name="arch" type="xml">
+            <page name="l10n_gt" position="after">
+                <page string="Vacaciones GT" name="l10n_gt_vacations">
+                    <group>
+                        <field name="l10n_gt_vacation_accrued"/>
+                        <field name="l10n_gt_vacation_taken"/>
+                        <field name="l10n_gt_vacation_pending"/>
+                    </group>
+                    <field name="l10n_gt_vacation_taken_ids">
+                        <list editable="bottom">
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                            <field name="days"/>
+                        </list>
+                    </field>
+                </page>
+            </page>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <!-- Tipos de nómina (§1.4.1) -->
+    <record id="structure_type_gt_mensual" model="hr.payroll.structure.type">
+        <field name="name">Nómina Mensual (Guatemala)</field>
+        <field name="country_id" ref="base.gt"/>
+        <field name="default_schedule_pay">monthly</field>
+    </record>
+
+    <record id="structure_type_gt_quincenal" model="hr.payroll.structure.type">
+        <field name="name">Nómina Quincenal (Guatemala)</field>
+        <field name="country_id" ref="base.gt"/>
+        <field name="default_schedule_pay">bi-weekly</field>
+    </record>
+
+</odoo>

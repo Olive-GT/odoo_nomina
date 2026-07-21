@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_settlement_form" model="ir.ui.view">
+        <field name="name">l10n.gt.settlement.form</field>
+        <field name="model">l10n.gt.settlement</field>
+        <field name="arch" type="xml">
+            <form string="Liquidación laboral">
+                <header>
+                    <button name="action_compute" string="Calcular" type="object"
+                            class="btn-primary" invisible="state not in ('draft','computed')"/>
+                    <button name="action_approve" string="Aprobar" type="object"
+                            class="btn-primary" invisible="state != 'computed'"
+                            groups="l10n_gt_payroll.group_payroll_manager"/>
+                    <button name="action_pay" string="Marcar pagada" type="object"
+                            invisible="state != 'approved'"/>
+                    <button name="action_cancel" string="Anular" type="object"
+                            invisible="state in ('draft','cancelled')"
+                            groups="l10n_gt_payroll.group_payroll_manager"/>
+                    <button name="action_draft" string="A borrador" type="object"
+                            invisible="state != 'cancelled'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,computed,approved,paid"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="employee_id"/>
+                            <field name="contract_id"/>
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                            <field name="last_worked_day"/>
+                            <field name="payment_date"/>
+                        </group>
+                        <group>
+                            <field name="reason"/>
+                            <field name="has_indemnity"/>
+                            <field name="years_worked" readonly="1"/>
+                            <field name="daily_wage" readonly="1"/>
+                            <field name="average_salary" readonly="1"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Cálculo de la liquidación">
+                            <group>
+                                <group string="Prestaciones e ingresos">
+                                    <field name="salario_pendiente"/>
+                                    <field name="bonif_pendiente"/>
+                                    <field name="aguinaldo_prop"/>
+                                    <field name="bono14_prop"/>
+                                    <field name="vacaciones"/>
+                                    <field name="indemnizacion"/>
+                                    <field name="total_ingresos"/>
+                                </group>
+                                <group string="Descuentos">
+                                    <field name="igss_pendiente"/>
+                                    <field name="isr_pendiente"/>
+                                    <field name="anticipos_pendientes"/>
+                                    <field name="prestamos_pendientes"/>
+                                    <field name="total_descuentos"/>
+                                </group>
+                            </group>
+                            <group class="oe_subtotal_footer">
+                                <field name="total_liquidacion" class="oe_subtotal_footer_separator"/>
+                            </group>
+                        </page>
+                        <page string="Observaciones">
+                            <field name="notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_settlement_list" model="ir.ui.view">
+        <field name="name">l10n.gt.settlement.list</field>
+        <field name="model">l10n.gt.settlement</field>
+        <field name="arch" type="xml">
+            <list string="Liquidaciones">
+                <field name="name"/>
+                <field name="employee_id"/>
+                <field name="date_end"/>
+                <field name="reason"/>
+                <field name="total_liquidacion"/>
+                <field name="state" widget="badge"/>
+                <field name="currency_id" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_settlement" model="ir.actions.act_window">
+        <field name="name">Liquidaciones laborales</field>
+        <field name="res_model">l10n.gt.settlement</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'active_test': False}</field>
+    </record>
+
+</odoo>
