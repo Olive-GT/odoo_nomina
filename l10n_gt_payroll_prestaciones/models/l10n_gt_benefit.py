@@ -10,6 +10,7 @@ class L10nGtBenefitRun(models.Model):
 
     _name = "l10n.gt.benefit.run"
     _description = "Planilla de Aguinaldo / Bono 14"
+    _inherit = ["mail.thread"]
     _order = "year desc"
 
     name = fields.Char(compute="_compute_name", store=True)

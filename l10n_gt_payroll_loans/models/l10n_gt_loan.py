@@ -8,6 +8,7 @@ class L10nGtLoan(models.Model):
 
     _name = "l10n.gt.loan"
     _description = "Préstamo / Anticipo de empleado"
+    _inherit = ["mail.thread"]
     _order = "date_grant desc"
 
     name = fields.Char(default="Nuevo", copy=False)

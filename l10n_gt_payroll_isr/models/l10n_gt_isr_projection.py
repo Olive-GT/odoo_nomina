@@ -15,6 +15,7 @@ class L10nGtIsrProjection(models.Model):
 
     _name = "l10n.gt.isr.projection"
     _description = "Proyección de ISR asalariados"
+    _inherit = ["mail.thread"]
     _order = "year desc, employee_id"
     _rec_name = "display_name"
 
@@ -80,7 +81,7 @@ class L10nGtIsrProjection(models.Model):
 
     @api.depends(
         "line_ids.sueldo_afecto", "line_ids.igss", "line_ids.aguinaldo",
-        "line_ids.bono14", "deduction_ids.amount",
+        "line_ids.bono14",
     )
     def _compute_amounts(self):
         for rec in self:
@@ -89,7 +90,10 @@ class L10nGtIsrProjection(models.Model):
             rec.renta_exenta = (sum(rec.line_ids.mapped("aguinaldo"))
                                 + sum(rec.line_ids.mapped("bono14")))
             rec.deduccion_personal = rec._get_param("l10n_gt_isr_deduccion_personal")
-            rec.deducciones_comprobables = sum(rec.deduction_ids.mapped("amount"))
+            deductions = self.env["l10n.gt.isr.deduction"].search([
+                ("employee_id", "=", rec.employee_id.id), ("year", "=", rec.year),
+            ])
+            rec.deducciones_comprobables = sum(deductions.mapped("amount"))
             rec.renta_imponible = max(0.0, (
                 rec.renta_bruta_anual
                 - rec.deduccion_personal
