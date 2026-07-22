@@ -22,7 +22,8 @@ class HrPayslip(models.Model):
         atributo (inputs.CODE) falla. Este helper lee las líneas directamente.
         """
         self.ensure_one()
-        lines = self.input_line_ids.filtered(lambda l: l.code == code)
+        lines = self.input_line_ids.filtered(
+            lambda l: l.input_type_id.code == code)
         return sum(lines.mapped("amount"))
 
     # ------------------------------------------------------------------
