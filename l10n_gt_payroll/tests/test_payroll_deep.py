@@ -114,6 +114,21 @@ class TestPayrollDeep(TransactionCase):
         # 6000/30*14 + 8000/30*16 = 2800 + 4266.67
         self.assertEqual(self._line(slip, "SALORD"), 7066.67)
 
+    def test_salario_quincenal(self):
+        """Quincena: no paga el mes completo; prorratea por días (mensual/30)."""
+        emp = self._employee("Quincena")
+        con = self._contract(emp, 9000.0)
+        slip = self._payslip(emp, con, date_from="2026-08-01", date_to="2026-08-14")
+        # 9000/30 x 14 = 4200
+        self.assertEqual(self._line(slip, "SALORD"), 4200.00)
+
+    def test_mes_completo_paga_salario_completo(self):
+        """Mes calendario completo: paga el salario mensual sin prorratear."""
+        emp = self._employee("MesCompleto")
+        con = self._contract(emp, 9000.0)
+        slip = self._payslip(emp, con, date_from="2026-08-01", date_to="2026-08-31")
+        self.assertEqual(self._line(slip, "SALORD"), 9000.00)
+
     def test_otras_deducciones(self):
         """§4.13: otras deducciones se restan del líquido."""
         emp = self._employee("OtrDed")

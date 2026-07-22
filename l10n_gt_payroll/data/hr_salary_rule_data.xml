@@ -36,12 +36,10 @@ result = payslip._l10n_gt_ordinary_salary()
         <field name="condition_select">none</field>
         <field name="amount_select">code</field>
         <field name="amount_python_compute"><![CDATA[
-# §4.2 Monto pactado (>= mínimo legal), proporcional a días trabajados
+# §4.2 Monto pactado (>= mínimo legal), proporcional a días (mes/quincena)
 minimo = payslip._l10n_gt_param('l10n_gt_bonif_incentivo_min')
 monto = contract.l10n_gt_bonif_incentivo or minimo
-if not payslip._l10n_gt_is_full_period():
-    monto = (monto / 30.0) * payslip._l10n_gt_worked_days()
-result = monto
+result = payslip._l10n_gt_prorate(monto)
 ]]></field>
     </record>
 

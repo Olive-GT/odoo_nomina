@@ -75,6 +75,30 @@ class HrPayslip(models.Model):
         ends_covered = max(ends) >= self.date_to
         return starts_covered and ends_covered
 
+    def _l10n_gt_is_full_calendar_month(self):
+        """True si el período es exactamente un mes calendario completo.
+
+        Distingue una nómina mensual (paga salario completo) de una quincena o
+        de un mes parcial (que se prorratean por días).
+        """
+        self.ensure_one()
+        from calendar import monthrange
+        df, dt = self.date_from, self.date_to
+        if df.day != 1 or df.month != dt.month or df.year != dt.year:
+            return False
+        return dt.day == monthrange(df.year, df.month)[1]
+
+    def _l10n_gt_prorate(self, monthly_amount):
+        """Prorratea un monto mensual al período (salario diario = mensual/30).
+
+        Devuelve el monto completo solo si el período es un mes completo y el
+        empleado estuvo activo todo el mes; en otro caso, mensual/30 x días.
+        """
+        self.ensure_one()
+        if self._l10n_gt_is_full_calendar_month() and self._l10n_gt_is_full_period():
+            return monthly_amount
+        return (monthly_amount / 30.0) * self._l10n_gt_worked_days()
+
     # ------------------------------------------------------------------
     # Salario ordinario con tramos de contrato (§4.1.4)
     # ------------------------------------------------------------------
@@ -91,7 +115,8 @@ class HrPayslip(models.Model):
         if not contracts:
             return self.contract_id.wage if self.contract_id else 0.0
 
-        if len(contracts) == 1 and self._l10n_gt_is_full_period():
+        if (len(contracts) == 1 and self._l10n_gt_is_full_calendar_month()
+                and self._l10n_gt_is_full_period()):
             return contracts.wage
 
         total = 0.0
