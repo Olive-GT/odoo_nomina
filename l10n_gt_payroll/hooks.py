@@ -39,8 +39,16 @@ def clean_structure_rules(env):
         if rule:
             keep |= rule
     strays = structure.rule_ids - keep
-    if strays:
-        strays.unlink()
+    if not strays:
+        return
+    # En instalación nueva se pueden borrar; si ya fueron usadas en recibos
+    # (referencia en hr_payslip_line) no se pueden borrar y se archivan, para
+    # que dejen de aparecer/calcularse sin romper el historial.
+    try:
+        with env.cr.savepoint():
+            strays.unlink()
+    except Exception:
+        strays.write({"active": False})
 
 
 def post_init_hook(env):
