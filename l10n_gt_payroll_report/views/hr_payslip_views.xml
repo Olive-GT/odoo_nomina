@@ -8,8 +8,6 @@
         <field name="arch" type="xml">
             <field name="struct_id" position="after">
                 <field name="l10n_gt_payment_frequency"/>
-                <field name="l10n_gt_first_quincena_amount"
-                       invisible="l10n_gt_payment_frequency != 'biweekly'"/>
             </field>
 
             <notebook position="inside">
@@ -35,6 +33,18 @@
 
                     <!-- QUINCENAL: dos comprobantes -->
                     <group invisible="l10n_gt_payment_frequency != 'biweekly'">
+                        <group string="Reparto de quincenas" colspan="2">
+                            <field name="l10n_gt_quincena_method"/>
+                            <field name="l10n_gt_first_quincena_amount"
+                                   invisible="l10n_gt_quincena_method != 'manual'"/>
+                            <label for="l10n_gt_amount_q1" string="Se pagará"/>
+                            <div class="o_row">
+                                <span>1ª quincena: </span>
+                                <field name="l10n_gt_amount_q1" nolabel="1" class="oe_inline"/>
+                                <span class="mx-2">·  2ª quincena: </span>
+                                <field name="l10n_gt_amount_q2" nolabel="1" class="oe_inline"/>
+                            </div>
+                        </group>
                         <group string="Primera quincena">
                             <button name="%(l10n_gt_payroll_report.action_report_boleta_q1)d"
                                     string="Imprimir comprobante 1ª quincena"
@@ -55,6 +65,19 @@
 
                     <!-- SEMANAL: cuatro comprobantes -->
                     <group invisible="l10n_gt_payment_frequency != 'weekly'">
+                        <group string="Reparto de semanas (líquido ÷ 4)" colspan="2">
+                            <label for="l10n_gt_amount_w1" string="Se pagará"/>
+                            <div class="o_row">
+                                <span>S1: </span>
+                                <field name="l10n_gt_amount_w1" nolabel="1" class="oe_inline"/>
+                                <span class="mx-2">· S2: </span>
+                                <field name="l10n_gt_amount_w2" nolabel="1" class="oe_inline"/>
+                                <span class="mx-2">· S3: </span>
+                                <field name="l10n_gt_amount_w3" nolabel="1" class="oe_inline"/>
+                                <span class="mx-2">· S4: </span>
+                                <field name="l10n_gt_amount_w4" nolabel="1" class="oe_inline"/>
+                            </div>
+                        </group>
                         <group string="Semana 1">
                             <button name="%(l10n_gt_payroll_report.action_report_boleta_w1)d"
                                     string="Imprimir semana 1" type="action"

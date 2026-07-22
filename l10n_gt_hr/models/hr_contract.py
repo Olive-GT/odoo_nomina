@@ -48,15 +48,31 @@ class HrContract(models.Model):
              "el pago del mes: Mensual (1), Quincenal (2) o Semanal (4). Es lo único "
              "que defines para la frecuencia de pago.",
     )
+    l10n_gt_quincena_method = fields.Selection(
+        selection=[
+            ("net_half", "Mitades iguales (líquido ÷ 2)"),
+            ("ordinary_half", "Anticipo del ordinario (1ª = ordinario ÷ 2; 2ª el resto)"),
+            ("manual", "Manual (defino el monto de la 1ª quincena)"),
+        ],
+        string="Método de reparto de quincenas",
+        default="net_half",
+        tracking=True,
+        help="Cómo se divide el pago mensual en las dos quincenas (solo aplica a "
+             "frecuencia Quincenal). El cálculo del mes no cambia; esto solo reparte "
+             "el líquido en dos comprobantes:\n"
+             "- Mitades iguales: cada quincena = líquido del mes ÷ 2.\n"
+             "- Anticipo del ordinario: la 1ª quincena = salario ordinario ÷ 2 "
+             "(anticipo, sin bonificación ni deducciones) y la 2ª liquida el resto "
+             "(suele ser mayor).\n"
+             "- Manual: defines el monto de la 1ª quincena; la 2ª es el resto.",
+    )
     l10n_gt_first_quincena_amount = fields.Monetary(
         "Pago primera quincena (anticipo)",
         tracking=True,
-        help="Monto que recibe el trabajador en la primera quincena (anticipo, "
-             "normalmente sin deducciones). La segunda quincena se calcula como "
-             "el líquido del mes menos este monto, de modo que la boleta siempre "
-             "coincide con lo realmente pagado. Si se deja en 0, se usa el método "
-             "de reparto configurado en la empresa (mitades iguales o anticipo del "
-             "ordinario).",
+        help="Solo con método 'Manual': monto que recibe el trabajador en la primera "
+             "quincena. La segunda quincena se calcula como el líquido del mes menos "
+             "este monto, de modo que la boleta siempre coincide con lo realmente "
+             "pagado.",
     )
     l10n_gt_exclude_overtime = fields.Boolean(
         "Excluir de horas extra",

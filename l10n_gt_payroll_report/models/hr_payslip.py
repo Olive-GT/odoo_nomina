@@ -34,14 +34,63 @@ class HrPayslip(models.Model):
 
     l10n_gt_first_quincena_amount = fields.Monetary(
         "Anticipo 1ª quincena (opcional)",
-        help="Este recibo es del MES completo. Este campo es opcional: sirve solo "
-             "para fijar manualmente cuánto se paga en el PRIMER pago (a mitad de "
+        help="Solo con método 'Manual': cuánto se paga en el PRIMER pago (a mitad de "
              "mes) de este mes en particular. El segundo pago (fin de mes) será el "
-             "líquido del mes menos este monto. Déjalo vacío (0) para que el sistema "
-             "use el monto fijo del contrato o el método de la empresa (mitades "
-             "iguales por defecto). No indica que el recibo sea de una quincena: el "
-             "recibo siempre es mensual y de él imprimes los dos comprobantes.",
+             "líquido del mes menos este monto. Si se deja vacío, se usa el monto fijo "
+             "del contrato. El recibo siempre es mensual y de él imprimes los dos "
+             "comprobantes.",
     )
+
+    # Método de reparto en dos quincenas. Se hereda del contrato (por empleado) y
+    # puede ajustarse en este recibo. No cambia el cálculo mensual, solo cómo se
+    # divide el líquido en los comprobantes.
+    l10n_gt_quincena_method = fields.Selection(
+        selection=[
+            ("net_half", "Mitades iguales (líquido ÷ 2)"),
+            ("ordinary_half", "Anticipo del ordinario (1ª = ordinario ÷ 2; 2ª el resto)"),
+            ("manual", "Manual (defino el monto de la 1ª quincena)"),
+        ],
+        string="Método de reparto de quincenas",
+        compute="_compute_l10n_gt_quincena_method",
+        store=True, readonly=False,
+        help="Cómo se divide el líquido del mes en las dos quincenas. Se hereda del "
+             "contrato; puedes cambiarlo solo para este recibo.",
+    )
+
+    # Montos calculados de cada comprobante (solo visualización, no se almacenan).
+    l10n_gt_amount_q1 = fields.Monetary(
+        "Pago 1ª quincena", compute="_compute_l10n_gt_split")
+    l10n_gt_amount_q2 = fields.Monetary(
+        "Pago 2ª quincena", compute="_compute_l10n_gt_split")
+    l10n_gt_amount_w1 = fields.Monetary(
+        "Pago semana 1", compute="_compute_l10n_gt_split")
+    l10n_gt_amount_w2 = fields.Monetary(
+        "Pago semana 2", compute="_compute_l10n_gt_split")
+    l10n_gt_amount_w3 = fields.Monetary(
+        "Pago semana 3", compute="_compute_l10n_gt_split")
+    l10n_gt_amount_w4 = fields.Monetary(
+        "Pago semana 4", compute="_compute_l10n_gt_split")
+
+    @api.depends("contract_id")
+    def _compute_l10n_gt_quincena_method(self):
+        for slip in self:
+            slip.l10n_gt_quincena_method = (
+                slip.contract_id.l10n_gt_quincena_method
+                or slip.company_id.l10n_gt_quincena_method or "net_half"
+            )
+
+    @api.depends(
+        "line_ids.total", "line_ids.code", "l10n_gt_quincena_method",
+        "l10n_gt_first_quincena_amount", "contract_id.l10n_gt_first_quincena_amount",
+    )
+    def _compute_l10n_gt_split(self):
+        for slip in self:
+            slip.l10n_gt_amount_q1 = slip._l10n_gt_quincena_amount(1)
+            slip.l10n_gt_amount_q2 = slip._l10n_gt_quincena_amount(2)
+            slip.l10n_gt_amount_w1 = slip._l10n_gt_semana_amount(1)
+            slip.l10n_gt_amount_w2 = slip._l10n_gt_semana_amount(2)
+            slip.l10n_gt_amount_w3 = slip._l10n_gt_semana_amount(3)
+            slip.l10n_gt_amount_w4 = slip._l10n_gt_semana_amount(4)
 
     def _l10n_gt_line(self, code):
         """Total de una línea por código (positivo). 0 si no existe."""
@@ -58,30 +107,27 @@ class HrPayslip(models.Model):
         return df.replace(day=16), self.date_to
 
     def _l10n_gt_quincena_amount(self, n):
-        """Monto a pagar en la quincena n.
+        """Monto a pagar en la quincena n, según el método de reparto del recibo.
 
-        Prioridad:
-        1. Monto fijo de primera quincena definido en el contrato (anticipo real).
-           La 2ª quincena = líquido del mes − 1ª, para que la boleta coincida
-           exactamente con lo pagado (sin discrepancias).
-        2. Si no hay monto fijo, se usa el método de la empresa:
-           - ordinary_half: 1ª = salario ordinario / 2 (anticipo); 2ª = resto.
-           - net_half: mitades iguales del líquido (anexo 8.1/8.2).
+        - net_half: mitades iguales del líquido (anexo 8.1/8.2). 1ª = 2ª.
+        - ordinary_half: 1ª = salario ordinario / 2 (anticipo); 2ª = resto.
+        - manual: 1ª = monto fijo del recibo (o del contrato); 2ª = resto.
+
+        En todos los casos la 2ª quincena = líquido del mes − 1ª, para que la boleta
+        coincida exactamente con lo pagado (sin discrepancias).
         """
         self.ensure_one()
         net = self._l10n_gt_line("NET")
-        # Prioridad: monto manual del recibo > monto del contrato > método empresa
-        fixed = self.l10n_gt_first_quincena_amount
-        if not fixed and self.contract_id:
-            fixed = self.contract_id.l10n_gt_first_quincena_amount
-        if fixed and fixed > 0:
-            first = round(min(fixed, net), 2)
-        else:
-            method = self.company_id.l10n_gt_quincena_method or "ordinary_half"
-            if method == "net_half":
-                first = round(net / 2.0, 2)
-            else:  # ordinary_half
-                first = round(self._l10n_gt_line("SALORD") / 2.0, 2)
+        method = self.l10n_gt_quincena_method or "net_half"
+        if method == "manual":
+            fixed = self.l10n_gt_first_quincena_amount
+            if not fixed and self.contract_id:
+                fixed = self.contract_id.l10n_gt_first_quincena_amount
+            first = round(min(fixed, net), 2) if fixed and fixed > 0 else round(net / 2.0, 2)
+        elif method == "ordinary_half":
+            first = round(self._l10n_gt_line("SALORD") / 2.0, 2)
+        else:  # net_half
+            first = round(net / 2.0, 2)
         return first if n == 1 else round(net - first, 2)
 
     def _l10n_gt_semana_dates(self, n):
