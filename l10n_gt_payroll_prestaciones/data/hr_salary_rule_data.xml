@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Provisiones mensuales del pasivo laboral. Se calculan sobre el salario
+         ordinario afecto del mes (categories.GTIGSS = ordinario + horas extra +
+         comisiones, excluye Bonificación Incentivo). NO afectan el líquido (no
+         están en GROSS ni en DED) ni aparecen en el comprobante del empleado;
+         alimentan el reporte de pasivo laboral y (a futuro) la póliza contable. -->
+
+    <record id="rule_prov_aguinaldo" model="hr.salary.rule">
+        <field name="name">Provisión Aguinaldo</field>
+        <field name="code">PROVAGUI</field>
+        <field name="sequence">400</field>
+        <field name="category_id" ref="GT_PROVISION"/>
+        <field name="struct_id" ref="l10n_gt_payroll.structure_gt_ordinaria"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="amount_python_compute"><![CDATA[
+result = categories['GTIGSS'] * payslip._l10n_gt_param('l10n_gt_prov_aguinaldo')
+]]></field>
+    </record>
+
+    <record id="rule_prov_bono14" model="hr.salary.rule">
+        <field name="name">Provisión Bono 14</field>
+        <field name="code">PROVBONO14</field>
+        <field name="sequence">410</field>
+        <field name="category_id" ref="GT_PROVISION"/>
+        <field name="struct_id" ref="l10n_gt_payroll.structure_gt_ordinaria"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="amount_python_compute"><![CDATA[
+result = categories['GTIGSS'] * payslip._l10n_gt_param('l10n_gt_prov_bono14')
+]]></field>
+    </record>
+
+    <record id="rule_prov_indemnizacion" model="hr.salary.rule">
+        <field name="name">Provisión Indemnización</field>
+        <field name="code">PROVINDEM</field>
+        <field name="sequence">420</field>
+        <field name="category_id" ref="GT_PROVISION"/>
+        <field name="struct_id" ref="l10n_gt_payroll.structure_gt_ordinaria"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="amount_python_compute"><![CDATA[
+result = categories['GTIGSS'] * payslip._l10n_gt_param('l10n_gt_prov_indemnizacion')
+]]></field>
+    </record>
+
+</odoo>

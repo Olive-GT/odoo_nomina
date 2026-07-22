@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <!-- Provisiones de pasivo laboral (Aguinaldo, Bono 14, Indemnización).
+         Costo del patrono que se DEVENGA cada mes y se acumula como pasivo por
+         pagar; no se descuenta al empleado ni forma parte del líquido. Categoría
+         propia para que la póliza contable las agrupe/mapee a sus cuentas. -->
+    <record id="GT_PROVISION" model="hr.salary.rule.category">
+        <field name="name">Provisiones / Pasivo laboral (Guatemala)</field>
+        <field name="code">GT_PROVISION</field>
+    </record>
+
+</odoo>

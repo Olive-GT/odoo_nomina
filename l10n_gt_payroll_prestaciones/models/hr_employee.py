@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from datetime import date
+from datetime import date, timedelta
 
 from odoo import api, fields, models
 
@@ -10,6 +10,54 @@ class HrEmployee(models.Model):
     l10n_gt_vacation_taken_ids = fields.One2many(
         "l10n.gt.vacation.taken", "employee_id", string="Vacaciones gozadas",
     )
+
+    # ------------------------------------------------------------------
+    # Pasivo laboral acumulado (provisiones por pagar)
+    # ------------------------------------------------------------------
+    l10n_gt_currency_id = fields.Many2one(
+        related="company_id.currency_id", string="Moneda")
+    l10n_gt_liab_aguinaldo = fields.Monetary(
+        "Aguinaldo por pagar", compute="_compute_labor_liability",
+        currency_field="l10n_gt_currency_id")
+    l10n_gt_liab_bono14 = fields.Monetary(
+        "Bono 14 por pagar", compute="_compute_labor_liability",
+        currency_field="l10n_gt_currency_id")
+    l10n_gt_liab_indemnizacion = fields.Monetary(
+        "Indemnización acumulada", compute="_compute_labor_liability",
+        currency_field="l10n_gt_currency_id")
+    l10n_gt_liab_vacaciones = fields.Monetary(
+        "Vacaciones por pagar", compute="_compute_labor_liability",
+        currency_field="l10n_gt_currency_id")
+    l10n_gt_liab_total = fields.Monetary(
+        "Pasivo laboral total", compute="_compute_labor_liability",
+        currency_field="l10n_gt_currency_id")
+
+    def _l10n_gt_sum_provision(self, code):
+        """Suma de una provisión (PROVAGUI/PROVBONO14/PROVINDEM) devengada en las
+        nóminas ya confirmadas del empleado. A futuro se le restarán los pagos que
+        dren el pasivo (cuando se pague la prestación)."""
+        self.ensure_one()
+        lines = self.env["hr.payslip.line"].search([
+            ("slip_id.employee_id", "=", self.id),
+            ("slip_id.state", "in", ("done", "paid")),
+            ("code", "=", code),
+        ])
+        return sum(lines.mapped("total"))
+
+    @api.depends("l10n_gt_vacation_taken_ids.days")
+    def _compute_labor_liability(self):
+        today = fields.Date.today()
+        for emp in self:
+            emp.l10n_gt_liab_aguinaldo = emp._l10n_gt_sum_provision("PROVAGUI")
+            emp.l10n_gt_liab_bono14 = emp._l10n_gt_sum_provision("PROVBONO14")
+            emp.l10n_gt_liab_indemnizacion = emp._l10n_gt_sum_provision("PROVINDEM")
+            dias_pend = emp._l10n_gt_vacation_pending_at(today)
+            daily = emp._l10n_gt_daily_average(today - timedelta(days=365), today)
+            emp.l10n_gt_liab_vacaciones = dias_pend * daily
+            emp.l10n_gt_liab_total = (
+                emp.l10n_gt_liab_aguinaldo + emp.l10n_gt_liab_bono14
+                + emp.l10n_gt_liab_indemnizacion + emp.l10n_gt_liab_vacaciones
+            )
     l10n_gt_vacation_accrued = fields.Float(
         "Días de vacaciones acumulados", compute="_compute_vacation", store=False,
     )

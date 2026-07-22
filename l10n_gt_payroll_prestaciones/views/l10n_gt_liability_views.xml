@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Tablero de pasivo laboral: cuánto se le debe a cada empleado por
+         prestaciones acumuladas (provisiones devengadas en nóminas confirmadas). -->
+    <record id="view_employee_list_gt_liability" model="ir.ui.view">
+        <field name="name">hr.employee.list.gt.liability</field>
+        <field name="model">hr.employee</field>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <list string="Pasivo laboral" create="false" edit="false">
+                <field name="name"/>
+                <field name="l10n_gt_liab_aguinaldo"/>
+                <field name="l10n_gt_liab_bono14"/>
+                <field name="l10n_gt_liab_indemnizacion"/>
+                <field name="l10n_gt_liab_vacaciones"/>
+                <field name="l10n_gt_liab_total"/>
+                <field name="l10n_gt_currency_id" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_l10n_gt_labor_liability" model="ir.actions.act_window">
+        <field name="name">Pasivo laboral</field>
+        <field name="res_model">hr.employee</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_employee_list_gt_liability"/>
+        <field name="domain">[('contract_id', '!=', False)]</field>
+    </record>
+
+    <menuitem id="menu_l10n_gt_labor_liability"
+              name="Pasivo laboral"
+              parent="l10n_gt_payroll.menu_l10n_gt_payroll_root"
+              action="action_l10n_gt_labor_liability"
+              sequence="60"/>
+
+</odoo>

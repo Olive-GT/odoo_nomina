@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Reporte PDF del pasivo laboral (provisiones acumuladas por pagar). -->
+    <record id="action_report_labor_liability" model="ir.actions.report">
+        <field name="name">Pasivo laboral</field>
+        <field name="model">hr.employee</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">l10n_gt_payroll_prestaciones.report_labor_liability</field>
+        <field name="report_file">l10n_gt_payroll_prestaciones.report_labor_liability</field>
+        <field name="binding_model_id" ref="hr.model_hr_employee"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_labor_liability">
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+                <div class="page">
+                    <div class="text-center py-2 mb-2"
+                         style="background-color:#333333; color:#ffffff;">
+                        <div style="font-size:15px; font-weight:bold;">Pasivo Laboral</div>
+                        <div style="font-size:11px;">Provisiones acumuladas por pagar</div>
+                    </div>
+                    <table class="table table-sm table-bordered" style="font-size:11px;">
+                        <thead style="background-color:#e6e6e6;">
+                            <tr>
+                                <th>Empleado</th>
+                                <th class="text-end">Aguinaldo</th>
+                                <th class="text-end">Bono 14</th>
+                                <th class="text-end">Indemnización</th>
+                                <th class="text-end">Vacaciones</th>
+                                <th class="text-end">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-set="t_agui" t-value="0"/>
+                            <t t-set="t_bono" t-value="0"/>
+                            <t t-set="t_inde" t-value="0"/>
+                            <t t-set="t_vaca" t-value="0"/>
+                            <t t-set="t_tot" t-value="0"/>
+                            <tr t-foreach="docs" t-as="emp">
+                                <t t-set="t_agui" t-value="t_agui + emp.l10n_gt_liab_aguinaldo"/>
+                                <t t-set="t_bono" t-value="t_bono + emp.l10n_gt_liab_bono14"/>
+                                <t t-set="t_inde" t-value="t_inde + emp.l10n_gt_liab_indemnizacion"/>
+                                <t t-set="t_vaca" t-value="t_vaca + emp.l10n_gt_liab_vacaciones"/>
+                                <t t-set="t_tot" t-value="t_tot + emp.l10n_gt_liab_total"/>
+                                <td><span t-field="emp.name"/></td>
+                                <td class="text-end"><span t-esc="'Q{:,.2f}'.format(emp.l10n_gt_liab_aguinaldo)"/></td>
+                                <td class="text-end"><span t-esc="'Q{:,.2f}'.format(emp.l10n_gt_liab_bono14)"/></td>
+                                <td class="text-end"><span t-esc="'Q{:,.2f}'.format(emp.l10n_gt_liab_indemnizacion)"/></td>
+                                <td class="text-end"><span t-esc="'Q{:,.2f}'.format(emp.l10n_gt_liab_vacaciones)"/></td>
+                                <td class="text-end fw-bold"><span t-esc="'Q{:,.2f}'.format(emp.l10n_gt_liab_total)"/></td>
+                            </tr>
+                            <tr class="fw-bold" style="background-color:#e6e6e6;">
+                                <td class="text-end">TOTALES</td>
+                                <td class="text-end"><span t-esc="'Q{:,.2f}'.format(t_agui)"/></td>
+                                <td class="text-end"><span t-esc="'Q{:,.2f}'.format(t_bono)"/></td>
+                                <td class="text-end"><span t-esc="'Q{:,.2f}'.format(t_inde)"/></td>
+                                <td class="text-end"><span t-esc="'Q{:,.2f}'.format(t_vaca)"/></td>
+                                <td class="text-end"><span t-esc="'Q{:,.2f}'.format(t_tot)"/></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p style="font-size:10px; color:#666;" class="mt-2">
+                        Aguinaldo, Bono 14 e Indemnización: provisiones devengadas en
+                        nóminas confirmadas. Vacaciones: días pendientes valuados al
+                        sueldo diario promedio. El pago de cada prestación reducirá el
+                        pasivo correspondiente.
+                    </p>
+                </div>
+            </t>
+        </t>
+    </template>
+
+</odoo>

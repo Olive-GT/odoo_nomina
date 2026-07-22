@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <!-- Tasas de provisión mensual del pasivo laboral (fracción del salario
+         ordinario afecto). Versionadas por fecha como el resto de parámetros. -->
+
+    <!-- Aguinaldo: 1 sueldo por año -> 1/12 mensual. -->
+    <record id="rp_prov_aguinaldo" model="hr.rule.parameter">
+        <field name="name">Provisión Aguinaldo (tasa mensual)</field>
+        <field name="code">l10n_gt_prov_aguinaldo</field>
+    </record>
+    <record id="rpv_prov_aguinaldo" model="hr.rule.parameter.value">
+        <field name="rule_parameter_id" ref="rp_prov_aguinaldo"/>
+        <field name="date_from">2020-01-01</field>
+        <field name="parameter_value">0.083333</field>
+    </record>
+
+    <!-- Bono 14: 1 sueldo por año -> 1/12 mensual. -->
+    <record id="rp_prov_bono14" model="hr.rule.parameter">
+        <field name="name">Provisión Bono 14 (tasa mensual)</field>
+        <field name="code">l10n_gt_prov_bono14</field>
+    </record>
+    <record id="rpv_prov_bono14" model="hr.rule.parameter.value">
+        <field name="rule_parameter_id" ref="rp_prov_bono14"/>
+        <field name="date_from">2020-01-01</field>
+        <field name="parameter_value">0.083333</field>
+    </record>
+
+    <!-- Indemnización: 1 mes por año MÁS la parte proporcional de aguinaldo y
+         bono 14 (base = salario x (1 + 1/12 + 1/12)), es decir ~9.72% mensual.
+         Es una reserva por pasivo contingente (despido injustificado). -->
+    <record id="rp_prov_indemnizacion" model="hr.rule.parameter">
+        <field name="name">Provisión Indemnización (tasa mensual)</field>
+        <field name="code">l10n_gt_prov_indemnizacion</field>
+    </record>
+    <record id="rpv_prov_indemnizacion" model="hr.rule.parameter.value">
+        <field name="rule_parameter_id" ref="rp_prov_indemnizacion"/>
+        <field name="date_from">2020-01-01</field>
+        <field name="parameter_value">0.097222</field>
+    </record>
+
+</odoo>
