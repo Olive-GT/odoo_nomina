@@ -23,7 +23,14 @@ def migrate(cr, version):
         env["hr.contract"].search([
             ("structure_type_id", "=", quincenal.id),
         ]).write({"structure_type_id": mensual.id})
-        quincenal.active = False
+        # hr.payroll.structure.type no tiene 'active'; se elimina el duplicado.
+        # Si algo lo referenciara y no se pudiera borrar, se unifica el nombre.
+        try:
+            with env.cr.savepoint():
+                quincenal.unlink()
+        except Exception:
+            quincenal.name = "Nómina (Guatemala)"
+            quincenal.default_schedule_pay = "monthly"
     if "schedule_pay" in env["hr.contract"]._fields:
         env["hr.contract"].search([
             ("structure_type_id", "=", mensual.id),
