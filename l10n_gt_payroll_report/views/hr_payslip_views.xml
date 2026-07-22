@@ -9,6 +9,35 @@
             <field name="struct_id" position="after">
                 <field name="l10n_gt_first_quincena_amount"/>
             </field>
+
+            <notebook position="inside">
+                <page string="Comprobantes de quincena" name="l10n_gt_comprobantes">
+                    <div class="alert alert-info" role="alert">
+                        Este recibo es el <b>cálculo mensual</b> (para IGSS, ISR,
+                        contabilidad y Libro de Salarios). Desde aquí imprimes el
+                        <b>comprobante de cada quincena</b> para que el trabajador lo
+                        firme, y luego subes el comprobante firmado para su resguardo.
+                    </div>
+                    <group>
+                        <group string="Primera quincena">
+                            <button name="%(l10n_gt_payroll_report.action_report_boleta_q1)d"
+                                    string="Imprimir comprobante 1ª quincena"
+                                    type="action" class="btn-primary" icon="fa-print"/>
+                            <field name="l10n_gt_signed_q1"
+                                   filename="l10n_gt_signed_q1_name"
+                                   string="Comprobante 1ª firmado"/>
+                        </group>
+                        <group string="Segunda quincena">
+                            <button name="%(l10n_gt_payroll_report.action_report_boleta_q2)d"
+                                    string="Imprimir comprobante 2ª quincena"
+                                    type="action" class="btn-primary" icon="fa-print"/>
+                            <field name="l10n_gt_signed_q2"
+                                   filename="l10n_gt_signed_q2_name"
+                                   string="Comprobante 2ª firmado"/>
+                        </group>
+                    </group>
+                </page>
+            </notebook>
         </field>
     </record>
 

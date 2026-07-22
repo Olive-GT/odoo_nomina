@@ -5,6 +5,13 @@ from odoo import fields, models
 class HrPayslip(models.Model):
     _inherit = "hr.payslip"
 
+    # Comprobantes de pago quincenales firmados (se imprimen, se firman y se
+    # suben de vuelta para resguardo). El recibo/cálculo sigue siendo mensual.
+    l10n_gt_signed_q1 = fields.Binary("Comprobante 1ª quincena firmado", attachment=True)
+    l10n_gt_signed_q1_name = fields.Char("Archivo 1ª quincena")
+    l10n_gt_signed_q2 = fields.Binary("Comprobante 2ª quincena firmado", attachment=True)
+    l10n_gt_signed_q2_name = fields.Char("Archivo 2ª quincena")
+
     l10n_gt_first_quincena_amount = fields.Monetary(
         "Anticipo 1ª quincena (opcional)",
         help="Este recibo es del MES completo. Este campo es opcional: sirve solo "
