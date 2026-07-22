@@ -2,15 +2,16 @@
 <odoo>
 
     <!-- Rejilla DEVENGADOS compartida por las boletas mensual/quincena/semana.
-         Espera 'doc'. Formato estándar guatemalteco (anexo 8.2). -->
+         Espera 'doc'. Muestra el cálculo del MES (IGSS/ISR son mensuales). -->
     <template id="l10n_gt_devengados_grid">
         <div class="text-center fw-bold border p-1"
-             style="background-color:#d9d9d9;">DEVENGADOS</div>
+             style="background-color:#1f3864; color:#ffffff; letter-spacing:1px;">
+            DEVENGADOS DEL MES</div>
         <table class="table table-sm table-bordered text-center mb-0"
                style="font-size:11px;">
-            <thead style="background-color:#d9d9d9;">
+            <thead style="background-color:#dbe5f1;">
                 <tr>
-                    <th rowspan="2" class="align-middle">Días<br/>Trabajados</th>
+                    <th rowspan="2" class="align-middle">Días<br/>Pagados</th>
                     <th colspan="2">Devengado</th>
                     <th rowspan="2" class="align-middle">Horas<br/>Extras</th>
                     <th rowspan="2" class="align-middle">Bonificación<br/>Trimestral</th>
@@ -28,7 +29,7 @@
                     <t t-set="extra" t-value="doc._l10n_gt_line('COMIS')"/>
                     <t t-set="he" t-value="doc._l10n_gt_line('HEXTD') + doc._l10n_gt_line('HEXTN')"/>
                     <t t-set="botri" t-value="doc._l10n_gt_line('BONIF')"/>
-                    <td><span t-esc="doc._l10n_gt_worked_days()"/></td>
+                    <td><span t-esc="'%g' % doc._l10n_gt_paid_days()"/></td>
                     <td class="text-end"><span t-esc="('%.2f' % ordi) if ordi else '-'"/></td>
                     <td class="text-end"><span t-esc="('%.2f' % extra) if extra else '-'"/></td>
                     <td class="text-end"><span t-esc="('%.2f' % he) if he else '-'"/></td>
@@ -40,17 +41,31 @@
         </table>
     </template>
 
-    <!-- Encabezado con datos del empleado compartido. Espera 'doc' y 'subtitulo'. -->
+    <!-- Encabezado profesional con banda de empresa + datos del empleado.
+         Espera 'doc' y 'subtitulo'. -->
     <template id="l10n_gt_boleta_encabezado">
-        <div class="text-center mb-2">
-            <h4 class="mb-0" t-field="doc.company_id.name"/>
-            <div t-esc="subtitulo"/>
+        <div class="text-center py-2 mb-0"
+             style="background-color:#1f3864; color:#ffffff;">
+            <div style="font-size:16px; font-weight:bold; letter-spacing:1px;"
+                 t-field="doc.company_id.name"/>
+            <div style="font-size:12px;" t-esc="subtitulo"/>
         </div>
-        <table class="table table-sm table-borderless mb-2" style="font-size:12px;">
+        <table class="table table-sm table-bordered mb-2" style="font-size:11px;">
             <tr>
-                <td><strong>Empleado:</strong> <span t-field="doc.employee_id.name"/></td>
-                <td><strong>DPI:</strong> <span t-field="doc.employee_id.l10n_gt_dpi"/></td>
-                <td><strong>Puesto:</strong> <span t-field="doc.employee_id.job_id.name"/></td>
+                <td style="width:12%; background-color:#dbe5f1;"><strong>Empleado</strong></td>
+                <td style="width:38%;"><span t-field="doc.employee_id.name"/></td>
+                <td style="width:12%; background-color:#dbe5f1;"><strong>No. Recibo</strong></td>
+                <td style="width:13%;"><span t-field="doc.number"/></td>
+                <td style="width:12%; background-color:#dbe5f1;"><strong>Código</strong></td>
+                <td style="width:13%;"><span t-field="doc.employee_id.barcode"/></td>
+            </tr>
+            <tr>
+                <td style="background-color:#dbe5f1;"><strong>DPI</strong></td>
+                <td><span t-field="doc.employee_id.l10n_gt_dpi"/></td>
+                <td style="background-color:#dbe5f1;"><strong>Puesto</strong></td>
+                <td><span t-field="doc.employee_id.job_id.name"/></td>
+                <td style="background-color:#dbe5f1;"><strong>Departamento</strong></td>
+                <td><span t-field="doc.employee_id.department_id.name"/></td>
             </tr>
         </table>
     </template>

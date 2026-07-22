@@ -1,12 +1,23 @@
 # -*- coding: utf-8 -*-
 from calendar import monthrange
 
-from odoo import api, models
+from odoo import api, fields, models
 from odoo.exceptions import ValidationError
 
 
 class HrPayslip(models.Model):
     _inherit = "hr.payslip"
+
+    l10n_gt_unpaid_days = fields.Float(
+        string="Faltas / días no pagados",
+        default=0.0,
+        help="Días no laborados y NO pagados del mes (faltas injustificadas, "
+             "suspensiones sin goce de salario, permisos sin goce). Cada día "
+             "descuenta el salario diario (sueldo mensual ÷ 30) del salario "
+             "ordinario, lo que a su vez reduce el IGSS y el líquido. Las "
+             "vacaciones y suspensiones del IGSS con goce NO se cuentan aquí. "
+             "Después de cambiarlo, vuelve a pulsar 'Calcular hoja'.",
+    )
 
     @api.onchange("employee_id", "contract_id", "date_from", "date_to")
     def _l10n_gt_snap_full_month(self):
@@ -141,6 +152,22 @@ class HrPayslip(models.Model):
             return False
         return dt.day == monthrange(df.year, df.month)[1]
 
+    def _l10n_gt_paid_days(self):
+        """Días efectivamente pagados del período (base GT de 30 días − faltas).
+
+        En Guatemala el salario se liquida sobre un mes de 30 días (sueldo diario =
+        mensual ÷ 30). Un mes completo = 30 días pagados; las faltas no pagadas se
+        restan. Para períodos parciales (ingreso/egreso a mitad de mes) se usa la
+        cobertura del contrato en días calendario (tope 30).
+        """
+        self.ensure_one()
+        unpaid = self.l10n_gt_unpaid_days or 0.0
+        if self._l10n_gt_is_full_calendar_month() and self._l10n_gt_is_full_period():
+            base = 30.0
+        else:
+            base = min(self._l10n_gt_worked_days(), 30.0)
+        return max(base - unpaid, 0.0)
+
     def _l10n_gt_prorate(self, monthly_amount):
         """Prorratea un monto mensual al período (salario diario = mensual/30).
 
@@ -166,18 +193,24 @@ class HrPayslip(models.Model):
         self.ensure_one()
         contracts = self._l10n_gt_contracts_in_period()
         if not contracts:
-            return self.contract_id.wage if self.contract_id else 0.0
-
-        if (len(contracts) == 1 and self._l10n_gt_is_full_calendar_month()
+            base = self.contract_id.wage if self.contract_id else 0.0
+        elif (len(contracts) == 1 and self._l10n_gt_is_full_calendar_month()
                 and self._l10n_gt_is_full_period()):
-            return contracts.wage
+            base = contracts.wage
+        else:
+            base = 0.0
+            for c in contracts:
+                ini = max(self.date_from, c.date_start)
+                fin = min(self.date_to, c.date_end or self.date_to)
+                dias = (fin - ini).days + 1
+                if dias <= 0:
+                    continue
+                base += (c.wage / 30.0) * dias
 
-        total = 0.0
-        for c in contracts:
-            ini = max(self.date_from, c.date_start)
-            fin = min(self.date_to, c.date_end or self.date_to)
-            dias = (fin - ini).days + 1
-            if dias <= 0:
-                continue
-            total += (c.wage / 30.0) * dias
-        return total
+        # Descuento por faltas no pagadas (salario diario = mensual ÷ 30).
+        unpaid = self.l10n_gt_unpaid_days or 0.0
+        if unpaid > 0:
+            ref_wage = self.contract_id.wage if self.contract_id else (
+                contracts[:1].wage if contracts else 0.0)
+            base -= (ref_wage / 30.0) * unpaid
+        return max(base, 0.0)
