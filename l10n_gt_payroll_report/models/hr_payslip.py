@@ -98,11 +98,20 @@ class HrPayslip(models.Model):
     l10n_gt_payment_ids = fields.One2many(
         "l10n.gt.payslip.payment", "payslip_id", string="Pagos del mes")
     l10n_gt_net_amount = fields.Monetary(
-        "Líquido del mes", compute="_compute_l10n_gt_estado_cuenta")
+        "Líquido del mes", compute="_compute_l10n_gt_estado_cuenta", store=True)
     l10n_gt_paid_amount = fields.Monetary(
-        "Total pagado", compute="_compute_l10n_gt_estado_cuenta")
+        "Total pagado", compute="_compute_l10n_gt_estado_cuenta", store=True)
     l10n_gt_pending_amount = fields.Monetary(
-        "Saldo pendiente", compute="_compute_l10n_gt_estado_cuenta")
+        "Saldo pendiente", compute="_compute_l10n_gt_estado_cuenta", store=True)
+    l10n_gt_payment_state = fields.Selection(
+        selection=[
+            ("none", "Sin pagar"),
+            ("partial", "Parcial"),
+            ("paid", "Pagado"),
+        ],
+        string="Estado de pago", compute="_compute_l10n_gt_estado_cuenta",
+        store=True, default="none",
+    )
 
     @api.depends("line_ids.total", "line_ids.code",
                  "l10n_gt_payment_ids.amount", "l10n_gt_payment_ids.paid")
@@ -114,6 +123,12 @@ class HrPayslip(models.Model):
             slip.l10n_gt_net_amount = net
             slip.l10n_gt_paid_amount = paid
             slip.l10n_gt_pending_amount = net - paid
+            if paid <= 0.005:
+                slip.l10n_gt_payment_state = "none"
+            elif paid + 0.005 >= net:
+                slip.l10n_gt_payment_state = "paid"
+            else:
+                slip.l10n_gt_payment_state = "partial"
 
     def action_l10n_gt_generar_pagos(self):
         """Genera la programación de pagos según la frecuencia y el método ya

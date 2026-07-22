@@ -1,6 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <!-- Lista de periodos (nóminas) para ver el estado de pago de un vistazo.
+         Vista propia (priority alta) para no alterar la lista por defecto. -->
+    <record id="view_payslip_list_gt_periodos" model="ir.ui.view">
+        <field name="name">hr.payslip.list.gt.periodos</field>
+        <field name="model">hr.payslip</field>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <list string="Periodos / Nóminas" create="false">
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <field name="l10n_gt_net_amount" string="Líquido"/>
+                <field name="l10n_gt_paid_amount" string="Pagado"/>
+                <field name="l10n_gt_pending_amount" string="Pendiente"
+                       sum="Pendiente total"/>
+                <field name="l10n_gt_payment_state" widget="badge"
+                       decoration-success="l10n_gt_payment_state == 'paid'"
+                       decoration-warning="l10n_gt_payment_state == 'partial'"
+                       decoration-danger="l10n_gt_payment_state == 'none'"/>
+                <field name="state" widget="badge"/>
+                <field name="currency_id" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
     <record id="view_payslip_form_gt_quincena" model="ir.ui.view">
         <field name="name">hr.payslip.form.gt.quincena</field>
         <field name="model">hr.payslip</field>
@@ -45,11 +69,11 @@
                             help="Crea/actualiza las líneas pendientes según la frecuencia y el método. No toca lo ya marcado como pagado."/>
 
                     <field name="l10n_gt_payment_ids" class="mt-2">
-                        <list editable="bottom">
-                            <field name="date"/>
-                            <field name="name"/>
-                            <field name="amount" sum="Total"/>
-                            <field name="paid" widget="boolean_toggle"/>
+                        <list editable="bottom" decoration-muted="paid">
+                            <field name="date" readonly="paid"/>
+                            <field name="name" readonly="paid"/>
+                            <field name="amount" sum="Total" readonly="paid"/>
+                            <field name="paid" widget="boolean_toggle" readonly="paid"/>
                             <field name="reference"/>
                             <field name="signed_doc" filename="signed_doc_name"
                                    widget="binary" string="Firmado"/>

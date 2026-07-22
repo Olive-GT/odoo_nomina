@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Estado de cuenta consolidado del contrato: todos los periodos (nóminas
+         mensuales) con su líquido, lo pagado y el saldo pendiente. -->
+    <record id="action_report_estado_cuenta_contrato" model="ir.actions.report">
+        <field name="name">Estado de cuenta (nómina)</field>
+        <field name="model">hr.contract</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">l10n_gt_payroll_report.report_estado_cuenta_contrato</field>
+        <field name="report_file">l10n_gt_payroll_report.report_estado_cuenta_contrato</field>
+        <field name="binding_model_id" ref="hr_contract.model_hr_contract"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_estado_cuenta_contrato">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <t t-set="slips" t-value="doc._l10n_gt_payslips()"/>
+                    <div class="page">
+                        <div class="text-center py-2 mb-2"
+                             style="background-color:#1f3864; color:#ffffff;">
+                            <div style="font-size:16px; font-weight:bold;"
+                                 t-field="doc.company_id.name"/>
+                            <div style="font-size:12px;">Estado de Cuenta de Nómina</div>
+                        </div>
+
+                        <table class="table table-sm table-bordered mb-3"
+                               style="font-size:11px;">
+                            <tr>
+                                <td style="width:15%; background-color:#dbe5f1;"><strong>Empleado</strong></td>
+                                <td style="width:35%;"><span t-field="doc.employee_id.name"/></td>
+                                <td style="width:15%; background-color:#dbe5f1;"><strong>DPI</strong></td>
+                                <td><span t-field="doc.employee_id.l10n_gt_dpi"/></td>
+                            </tr>
+                            <tr>
+                                <td style="background-color:#dbe5f1;"><strong>Puesto</strong></td>
+                                <td><span t-field="doc.employee_id.job_id.name"/></td>
+                                <td style="background-color:#dbe5f1;"><strong>Contrato desde</strong></td>
+                                <td><span t-field="doc.date_start"/></td>
+                            </tr>
+                        </table>
+
+                        <table class="table table-sm table-bordered"
+                               style="font-size:11px;">
+                            <thead style="background-color:#dbe5f1;">
+                                <tr>
+                                    <th>Periodo</th>
+                                    <th class="text-end">Líquido del mes</th>
+                                    <th class="text-end">Pagado</th>
+                                    <th class="text-end">Pendiente</th>
+                                    <th class="text-center">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="tot_net" t-value="0"/>
+                                <t t-set="tot_paid" t-value="0"/>
+                                <t t-set="tot_pend" t-value="0"/>
+                                <tr t-foreach="slips" t-as="s">
+                                    <t t-set="tot_net" t-value="tot_net + s.l10n_gt_net_amount"/>
+                                    <t t-set="tot_paid" t-value="tot_paid + s.l10n_gt_paid_amount"/>
+                                    <t t-set="tot_pend" t-value="tot_pend + s.l10n_gt_pending_amount"/>
+                                    <td><span t-field="s.date_from"/> al <span t-field="s.date_to"/></td>
+                                    <td class="text-end"><span t-esc="'%.2f' % s.l10n_gt_net_amount"/></td>
+                                    <td class="text-end"><span t-esc="'%.2f' % s.l10n_gt_paid_amount"/></td>
+                                    <td class="text-end"><span t-esc="'%.2f' % s.l10n_gt_pending_amount"/></td>
+                                    <td class="text-center">
+                                        <span t-if="s.l10n_gt_payment_state == 'paid'">Pagado</span>
+                                        <span t-elif="s.l10n_gt_payment_state == 'partial'">Parcial</span>
+                                        <span t-else="">Sin pagar</span>
+                                    </td>
+                                </tr>
+                                <tr t-if="not slips">
+                                    <td colspan="5" class="text-center">Sin periodos registrados.</td>
+                                </tr>
+                                <tr class="fw-bold" style="background-color:#dbe5f1;">
+                                    <td class="text-end">TOTALES</td>
+                                    <td class="text-end"><span t-esc="'%.2f' % tot_net"/></td>
+                                    <td class="text-end"><span t-esc="'%.2f' % tot_paid"/></td>
+                                    <td class="text-end"><span t-esc="'%.2f' % tot_pend"/></td>
+                                    <td/>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <p style="font-size:10px; color:#666;" class="mt-2">
+                            El líquido de cada periodo es el cálculo mensual de la nómina.
+                            El saldo pendiente refleja lo que aún no se ha pagado; los
+                            ajustes por reducción de días afectan únicamente lo pendiente.
+                        </p>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

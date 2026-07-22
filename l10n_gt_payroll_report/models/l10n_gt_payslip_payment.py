@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models
+from odoo.exceptions import UserError
 
 
 class L10nGtPayslipPayment(models.Model):
@@ -39,3 +40,29 @@ class L10nGtPayslipPayment(models.Model):
     def _compute_display_name(self):
         for rec in self:
             rec.display_name = "%s — %.2f" % (rec.name or "Pago", rec.amount or 0.0)
+
+    # --- Inmutabilidad: un pago ya realizado no se puede modificar ni borrar ---
+    _LOCKED_FIELDS = {"amount", "date", "name", "paid", "payslip_id"}
+
+    def write(self, vals):
+        """Una vez marcado 'Pagado', el pago es histórico: solo se permite adjuntar
+        el comprobante firmado o una observación, nunca cambiar monto/fecha/concepto
+        ni revertir el pago. Así los ajustes por días recaen solo sobre lo pendiente
+        y nunca descuadran lo ya entregado."""
+        if self._LOCKED_FIELDS & set(vals):
+            for rec in self:
+                if rec.paid:
+                    raise UserError(
+                        "El pago «%s» ya está marcado como pagado y no se puede "
+                        "modificar ni revertir. Registra un ajuste en una línea "
+                        "pendiente. (Sí puedes adjuntar el comprobante firmado o "
+                        "una observación.)" % (rec.name or "")
+                    )
+        return super().write(vals)
+
+    def unlink(self):
+        if any(rec.paid for rec in self):
+            raise UserError(
+                "No se puede eliminar un pago ya realizado. Lo pagado es histórico."
+            )
+        return super().unlink()
