@@ -1,17 +1,32 @@
 # -*- coding: utf-8 -*-
 from datetime import timedelta
 
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class HrPayslip(models.Model):
     _inherit = "hr.payslip"
 
-    # Frecuencia heredada del contrato (define el desglose de comprobantes).
+    # Frecuencia: se hereda del contrato como valor por defecto, pero es editable
+    # en el recibo (define el desglose de comprobantes: 1 mensual / 2 quincenas /
+    # 4 semanas). No afecta el cálculo, que siempre es mensual.
     l10n_gt_payment_frequency = fields.Selection(
-        related="contract_id.l10n_gt_payment_frequency",
-        string="Frecuencia de pago", readonly=True,
+        selection=[
+            ("monthly", "Mensual"),
+            ("biweekly", "Quincenal"),
+            ("weekly", "Semanal"),
+        ],
+        string="Frecuencia de pago",
+        compute="_compute_l10n_gt_payment_frequency",
+        store=True, readonly=False,
     )
+
+    @api.depends("contract_id")
+    def _compute_l10n_gt_payment_frequency(self):
+        for slip in self:
+            slip.l10n_gt_payment_frequency = (
+                slip.contract_id.l10n_gt_payment_frequency
+                or slip.l10n_gt_payment_frequency or "monthly")
 
     # Comprobantes de pago firmados (se imprimen, se firman y se suben de vuelta
     # para resguardo). El recibo/cálculo sigue siendo mensual.
