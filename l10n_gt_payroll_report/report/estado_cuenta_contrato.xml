@@ -20,7 +20,7 @@
                     <t t-set="slips" t-value="doc._l10n_gt_payslips()"/>
                     <div class="page">
                         <div class="text-center py-2 mb-2"
-                             style="background-color:#1f3864; color:#ffffff;">
+                             style="background-color:#333333; color:#ffffff;">
                             <div style="font-size:16px; font-weight:bold;"
                                  t-field="doc.company_id.name"/>
                             <div style="font-size:12px;">Estado de Cuenta de Nómina</div>
@@ -29,22 +29,22 @@
                         <table class="table table-sm table-bordered mb-3"
                                style="font-size:11px;">
                             <tr>
-                                <td style="width:15%; background-color:#dbe5f1;"><strong>Empleado</strong></td>
+                                <td style="width:15%; background-color:#e6e6e6;"><strong>Empleado</strong></td>
                                 <td style="width:35%;"><span t-field="doc.employee_id.name"/></td>
-                                <td style="width:15%; background-color:#dbe5f1;"><strong>DPI</strong></td>
+                                <td style="width:15%; background-color:#e6e6e6;"><strong>DPI</strong></td>
                                 <td><span t-field="doc.employee_id.l10n_gt_dpi"/></td>
                             </tr>
                             <tr>
-                                <td style="background-color:#dbe5f1;"><strong>Puesto</strong></td>
+                                <td style="background-color:#e6e6e6;"><strong>Puesto</strong></td>
                                 <td><span t-field="doc.employee_id.job_id.name"/></td>
-                                <td style="background-color:#dbe5f1;"><strong>Contrato desde</strong></td>
+                                <td style="background-color:#e6e6e6;"><strong>Contrato desde</strong></td>
                                 <td><span t-field="doc.date_start"/></td>
                             </tr>
                         </table>
 
                         <table class="table table-sm table-bordered"
                                style="font-size:11px;">
-                            <thead style="background-color:#dbe5f1;">
+                            <thead style="background-color:#e6e6e6;">
                                 <tr>
                                     <th>Periodo</th>
                                     <th class="text-end">Líquido del mes</th>
@@ -74,7 +74,7 @@
                                 <tr t-if="not slips">
                                     <td colspan="5" class="text-center">Sin periodos registrados.</td>
                                 </tr>
-                                <tr class="fw-bold" style="background-color:#dbe5f1;">
+                                <tr class="fw-bold" style="background-color:#e6e6e6;">
                                     <td class="text-end">TOTALES</td>
                                     <td class="text-end"><span t-esc="'%.2f' % tot_net"/></td>
                                     <td class="text-end"><span t-esc="'%.2f' % tot_paid"/></td>

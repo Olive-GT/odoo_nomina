@@ -61,7 +61,7 @@
 
             <table class="table table-sm table-bordered text-center mb-0"
                    style="font-size:11px;">
-                <thead style="background-color:#d9d9d9;">
+                <thead style="background-color:#e6e6e6;">
                     <tr>
                         <th>I.S.R.</th>
                         <th>IGSS</th>
@@ -87,7 +87,7 @@
                         <td class="text-end fw-bold"><span t-esc="'%.2f' % doc._l10n_gt_lines_by_category('DED','out')"/></td>
                         <td class="text-end"><span t-esc="'%.2f' % doc._l10n_gt_line('NET')"/></td>
                         <td class="text-end fw-bold"
-                            style="background-color:#d9d9d9;">
+                            style="background-color:#e6e6e6;">
                             <span t-esc="'%.2f' % pagado"/></td>
                     </tr>
                 </tbody>

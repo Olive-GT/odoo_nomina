@@ -39,7 +39,7 @@
 
                         <table class="table table-sm table-bordered mt-2 mb-0"
                                style="font-size:12px;">
-                            <tr class="fw-bold" style="background-color:#1f3864; color:#ffffff;">
+                            <tr class="fw-bold" style="background-color:#333333; color:#ffffff;">
                                 <td>MONTO DE ESTE PAGO (<span t-field="payment.name"/>)</td>
                                 <td class="text-end">
                                     <span t-esc="'%.2f' % payment.amount"/></td>

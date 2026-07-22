@@ -5,11 +5,11 @@
          Espera 'doc'. Muestra el cálculo del MES (IGSS/ISR son mensuales). -->
     <template id="l10n_gt_devengados_grid">
         <div class="text-center fw-bold border p-1"
-             style="background-color:#1f3864; color:#ffffff; letter-spacing:1px;">
+             style="background-color:#333333; color:#ffffff; letter-spacing:1px;">
             DEVENGADOS DEL MES</div>
         <table class="table table-sm table-bordered text-center mb-0"
                style="font-size:11px;">
-            <thead style="background-color:#dbe5f1;">
+            <thead style="background-color:#e6e6e6;">
                 <tr>
                     <th rowspan="2" class="align-middle">Días<br/>Pagados</th>
                     <th colspan="2">Devengado</th>
@@ -45,26 +45,26 @@
          Espera 'doc' y 'subtitulo'. -->
     <template id="l10n_gt_boleta_encabezado">
         <div class="text-center py-2 mb-0"
-             style="background-color:#1f3864; color:#ffffff;">
+             style="background-color:#333333; color:#ffffff;">
             <div style="font-size:16px; font-weight:bold; letter-spacing:1px;"
                  t-field="doc.company_id.name"/>
             <div style="font-size:12px;" t-esc="subtitulo"/>
         </div>
         <table class="table table-sm table-bordered mb-2" style="font-size:11px;">
             <tr>
-                <td style="width:12%; background-color:#dbe5f1;"><strong>Empleado</strong></td>
+                <td style="width:12%; background-color:#e6e6e6;"><strong>Empleado</strong></td>
                 <td style="width:38%;"><span t-field="doc.employee_id.name"/></td>
-                <td style="width:12%; background-color:#dbe5f1;"><strong>No. Recibo</strong></td>
+                <td style="width:12%; background-color:#e6e6e6;"><strong>No. Recibo</strong></td>
                 <td style="width:13%;"><span t-field="doc.number"/></td>
-                <td style="width:12%; background-color:#dbe5f1;"><strong>Código</strong></td>
+                <td style="width:12%; background-color:#e6e6e6;"><strong>Código</strong></td>
                 <td style="width:13%;"><span t-field="doc.employee_id.barcode"/></td>
             </tr>
             <tr>
-                <td style="background-color:#dbe5f1;"><strong>DPI</strong></td>
+                <td style="background-color:#e6e6e6;"><strong>DPI</strong></td>
                 <td><span t-field="doc.employee_id.l10n_gt_dpi"/></td>
-                <td style="background-color:#dbe5f1;"><strong>Puesto</strong></td>
+                <td style="background-color:#e6e6e6;"><strong>Puesto</strong></td>
                 <td><span t-field="doc.employee_id.job_id.name"/></td>
-                <td style="background-color:#dbe5f1;"><strong>Departamento</strong></td>
+                <td style="background-color:#e6e6e6;"><strong>Departamento</strong></td>
                 <td><span t-field="doc.employee_id.department_id.name"/></td>
             </tr>
         </table>
@@ -74,7 +74,7 @@
     <template id="l10n_gt_descuentos_grid">
         <table class="table table-sm table-bordered text-center mb-0"
                style="font-size:11px;">
-            <thead style="background-color:#dbe5f1;">
+            <thead style="background-color:#e6e6e6;">
                 <tr>
                     <th>I.S.R.</th>
                     <th>IGSS</th>
@@ -97,7 +97,7 @@
                     <td class="text-end"><span t-esc="('%.2f' % antic) if antic else '-'"/></td>
                     <td class="text-end"><span t-esc="('%.2f' % otros) if otros else '-'"/></td>
                     <td class="text-end fw-bold"><span t-esc="'%.2f' % doc._l10n_gt_lines_by_category('DED','out')"/></td>
-                    <td class="text-end fw-bold" style="background-color:#dbe5f1;">
+                    <td class="text-end fw-bold" style="background-color:#e6e6e6;">
                         <span t-esc="'%.2f' % doc._l10n_gt_line('NET')"/></td>
                 </tr>
             </tbody>
@@ -108,10 +108,10 @@
          'resaltar' (id de la línea de pago a resaltar). -->
     <template id="l10n_gt_estado_cuenta">
         <div class="text-center fw-bold border p-1 mt-2"
-             style="background-color:#1f3864; color:#ffffff; letter-spacing:1px;">
+             style="background-color:#333333; color:#ffffff; letter-spacing:1px;">
             ESTADO DE CUENTA DEL MES</div>
         <table class="table table-sm table-bordered mb-0" style="font-size:11px;">
-            <thead style="background-color:#dbe5f1;">
+            <thead style="background-color:#e6e6e6;">
                 <tr>
                     <th>Fecha</th>
                     <th>Concepto</th>
@@ -121,7 +121,7 @@
             </thead>
             <tbody>
                 <tr t-foreach="doc.l10n_gt_payment_ids" t-as="pg"
-                    t-att-style="'background-color:#fff2cc;' if resaltar and pg.id == resaltar else ''">
+                    t-att-style="'background-color:#cccccc;' if resaltar and pg.id == resaltar else ''">
                     <td><span t-field="pg.date"/></td>
                     <td><span t-field="pg.name"/></td>
                     <td class="text-end"><span t-esc="'%.2f' % pg.amount"/></td>
@@ -138,7 +138,7 @@
                     <td class="text-end"><span t-esc="'%.2f' % doc.l10n_gt_paid_amount"/></td>
                     <td/>
                 </tr>
-                <tr class="fw-bold" style="background-color:#dbe5f1;">
+                <tr class="fw-bold" style="background-color:#e6e6e6;">
                     <td colspan="2" class="text-end">Saldo pendiente</td>
                     <td class="text-end"><span t-esc="'%.2f' % doc.l10n_gt_pending_amount"/></td>
                     <td/>

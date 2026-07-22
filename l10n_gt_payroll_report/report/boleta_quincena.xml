@@ -45,7 +45,7 @@
             <!-- Fila de descuentos + quincenas -->
             <table class="table table-sm table-bordered text-center mb-0"
                    style="font-size:11px;">
-                <thead style="background-color:#d9d9d9;">
+                <thead style="background-color:#e6e6e6;">
                     <tr>
                         <th>I.S.R.</th>
                         <th>IGSS</th>
@@ -74,9 +74,9 @@
                     </tr>
                     <tr>
                         <td colspan="6" class="text-end fw-bold"
-                            style="background-color:#d9d9d9;">TOTAL (esta quincena)</td>
+                            style="background-color:#e6e6e6;">TOTAL (esta quincena)</td>
                         <td colspan="2" class="text-end fw-bold"
-                            style="background-color:#d9d9d9;">
+                            style="background-color:#e6e6e6;">
                             <span t-esc="'%.2f' % pagado"/></td>
                     </tr>
                 </tbody>
