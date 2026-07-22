@@ -129,8 +129,8 @@ result = payslip._l10n_gt_input('BONIF')
         <field name="struct_id" ref="structure_gt_ordinaria"/>
         <field name="condition_select">none</field>
         <field name="amount_select">code</field>
-        <!-- categories['BASIC'] incluye GTIGSS (categoría hija): ordinario+HE+comisiones -->
-        <field name="amount_python_compute">result = categories['BASIC'] + categories['ALW']</field>
+        <!-- GTIGSS = ordinario+HE+comisiones; ALW = bonif. incentivo + bonif. adicionales -->
+        <field name="amount_python_compute">result = categories['GTIGSS'] + categories['ALW']</field>
     </record>
 
     <!-- 4.9 IGSS laboral -->
@@ -174,7 +174,7 @@ result = -payslip._l10n_gt_input('OTRDED')
         <field name="struct_id" ref="structure_gt_ordinaria"/>
         <field name="condition_select">none</field>
         <field name="amount_select">code</field>
-        <field name="amount_python_compute">result = categories['BASIC'] + categories['ALW'] + categories['DED']</field>
+        <field name="amount_python_compute">result = categories['GTIGSS'] + categories['ALW'] + categories['DED']</field>
     </record>
 
     <!-- 4.15 IGSS patronal (costo empresa, no afecta líquido) -->
