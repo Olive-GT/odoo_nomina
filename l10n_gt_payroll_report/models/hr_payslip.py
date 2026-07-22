@@ -20,21 +20,28 @@ class HrPayslip(models.Model):
         return df.replace(day=16), self.date_to
 
     def _l10n_gt_quincena_amount(self, n):
-        """Monto a pagar en la quincena n, según el método de la empresa.
+        """Monto a pagar en la quincena n.
 
-        - ordinary_half: la 1ª quincena es un anticipo del salario ordinario
-          (ordinario/2) y la 2ª liquida el resto del líquido del mes (incluye la
-          bonificación y todas las deducciones). La 2ª suele ser mayor.
-        - net_half: cada quincena paga la mitad del líquido del mes (como en el
-          anexo 8.1/8.2 del diseño funcional).
+        Prioridad:
+        1. Monto fijo de primera quincena definido en el contrato (anticipo real).
+           La 2ª quincena = líquido del mes − 1ª, para que la boleta coincida
+           exactamente con lo pagado (sin discrepancias).
+        2. Si no hay monto fijo, se usa el método de la empresa:
+           - ordinary_half: 1ª = salario ordinario / 2 (anticipo); 2ª = resto.
+           - net_half: mitades iguales del líquido (anexo 8.1/8.2).
         """
         self.ensure_one()
         net = self._l10n_gt_line("NET")
-        method = self.company_id.l10n_gt_quincena_method or "ordinary_half"
-        if method == "net_half":
-            first = round(net / 2.0, 2)
-        else:  # ordinary_half
-            first = round(self._l10n_gt_line("SALORD") / 2.0, 2)
+        contract = self.contract_id
+        fixed = contract.l10n_gt_first_quincena_amount if contract else 0.0
+        if fixed and fixed > 0:
+            first = round(min(fixed, net), 2)
+        else:
+            method = self.company_id.l10n_gt_quincena_method or "ordinary_half"
+            if method == "net_half":
+                first = round(net / 2.0, 2)
+            else:  # ordinary_half
+                first = round(self._l10n_gt_line("SALORD") / 2.0, 2)
         return first if n == 1 else round(net - first, 2)
 
     def _l10n_gt_lines_by_category(self, category_code, sign="all"):

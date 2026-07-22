@@ -34,6 +34,16 @@ class HrContract(models.Model):
         string="Circunscripción económica",
         tracking=True,
     )
+    l10n_gt_first_quincena_amount = fields.Monetary(
+        "Pago primera quincena (anticipo)",
+        tracking=True,
+        help="Monto que recibe el trabajador en la primera quincena (anticipo, "
+             "normalmente sin deducciones). La segunda quincena se calcula como "
+             "el líquido del mes menos este monto, de modo que la boleta siempre "
+             "coincide con lo realmente pagado. Si se deja en 0, se usa el método "
+             "de reparto configurado en la empresa (mitades iguales o anticipo del "
+             "ordinario).",
+    )
     l10n_gt_exclude_overtime = fields.Boolean(
         "Excluir de horas extra",
         help="Puestos/empleados excluidos del cálculo de horas extra (§4.3.4).",

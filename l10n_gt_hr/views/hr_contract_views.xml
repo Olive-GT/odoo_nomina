@@ -12,6 +12,7 @@
                         <group string="Salario">
                             <field name="l10n_gt_salary_type"/>
                             <field name="l10n_gt_bonif_incentivo"/>
+                            <field name="l10n_gt_first_quincena_amount"/>
                             <field name="l10n_gt_economic_zone_id"/>
                             <field name="l10n_gt_exclude_overtime"/>
                         </group>
