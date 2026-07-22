@@ -1,4 +1,6 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_loan_payroll,loan read payroll,model_l10n_gt_loan,hr_payroll.group_hr_payroll_user,1,0,0,0
+access_loan_line_payroll,loan line read payroll,model_l10n_gt_loan_line,hr_payroll.group_hr_payroll_user,1,0,0,0
 access_loan_user,loan user,model_l10n_gt_loan,l10n_gt_payroll.group_payroll_user,1,1,1,0
 access_loan_manager,loan manager,model_l10n_gt_loan,l10n_gt_payroll.group_payroll_manager,1,1,1,1
 access_loan_line_user,loan line user,model_l10n_gt_loan_line,l10n_gt_payroll.group_payroll_user,1,1,1,1

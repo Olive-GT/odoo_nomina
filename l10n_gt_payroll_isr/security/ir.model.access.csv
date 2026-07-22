@@ -1,4 +1,7 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_isr_projection_payroll,isr projection read payroll,model_l10n_gt_isr_projection,hr_payroll.group_hr_payroll_user,1,0,0,0
+access_isr_projection_line_payroll,isr projection line read payroll,model_l10n_gt_isr_projection_line,hr_payroll.group_hr_payroll_user,1,0,0,0
+access_isr_deduction_payroll,isr deduction read payroll,model_l10n_gt_isr_deduction,hr_payroll.group_hr_payroll_user,1,0,0,0
 access_isr_projection_user,isr projection user,model_l10n_gt_isr_projection,l10n_gt_payroll.group_payroll_user,1,1,1,0
 access_isr_projection_manager,isr projection manager,model_l10n_gt_isr_projection,l10n_gt_payroll.group_payroll_manager,1,1,1,1
 access_isr_projection_line_user,isr projection line user,model_l10n_gt_isr_projection_line,l10n_gt_payroll.group_payroll_user,1,1,1,1

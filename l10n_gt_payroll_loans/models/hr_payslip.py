@@ -35,7 +35,8 @@ class HrPayslip(models.Model):
         for slip in self:
             for loan_type in ("loan", "advance"):
                 lines = slip._l10n_gt_loan_lines_due(loan_type)
-                lines.write({
+                # Efecto de sistema al confirmar: marcar cuotas pagadas con sudo.
+                lines.sudo().write({
                     "state": "paid",
                     "payslip_id": slip.id,
                     "paid_date": slip.date_to,

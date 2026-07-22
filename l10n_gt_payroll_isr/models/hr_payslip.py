@@ -26,7 +26,9 @@ class HrPayslip(models.Model):
         res = super().action_payslip_done()
         for slip in self:
             if slip.employee_id.l10n_gt_isr_applies:
-                self.env["l10n.gt.isr.projection"]._recompute_for(
+                # Efecto de sistema: se ejecuta con privilegios para no exigir
+                # que el usuario que confirma tenga permisos GT de escritura.
+                self.env["l10n.gt.isr.projection"].sudo()._recompute_for(
                     slip.employee_id, slip.date_to.year
                 )
         return res
