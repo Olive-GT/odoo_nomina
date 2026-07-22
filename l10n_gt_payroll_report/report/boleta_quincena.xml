@@ -63,21 +63,21 @@
                         <t t-set="prest" t-value="doc._l10n_gt_line_abs('PREST')"/>
                         <t t-set="antic" t-value="doc._l10n_gt_line_abs('ANTIC')"/>
                         <t t-set="otros" t-value="doc._l10n_gt_line_abs('OTRDED')"/>
-                        <td class="text-end"><span t-esc="('%.2f' % isr) if isr else '-'"/></td>
-                        <td class="text-end"><span t-esc="'%.2f' % doc._l10n_gt_line_abs('IGSSLAB')"/></td>
-                        <td class="text-end"><span t-esc="('%.2f' % prest) if prest else '-'"/></td>
-                        <td class="text-end"><span t-esc="('%.2f' % antic) if antic else '-'"/></td>
-                        <td class="text-end"><span t-esc="('%.2f' % otros) if otros else '-'"/></td>
-                        <td class="text-end fw-bold"><span t-esc="'%.2f' % doc._l10n_gt_lines_by_category('DED','out')"/></td>
-                        <td class="text-end"><span t-esc="'%.2f' % doc._l10n_gt_quincena_amount(1)"/></td>
-                        <td class="text-end"><span t-esc="'%.2f' % doc._l10n_gt_quincena_amount(2)"/></td>
+                        <td class="text-end"><span t-esc="doc._l10n_gt_money(isr) if isr else '-'"/></td>
+                        <td class="text-end"><span t-esc="doc._l10n_gt_money(doc._l10n_gt_line_abs('IGSSLAB'))"/></td>
+                        <td class="text-end"><span t-esc="doc._l10n_gt_money(prest) if prest else '-'"/></td>
+                        <td class="text-end"><span t-esc="doc._l10n_gt_money(antic) if antic else '-'"/></td>
+                        <td class="text-end"><span t-esc="doc._l10n_gt_money(otros) if otros else '-'"/></td>
+                        <td class="text-end fw-bold"><span t-esc="doc._l10n_gt_money(doc._l10n_gt_lines_by_category('DED','out'))"/></td>
+                        <td class="text-end"><span t-esc="doc._l10n_gt_money(doc._l10n_gt_quincena_amount(1))"/></td>
+                        <td class="text-end"><span t-esc="doc._l10n_gt_money(doc._l10n_gt_quincena_amount(2))"/></td>
                     </tr>
                     <tr>
                         <td colspan="6" class="text-end fw-bold"
                             style="background-color:#e6e6e6;">TOTAL (esta quincena)</td>
                         <td colspan="2" class="text-end fw-bold"
                             style="background-color:#e6e6e6;">
-                            <span t-esc="'%.2f' % pagado"/></td>
+                            <span t-esc="doc._l10n_gt_money(pagado)"/></td>
                     </tr>
                 </tbody>
             </table>

@@ -62,9 +62,9 @@
                                     <t t-set="tot_paid" t-value="tot_paid + s.l10n_gt_paid_amount"/>
                                     <t t-set="tot_pend" t-value="tot_pend + s.l10n_gt_pending_amount"/>
                                     <td><span t-field="s.date_from"/> al <span t-field="s.date_to"/></td>
-                                    <td class="text-end"><span t-esc="'%.2f' % s.l10n_gt_net_amount"/></td>
-                                    <td class="text-end"><span t-esc="'%.2f' % s.l10n_gt_paid_amount"/></td>
-                                    <td class="text-end"><span t-esc="'%.2f' % s.l10n_gt_pending_amount"/></td>
+                                    <td class="text-end"><span t-esc="doc._l10n_gt_money(s.l10n_gt_net_amount)"/></td>
+                                    <td class="text-end"><span t-esc="doc._l10n_gt_money(s.l10n_gt_paid_amount)"/></td>
+                                    <td class="text-end"><span t-esc="doc._l10n_gt_money(s.l10n_gt_pending_amount)"/></td>
                                     <td class="text-center">
                                         <span t-if="s.l10n_gt_payment_state == 'paid'">Pagado</span>
                                         <span t-elif="s.l10n_gt_payment_state == 'partial'">Parcial</span>
@@ -76,9 +76,9 @@
                                 </tr>
                                 <tr class="fw-bold" style="background-color:#e6e6e6;">
                                     <td class="text-end">TOTALES</td>
-                                    <td class="text-end"><span t-esc="'%.2f' % tot_net"/></td>
-                                    <td class="text-end"><span t-esc="'%.2f' % tot_paid"/></td>
-                                    <td class="text-end"><span t-esc="'%.2f' % tot_pend"/></td>
+                                    <td class="text-end"><span t-esc="doc._l10n_gt_money(tot_net)"/></td>
+                                    <td class="text-end"><span t-esc="doc._l10n_gt_money(tot_paid)"/></td>
+                                    <td class="text-end"><span t-esc="doc._l10n_gt_money(tot_pend)"/></td>
                                     <td/>
                                 </tr>
                             </tbody>

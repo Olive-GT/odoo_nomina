@@ -14,6 +14,13 @@ class HrContract(models.Model):
         "Pendiente total", compute="_compute_l10n_gt_payslip_stats",
         currency_field="currency_id")
 
+    def _l10n_gt_money(self, amount):
+        """Formatea un monto (símbolo al inicio + separador de miles) para el
+        estado de cuenta consolidado."""
+        self.ensure_one()
+        symbol = (self.company_id.currency_id.symbol or "Q")
+        return "%s%s" % (symbol, "{:,.2f}".format(amount or 0.0))
+
     def _l10n_gt_payslips(self):
         self.ensure_one()
         return self.env["hr.payslip"].search([

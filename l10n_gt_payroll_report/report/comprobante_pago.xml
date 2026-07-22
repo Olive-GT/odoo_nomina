@@ -44,7 +44,7 @@
                                     MONTO DE ESTE PAGO (<span t-field="payment.name"/>)</td>
                                 <td class="text-end"
                                     style="background-color:#333333; color:#ffffff;">
-                                    <span t-esc="'%.2f' % payment.amount"/></td>
+                                    <span t-esc="doc._l10n_gt_money(payment.amount)"/></td>
                             </tr>
                         </table>
 

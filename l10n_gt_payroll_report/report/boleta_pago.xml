@@ -30,12 +30,12 @@
                     <t t-set="he" t-value="doc._l10n_gt_line('HEXTD') + doc._l10n_gt_line('HEXTN')"/>
                     <t t-set="botri" t-value="doc._l10n_gt_line('BONIF')"/>
                     <td><span t-esc="'%g' % doc._l10n_gt_paid_days()"/></td>
-                    <td class="text-end"><span t-esc="('%.2f' % ordi) if ordi else '-'"/></td>
-                    <td class="text-end"><span t-esc="('%.2f' % extra) if extra else '-'"/></td>
-                    <td class="text-end"><span t-esc="('%.2f' % he) if he else '-'"/></td>
-                    <td class="text-end"><span t-esc="('%.2f' % botri) if botri else '-'"/></td>
-                    <td class="text-end"><span t-esc="'%.2f' % doc._l10n_gt_line('BONINC')"/></td>
-                    <td class="text-end fw-bold"><span t-esc="'%.2f' % doc._l10n_gt_line('GROSS')"/></td>
+                    <td class="text-end"><span t-esc="doc._l10n_gt_money(ordi) if ordi else '-'"/></td>
+                    <td class="text-end"><span t-esc="doc._l10n_gt_money(extra) if extra else '-'"/></td>
+                    <td class="text-end"><span t-esc="doc._l10n_gt_money(he) if he else '-'"/></td>
+                    <td class="text-end"><span t-esc="doc._l10n_gt_money(botri) if botri else '-'"/></td>
+                    <td class="text-end"><span t-esc="doc._l10n_gt_money(doc._l10n_gt_line('BONINC'))"/></td>
+                    <td class="text-end fw-bold"><span t-esc="doc._l10n_gt_money(doc._l10n_gt_line('GROSS'))"/></td>
                 </tr>
             </tbody>
         </table>
@@ -91,14 +91,14 @@
                     <t t-set="prest" t-value="doc._l10n_gt_line_abs('PREST')"/>
                     <t t-set="antic" t-value="doc._l10n_gt_line_abs('ANTIC')"/>
                     <t t-set="otros" t-value="doc._l10n_gt_line_abs('OTRDED')"/>
-                    <td class="text-end"><span t-esc="('%.2f' % isr) if isr else '-'"/></td>
-                    <td class="text-end"><span t-esc="'%.2f' % doc._l10n_gt_line_abs('IGSSLAB')"/></td>
-                    <td class="text-end"><span t-esc="('%.2f' % prest) if prest else '-'"/></td>
-                    <td class="text-end"><span t-esc="('%.2f' % antic) if antic else '-'"/></td>
-                    <td class="text-end"><span t-esc="('%.2f' % otros) if otros else '-'"/></td>
-                    <td class="text-end fw-bold"><span t-esc="'%.2f' % doc._l10n_gt_lines_by_category('DED','out')"/></td>
+                    <td class="text-end"><span t-esc="doc._l10n_gt_money(isr) if isr else '-'"/></td>
+                    <td class="text-end"><span t-esc="doc._l10n_gt_money(doc._l10n_gt_line_abs('IGSSLAB'))"/></td>
+                    <td class="text-end"><span t-esc="doc._l10n_gt_money(prest) if prest else '-'"/></td>
+                    <td class="text-end"><span t-esc="doc._l10n_gt_money(antic) if antic else '-'"/></td>
+                    <td class="text-end"><span t-esc="doc._l10n_gt_money(otros) if otros else '-'"/></td>
+                    <td class="text-end fw-bold"><span t-esc="doc._l10n_gt_money(doc._l10n_gt_lines_by_category('DED','out'))"/></td>
                     <td class="text-end fw-bold" style="background-color:#e6e6e6;">
-                        <span t-esc="'%.2f' % doc._l10n_gt_line('NET')"/></td>
+                        <span t-esc="doc._l10n_gt_money(doc._l10n_gt_line('NET'))"/></td>
                 </tr>
             </tbody>
         </table>
@@ -124,23 +124,23 @@
                     t-att-style="'background-color:#cccccc;' if resaltar and pg.id == resaltar else ''">
                     <td><span t-field="pg.date"/></td>
                     <td><span t-field="pg.name"/></td>
-                    <td class="text-end"><span t-esc="'%.2f' % pg.amount"/></td>
+                    <td class="text-end"><span t-esc="doc._l10n_gt_money(pg.amount)"/></td>
                     <td class="text-center">
                         <span t-esc="'Pagado' if pg.paid else 'Pendiente'"/></td>
                 </tr>
                 <tr class="fw-bold">
                     <td colspan="2" class="text-end">Líquido del mes</td>
-                    <td class="text-end"><span t-esc="'%.2f' % doc.l10n_gt_net_amount"/></td>
+                    <td class="text-end"><span t-esc="doc._l10n_gt_money(doc.l10n_gt_net_amount)"/></td>
                     <td/>
                 </tr>
                 <tr class="fw-bold">
                     <td colspan="2" class="text-end">Total pagado</td>
-                    <td class="text-end"><span t-esc="'%.2f' % doc.l10n_gt_paid_amount"/></td>
+                    <td class="text-end"><span t-esc="doc._l10n_gt_money(doc.l10n_gt_paid_amount)"/></td>
                     <td/>
                 </tr>
                 <tr class="fw-bold" style="background-color:#e6e6e6;">
                     <td colspan="2" class="text-end">Saldo pendiente</td>
-                    <td class="text-end"><span t-esc="'%.2f' % doc.l10n_gt_pending_amount"/></td>
+                    <td class="text-end"><span t-esc="doc._l10n_gt_money(doc.l10n_gt_pending_amount)"/></td>
                     <td/>
                 </tr>
             </tbody>

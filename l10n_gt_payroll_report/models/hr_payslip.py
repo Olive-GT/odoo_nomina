@@ -175,6 +175,13 @@ class HrPayslip(models.Model):
                 })
         return True
 
+    def _l10n_gt_money(self, amount):
+        """Formatea un monto para las boletas: símbolo de moneda al inicio y
+        separador de miles (p. ej. Q10,500.00)."""
+        self.ensure_one()
+        symbol = (self.company_id.currency_id.symbol or "Q")
+        return "%s%s" % (symbol, "{:,.2f}".format(amount or 0.0))
+
     def _l10n_gt_line(self, code):
         """Total de una línea por código (positivo). 0 si no existe."""
         self.ensure_one()
