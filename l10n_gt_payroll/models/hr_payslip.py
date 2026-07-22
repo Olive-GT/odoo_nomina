@@ -24,6 +24,16 @@ class HrPayslip(models.Model):
         if self.date_to != last:
             self.date_to = last
 
+    @api.onchange("employee_id", "contract_id")
+    def _l10n_gt_default_struct(self):
+        """Hereda la estructura de cálculo del contrato (auto-rellena la Estructura
+        del recibo), para no tener que seleccionarla a mano."""
+        structure = self.env.ref(
+            "l10n_gt_payroll.structure_gt_ordinaria", raise_if_not_found=False)
+        if (structure and self.contract_id and not self.struct_id
+                and self.contract_id.structure_type_id == structure.type_id):
+            self.struct_id = structure
+
     @api.constrains("employee_id", "date_from", "date_to", "struct_id", "state")
     def _check_l10n_gt_no_duplicate(self):
         """§7.1: no permitir dos nóminas para el mismo empleado y período
