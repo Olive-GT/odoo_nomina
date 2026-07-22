@@ -1,100 +1,129 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- §6.1 Boleta de pago (formato anexo 8.2) -->
+    <!-- Rejilla DEVENGADOS compartida por las boletas mensual/quincena/semana.
+         Espera 'doc'. Formato estándar guatemalteco (anexo 8.2). -->
+    <template id="l10n_gt_devengados_grid">
+        <div class="text-center fw-bold border p-1"
+             style="background-color:#d9d9d9;">DEVENGADOS</div>
+        <table class="table table-sm table-bordered text-center mb-0"
+               style="font-size:11px;">
+            <thead style="background-color:#d9d9d9;">
+                <tr>
+                    <th rowspan="2" class="align-middle">Días<br/>Trabajados</th>
+                    <th colspan="2">Devengado</th>
+                    <th rowspan="2" class="align-middle">Horas<br/>Extras</th>
+                    <th rowspan="2" class="align-middle">Bonificación<br/>Trimestral</th>
+                    <th rowspan="2" class="align-middle">Bonificación<br/>Dto. 37-2001</th>
+                    <th rowspan="2" class="align-middle">Total<br/>Devengados</th>
+                </tr>
+                <tr>
+                    <th>Ordinario</th>
+                    <th>Extra</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <t t-set="ordi" t-value="doc._l10n_gt_line('SALORD')"/>
+                    <t t-set="extra" t-value="doc._l10n_gt_line('COMIS')"/>
+                    <t t-set="he" t-value="doc._l10n_gt_line('HEXTD') + doc._l10n_gt_line('HEXTN')"/>
+                    <t t-set="botri" t-value="doc._l10n_gt_line('BONIF')"/>
+                    <td><span t-esc="doc._l10n_gt_worked_days()"/></td>
+                    <td class="text-end"><span t-esc="('%.2f' % ordi) if ordi else '-'"/></td>
+                    <td class="text-end"><span t-esc="('%.2f' % extra) if extra else '-'"/></td>
+                    <td class="text-end"><span t-esc="('%.2f' % he) if he else '-'"/></td>
+                    <td class="text-end"><span t-esc="('%.2f' % botri) if botri else '-'"/></td>
+                    <td class="text-end"><span t-esc="'%.2f' % doc._l10n_gt_line('BONINC')"/></td>
+                    <td class="text-end fw-bold"><span t-esc="'%.2f' % doc._l10n_gt_line('GROSS')"/></td>
+                </tr>
+            </tbody>
+        </table>
+    </template>
+
+    <!-- Encabezado con datos del empleado compartido. Espera 'doc' y 'subtitulo'. -->
+    <template id="l10n_gt_boleta_encabezado">
+        <div class="text-center mb-2">
+            <h4 class="mb-0" t-field="doc.company_id.name"/>
+            <div t-esc="subtitulo"/>
+        </div>
+        <table class="table table-sm table-borderless mb-2" style="font-size:12px;">
+            <tr>
+                <td><strong>Empleado:</strong> <span t-field="doc.employee_id.name"/></td>
+                <td><strong>DPI:</strong> <span t-field="doc.employee_id.l10n_gt_dpi"/></td>
+                <td><strong>Puesto:</strong> <span t-field="doc.employee_id.job_id.name"/></td>
+            </tr>
+        </table>
+    </template>
+
+    <!-- Pie: valor en letras + conformidad + firma. Espera 'doc' y 'pagado'. -->
+    <template id="l10n_gt_boleta_pie">
+        <p class="mt-2 mb-3" style="font-size:12px;">
+            <strong>Valor en letras:</strong>
+            <span t-esc="doc._l10n_gt_amount_words(pagado)"/>
+        </p>
+        <p style="font-size:11px; text-align:justify;">
+            Recibí de conformidad el importe neto indicado y acepto esta liquidación,
+            la cual cubre la totalidad de los servicios prestados y asignados durante
+            el período a que se refiere.
+        </p>
+        <div class="row mt-5">
+            <div class="col-6 offset-3 text-center">
+                <p class="mb-0">_______________________________</p>
+                <p class="mb-0">Recibí Conforme</p>
+                <p class="fw-bold"><span t-field="doc.employee_id.name"/></p>
+            </div>
+        </div>
+    </template>
+
+    <!-- §6.1 Boleta de pago mensual (formato anexo 8.2) -->
     <template id="report_boleta">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="doc">
                 <t t-call="web.external_layout">
+                    <t t-set="pagado" t-value="doc._l10n_gt_line('NET')"/>
                     <div class="page">
-                        <div class="text-center">
-                            <h3 t-field="doc.company_id.name"/>
-                            <h4>Comprobante de Pago</h4>
+                        <t t-set="subtitulo" t-value="'Comprobante de Pago Mensual'"/>
+                        <t t-call="l10n_gt_payroll_report.l10n_gt_boleta_encabezado"/>
+                        <div class="mb-2" style="font-size:12px;">
+                            <strong>Período:</strong>
+                            <span t-field="doc.date_from"/> al <span t-field="doc.date_to"/>
                         </div>
-                        <table class="table table-sm table-borderless">
-                            <tr>
-                                <td><strong>Empleado:</strong> <span t-field="doc.employee_id.name"/></td>
-                                <td><strong>Código:</strong> <span t-field="doc.employee_id.barcode"/></td>
-                            </tr>
-                            <tr>
-                                <td><strong>DPI:</strong> <span t-field="doc.employee_id.l10n_gt_dpi"/></td>
-                                <td><strong>Puesto:</strong> <span t-field="doc.employee_id.job_id.name"/></td>
-                            </tr>
-                            <tr>
-                                <td><strong>Período:</strong>
-                                    <span t-field="doc.date_from"/> al <span t-field="doc.date_to"/></td>
-                                <td><strong>Departamento:</strong> <span t-field="doc.employee_id.department_id.name"/></td>
-                            </tr>
+
+                        <t t-call="l10n_gt_payroll_report.l10n_gt_devengados_grid"/>
+
+                        <table class="table table-sm table-bordered text-center mb-0"
+                               style="font-size:11px;">
+                            <thead style="background-color:#d9d9d9;">
+                                <tr>
+                                    <th>I.S.R.</th>
+                                    <th>IGSS</th>
+                                    <th>Prestamos</th>
+                                    <th>Anticipos</th>
+                                    <th>Otros</th>
+                                    <th>Total<br/>Descuentos</th>
+                                    <th>Líquido<br/>del Mes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <t t-set="isr" t-value="doc._l10n_gt_line_abs('ISR')"/>
+                                    <t t-set="prest" t-value="doc._l10n_gt_line_abs('PREST')"/>
+                                    <t t-set="antic" t-value="doc._l10n_gt_line_abs('ANTIC')"/>
+                                    <t t-set="otros" t-value="doc._l10n_gt_line_abs('OTRDED')"/>
+                                    <td class="text-end"><span t-esc="('%.2f' % isr) if isr else '-'"/></td>
+                                    <td class="text-end"><span t-esc="'%.2f' % doc._l10n_gt_line_abs('IGSSLAB')"/></td>
+                                    <td class="text-end"><span t-esc="('%.2f' % prest) if prest else '-'"/></td>
+                                    <td class="text-end"><span t-esc="('%.2f' % antic) if antic else '-'"/></td>
+                                    <td class="text-end"><span t-esc="('%.2f' % otros) if otros else '-'"/></td>
+                                    <td class="text-end fw-bold"><span t-esc="'%.2f' % doc._l10n_gt_lines_by_category('DED','out')"/></td>
+                                    <td class="text-end fw-bold"
+                                        style="background-color:#d9d9d9;">
+                                        <span t-esc="'%.2f' % pagado"/></td>
+                                </tr>
+                            </tbody>
                         </table>
 
-                        <div class="row">
-                            <div class="col-6">
-                                <h5>Devengados</h5>
-                                <table class="table table-sm">
-                                    <tr t-foreach="doc.line_ids.filtered(lambda l: l.total &gt; 0 and l.category_id.code in ('GTIGSS','ALW','BASIC'))" t-as="line">
-                                        <td><span t-field="line.name"/></td>
-                                        <td class="text-end"><span t-field="line.total"/></td>
-                                    </tr>
-                                    <tr class="fw-bold">
-                                        <td>Total ingresos</td>
-                                        <td class="text-end"><span t-esc="'%.2f' % doc._l10n_gt_line('GROSS')"/></td>
-                                    </tr>
-                                </table>
-                            </div>
-                            <div class="col-6">
-                                <h5>Deducciones</h5>
-                                <table class="table table-sm">
-                                    <tr t-foreach="doc.line_ids.filtered(lambda l: l.total &lt; 0)" t-as="line">
-                                        <td><span t-field="line.name"/></td>
-                                        <td class="text-end"><span t-esc="'%.2f' % (-line.total)"/></td>
-                                    </tr>
-                                    <tr class="fw-bold">
-                                        <td>Total deducciones</td>
-                                        <td class="text-end">
-                                            <span t-esc="'%.2f' % doc._l10n_gt_lines_by_category('DED','out')"/>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </div>
-                        </div>
-
-                        <div class="row mt-3">
-                            <div class="col-12">
-                                <table class="table table-sm" style="max-width:420px; margin-left:auto;">
-                                    <tr>
-                                        <td>Total deducciones</td>
-                                        <td class="text-end">
-                                            <span t-esc="'%.2f' % doc._l10n_gt_lines_by_category('DED','out')"/>
-                                        </td>
-                                    </tr>
-                                    <tr class="fw-bold">
-                                        <td>Salario líquido (mes)</td>
-                                        <td class="text-end">
-                                            <span t-esc="'%.2f' % doc._l10n_gt_line('NET')"/>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>Primera quincena</td>
-                                        <td class="text-end">
-                                            <span t-esc="'%.2f' % doc._l10n_gt_quincena_amount(1)"/>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>Segunda quincena</td>
-                                        <td class="text-end">
-                                            <span t-esc="'%.2f' % doc._l10n_gt_quincena_amount(2)"/>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </div>
-                        </div>
-
-                        <div class="row mt-5">
-                            <div class="col-6 offset-3 text-center">
-                                <p>_______________________________</p>
-                                <p>Recibí conforme<br/><span t-field="doc.employee_id.name"/></p>
-                            </div>
-                        </div>
+                        <t t-call="l10n_gt_payroll_report.l10n_gt_boleta_pie"/>
                     </div>
                 </t>
             </t>

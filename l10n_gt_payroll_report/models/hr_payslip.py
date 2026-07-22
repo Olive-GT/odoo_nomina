@@ -98,6 +98,35 @@ class HrPayslip(models.Model):
         line = self.line_ids.filtered(lambda l: l.code == code)
         return line.total if line else 0.0
 
+    def _l10n_gt_line_abs(self, code):
+        """Total absoluto de una línea por código (para mostrar deducciones sin
+        signo en la boleta)."""
+        return abs(self._l10n_gt_line(code))
+
+    def _l10n_gt_overtime_hours(self):
+        """Horas extra del período (diurnas + nocturnas), según la cantidad de las
+        líneas HEXTD/HEXTN."""
+        self.ensure_one()
+        lines = self.line_ids.filtered(lambda l: l.code in ("HEXTD", "HEXTN"))
+        return sum(lines.mapped("quantity"))
+
+    def _l10n_gt_amount_words(self, amount):
+        """Monto en letras con formato guatemalteco: 'MIL ... CON NN/100'."""
+        self.ensure_one()
+        amount = abs(amount or 0.0)
+        entero = int(amount)
+        centavos = int(round((amount - entero) * 100))
+        if centavos == 100:  # redondeo hacia arriba
+            entero += 1
+            centavos = 0
+        try:
+            from num2words import num2words
+            palabras = num2words(entero, lang="es").upper()
+        except Exception:
+            palabras = (self.company_id.currency_id.amount_to_text(entero)
+                        or str(entero)).upper()
+        return "%s CON %02d/100" % (palabras, centavos)
+
     def _l10n_gt_quincena_dates(self, n):
         """Fechas de la 1ª (1-15) o 2ª (16-fin) quincena del período."""
         self.ensure_one()

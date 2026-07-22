@@ -44,43 +44,56 @@
     <!-- Cuerpo común: espera 'doc' y 'semana' (1-4) -->
     <template id="boleta_semana_body">
         <t t-set="sd" t-value="doc._l10n_gt_semana_dates(semana)"/>
+        <t t-set="pagado" t-value="doc._l10n_gt_semana_amount(semana)"/>
         <div class="page">
-            <div class="text-center">
-                <h4 t-field="doc.company_id.name"/>
-                <h5>Comprobante de Pago — Semana <span t-esc="semana"/></h5>
+            <t t-set="subtitulo"
+               t-value="'Comprobante de Pago — Semana %s' % semana"/>
+            <t t-call="l10n_gt_payroll_report.l10n_gt_boleta_encabezado"/>
+            <div class="mb-2" style="font-size:12px;">
+                <strong>Mes calculado:</strong>
+                <span t-field="doc.date_from"/> al <span t-field="doc.date_to"/>
+                <span class="mx-3">·</span>
+                <strong>Pago de la semana:</strong>
+                <span t-esc="sd[0]"/> al <span t-esc="sd[1]"/>
             </div>
-            <table class="table table-sm table-borderless">
-                <tr>
-                    <td><strong>Empleado:</strong> <span t-field="doc.employee_id.name"/></td>
-                    <td><strong>DPI:</strong> <span t-field="doc.employee_id.l10n_gt_dpi"/></td>
-                </tr>
-                <tr>
-                    <td colspan="2"><strong>Período de pago:</strong>
-                        <span t-esc="sd[0]"/> al <span t-esc="sd[1]"/></td>
-                </tr>
+
+            <t t-call="l10n_gt_payroll_report.l10n_gt_devengados_grid"/>
+
+            <table class="table table-sm table-bordered text-center mb-0"
+                   style="font-size:11px;">
+                <thead style="background-color:#d9d9d9;">
+                    <tr>
+                        <th>I.S.R.</th>
+                        <th>IGSS</th>
+                        <th>Prestamos</th>
+                        <th>Anticipos</th>
+                        <th>Otros</th>
+                        <th>Total<br/>Descuentos</th>
+                        <th>Líquido<br/>del Mes</th>
+                        <th>A Pagar<br/>(Semana <span t-esc="semana"/>)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <t t-set="isr" t-value="doc._l10n_gt_line_abs('ISR')"/>
+                        <t t-set="prest" t-value="doc._l10n_gt_line_abs('PREST')"/>
+                        <t t-set="antic" t-value="doc._l10n_gt_line_abs('ANTIC')"/>
+                        <t t-set="otros" t-value="doc._l10n_gt_line_abs('OTRDED')"/>
+                        <td class="text-end"><span t-esc="('%.2f' % isr) if isr else '-'"/></td>
+                        <td class="text-end"><span t-esc="'%.2f' % doc._l10n_gt_line_abs('IGSSLAB')"/></td>
+                        <td class="text-end"><span t-esc="('%.2f' % prest) if prest else '-'"/></td>
+                        <td class="text-end"><span t-esc="('%.2f' % antic) if antic else '-'"/></td>
+                        <td class="text-end"><span t-esc="('%.2f' % otros) if otros else '-'"/></td>
+                        <td class="text-end fw-bold"><span t-esc="'%.2f' % doc._l10n_gt_lines_by_category('DED','out')"/></td>
+                        <td class="text-end"><span t-esc="'%.2f' % doc._l10n_gt_line('NET')"/></td>
+                        <td class="text-end fw-bold"
+                            style="background-color:#d9d9d9;">
+                            <span t-esc="'%.2f' % pagado"/></td>
+                    </tr>
+                </tbody>
             </table>
 
-            <table class="table table-sm" style="max-width:420px; margin-left:auto;">
-                <tr>
-                    <td>Salario líquido (mes)</td>
-                    <td class="text-end"><span t-esc="'%.2f' % doc._l10n_gt_line('NET')"/></td>
-                </tr>
-                <tr t-foreach="[1, 2, 3, 4]" t-as="w">
-                    <td>Semana <span t-esc="w"/></td>
-                    <td class="text-end"><span t-esc="'%.2f' % doc._l10n_gt_semana_amount(w)"/></td>
-                </tr>
-                <tr class="fw-bold table-active">
-                    <td>TOTAL A PAGAR (esta semana)</td>
-                    <td class="text-end"><span t-esc="'%.2f' % doc._l10n_gt_semana_amount(semana)"/></td>
-                </tr>
-            </table>
-
-            <div class="row mt-5">
-                <div class="col-6 offset-3 text-center">
-                    <p>_______________________________</p>
-                    <p>Recibí conforme<br/><span t-field="doc.employee_id.name"/></p>
-                </div>
-            </div>
+            <t t-call="l10n_gt_payroll_report.l10n_gt_boleta_pie"/>
         </div>
     </template>
 
