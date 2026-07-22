@@ -73,7 +73,7 @@
                             <field name="date" readonly="paid"/>
                             <field name="name" readonly="paid"/>
                             <field name="amount" sum="Total" readonly="paid"/>
-                            <field name="paid" widget="boolean_toggle" readonly="paid"/>
+                            <field name="paid" widget="boolean_toggle"/>
                             <field name="reference"/>
                             <field name="signed_doc" filename="signed_doc_name"
                                    widget="binary" string="Firmado"/>
