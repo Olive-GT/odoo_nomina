@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Se oculta el campo nativo 'Programar pago' (schedule_pay): en Guatemala el
+         salario y el cálculo son SIEMPRE mensuales, y la frecuencia de pago real se
+         centraliza en el campo propio 'Frecuencia de pago (comprobantes)' de la
+         pestaña Nómina Guatemala. Se mantiene en 'monthly' por debajo para que el
+         salario se muestre "/ mes". -->
+    <record id="view_contract_form_gt_hide_schedule" model="ir.ui.view">
+        <field name="name">hr.contract.form.gt.hide.schedule</field>
+        <field name="model">hr.contract</field>
+        <field name="inherit_id" ref="hr_contract.hr_contract_view_form"/>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <field name="schedule_pay" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </field>
+        </field>
+    </record>
+
+</odoo>

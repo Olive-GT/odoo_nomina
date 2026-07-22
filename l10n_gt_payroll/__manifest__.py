@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     "name": "Guatemala - Nómina",
-    "version": "18.0.1.4.0",
+    "version": "18.0.1.5.0",
     "category": "Human Resources/Payroll",
     "summary": "Reglas, estructuras y parámetros legales de la nómina ordinaria "
                "guatemalteca (IGSS laboral/patronal, Bonificación Incentivo, "
@@ -22,6 +22,7 @@
         "data/hr_payroll_structure_data.xml",
         "data/hr_salary_rule_data.xml",
         "views/menus.xml",
+        "views/hr_contract_views.xml",
         "views/hr_payslip_run_views.xml",
     ],
     "post_init_hook": "post_init_hook",
