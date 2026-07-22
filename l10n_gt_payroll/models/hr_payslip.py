@@ -1,9 +1,34 @@
 # -*- coding: utf-8 -*-
-from odoo import models
+from odoo import api, models
+from odoo.exceptions import ValidationError
 
 
 class HrPayslip(models.Model):
     _inherit = "hr.payslip"
+
+    @api.constrains("employee_id", "date_from", "date_to", "struct_id", "state")
+    def _check_l10n_gt_no_duplicate(self):
+        """§7.1: no permitir dos nóminas para el mismo empleado y período
+        (misma estructura y fechas traslapadas)."""
+        for slip in self.filtered(lambda s: s.state != "cancel"):
+            if not (slip.employee_id and slip.date_from and slip.date_to
+                    and slip.struct_id):
+                continue
+            dup = self.search_count([
+                ("id", "!=", slip.id),
+                ("employee_id", "=", slip.employee_id.id),
+                ("company_id", "=", slip.company_id.id),
+                ("struct_id", "=", slip.struct_id.id),
+                ("state", "!=", "cancel"),
+                ("date_from", "<=", slip.date_to),
+                ("date_to", ">=", slip.date_from),
+            ])
+            if dup:
+                raise ValidationError(
+                    "Ya existe un recibo para %s con la misma estructura y un "
+                    "período que se traslapa. No se permite generar dos nóminas "
+                    "del mismo empleado y período (§7.1)." % slip.employee_id.name
+                )
 
     def _l10n_gt_param(self, code):
         """Valor de un parámetro legal vigente a la fecha del recibo (§7.3).
