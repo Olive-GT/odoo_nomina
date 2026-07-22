@@ -1,10 +1,28 @@
 # -*- coding: utf-8 -*-
+from calendar import monthrange
+
 from odoo import api, models
 from odoo.exceptions import ValidationError
 
 
 class HrPayslip(models.Model):
     _inherit = "hr.payslip"
+
+    @api.onchange("employee_id", "contract_id", "date_from", "date_to")
+    def _l10n_gt_snap_full_month(self):
+        """En Guatemala el período de cálculo es SIEMPRE el mes completo (IGSS e
+        ISR son mensuales). Ajusta automáticamente el período al mes calendario,
+        sin importar el tipo de estructura del contrato. El pago quincenal/semanal
+        se maneja con los comprobantes, no cambiando el período de cálculo."""
+        if not self.date_from:
+            return
+        d = self.date_from
+        first = d.replace(day=1)
+        last = d.replace(day=monthrange(d.year, d.month)[1])
+        if self.date_from != first:
+            self.date_from = first
+        if self.date_to != last:
+            self.date_to = last
 
     @api.constrains("employee_id", "date_from", "date_to", "struct_id", "state")
     def _check_l10n_gt_no_duplicate(self):
