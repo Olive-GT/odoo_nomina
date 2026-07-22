@@ -92,6 +92,74 @@ class HrPayslip(models.Model):
             slip.l10n_gt_amount_w3 = slip._l10n_gt_semana_amount(3)
             slip.l10n_gt_amount_w4 = slip._l10n_gt_semana_amount(4)
 
+    # ------------------------------------------------------------------
+    # Estado de cuenta (pagos del mes)
+    # ------------------------------------------------------------------
+    l10n_gt_payment_ids = fields.One2many(
+        "l10n.gt.payslip.payment", "payslip_id", string="Pagos del mes")
+    l10n_gt_net_amount = fields.Monetary(
+        "Líquido del mes", compute="_compute_l10n_gt_estado_cuenta")
+    l10n_gt_paid_amount = fields.Monetary(
+        "Total pagado", compute="_compute_l10n_gt_estado_cuenta")
+    l10n_gt_pending_amount = fields.Monetary(
+        "Saldo pendiente", compute="_compute_l10n_gt_estado_cuenta")
+
+    @api.depends("line_ids.total", "line_ids.code",
+                 "l10n_gt_payment_ids.amount", "l10n_gt_payment_ids.paid")
+    def _compute_l10n_gt_estado_cuenta(self):
+        for slip in self:
+            net = slip._l10n_gt_line("NET")
+            paid = sum(slip.l10n_gt_payment_ids
+                       .filtered("paid").mapped("amount"))
+            slip.l10n_gt_net_amount = net
+            slip.l10n_gt_paid_amount = paid
+            slip.l10n_gt_pending_amount = net - paid
+
+    def action_l10n_gt_generar_pagos(self):
+        """Genera la programación de pagos según la frecuencia y el método ya
+        definidos en el contrato/recibo. No marca los pagos como pagados: es el
+        calendario sugerido, que el usuario confirma marcando 'Pagado' conforme
+        entrega cada pago. Reemplaza las líneas aún NO pagadas para no alterar el
+        historial de lo ya entregado."""
+        for slip in self:
+            # Conserva lo ya pagado; regenera solo lo pendiente.
+            slip.l10n_gt_payment_ids.filtered(lambda p: not p.paid).unlink()
+            paid_total = sum(slip.l10n_gt_payment_ids
+                             .filtered("paid").mapped("amount"))
+            freq = slip.l10n_gt_payment_frequency or "monthly"
+            vals = []
+            if freq == "biweekly":
+                for n in (1, 2):
+                    fecha = slip._l10n_gt_quincena_dates(n)[1]
+                    monto = slip._l10n_gt_quincena_amount(n)
+                    vals.append((n, "%s quincena" % ("Primera" if n == 1 else "Segunda"),
+                                 fecha, monto))
+            elif freq == "weekly":
+                for n in (1, 2, 3, 4):
+                    fecha = slip._l10n_gt_semana_dates(n)[1]
+                    monto = slip._l10n_gt_semana_amount(n)
+                    vals.append((n, "Semana %s" % n, fecha, monto))
+            else:  # monthly
+                vals.append((1, "Pago del mes", slip.date_to,
+                             slip._l10n_gt_line("NET")))
+            # Descuenta de la programación lo que ya se haya pagado, para que la
+            # suma de pendientes + pagados cuadre con el líquido.
+            restante_pagado = paid_total
+            for _seq, concepto, fecha, monto in vals:
+                aplica = min(restante_pagado, monto)
+                restante_pagado -= aplica
+                pendiente = round(monto - aplica, 2)
+                if pendiente <= 0:
+                    continue
+                slip.l10n_gt_payment_ids.create({
+                    "payslip_id": slip.id,
+                    "name": concepto,
+                    "date": fecha,
+                    "amount": pendiente,
+                    "paid": False,
+                })
+        return True
+
     def _l10n_gt_line(self, code):
         """Total de una línea por código (positivo). 0 si no existe."""
         self.ensure_one()

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Comprobante de un pago concreto del estado de cuenta. Lo firma el
+         trabajador al recibir ese pago. Muestra el cálculo del mes (referencia),
+         el estado de cuenta y el monto de ESTE pago (valor en letras). -->
+    <record id="action_report_comprobante_pago" model="ir.actions.report">
+        <field name="name">Comprobante de pago</field>
+        <field name="model">l10n.gt.payslip.payment</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">l10n_gt_payroll_report.report_comprobante_pago</field>
+        <field name="report_file">l10n_gt_payroll_report.report_comprobante_pago</field>
+        <field name="binding_model_id" ref="model_l10n_gt_payslip_payment"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_comprobante_pago">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="payment">
+                <t t-call="web.external_layout">
+                    <t t-set="doc" t-value="payment.payslip_id"/>
+                    <t t-set="pagado" t-value="payment.amount"/>
+                    <t t-set="resaltar" t-value="payment.id"/>
+                    <div class="page">
+                        <t t-set="subtitulo"
+                           t-value="'Comprobante de Pago — ' + (payment.name or '')"/>
+                        <t t-call="l10n_gt_payroll_report.l10n_gt_boleta_encabezado"/>
+                        <div class="mb-2" style="font-size:12px;">
+                            <strong>Mes calculado:</strong>
+                            <span t-field="doc.date_from"/> al <span t-field="doc.date_to"/>
+                            <span class="mx-3">·</span>
+                            <strong>Fecha de este pago:</strong>
+                            <span t-field="payment.date"/>
+                        </div>
+
+                        <t t-call="l10n_gt_payroll_report.l10n_gt_devengados_grid"/>
+                        <t t-call="l10n_gt_payroll_report.l10n_gt_descuentos_grid"/>
+                        <t t-call="l10n_gt_payroll_report.l10n_gt_estado_cuenta"/>
+
+                        <table class="table table-sm table-bordered mt-2 mb-0"
+                               style="font-size:12px;">
+                            <tr class="fw-bold" style="background-color:#1f3864; color:#ffffff;">
+                                <td>MONTO DE ESTE PAGO (<span t-field="payment.name"/>)</td>
+                                <td class="text-end">
+                                    <span t-esc="'%.2f' % payment.amount"/></td>
+                            </tr>
+                        </table>
+
+                        <t t-call="l10n_gt_payroll_report.l10n_gt_boleta_pie"/>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

@@ -5,6 +5,18 @@ from odoo import models
 class HrPayslip(models.Model):
     _inherit = "hr.payslip"
 
+    def compute_sheet(self):
+        """Antes de calcular las líneas, asegura que exista/actualice la proyección
+        de ISR vigente, para que la retención aparezca ya en BORRADOR (no solo al
+        confirmar). La proyección estima con el salario del contrato los meses sin
+        nómina confirmada, así que da un ISR correcto desde el primer cálculo."""
+        for slip in self:
+            if slip.employee_id.l10n_gt_isr_applies and slip.date_to:
+                self.env["l10n.gt.isr.projection"].sudo()._recompute_for(
+                    slip.employee_id, slip.date_to.year
+                )
+        return super().compute_sheet()
+
     def _l10n_gt_isr_retencion(self):
         """Retención mensual de ISR desde la proyección vigente (§4.10).
 

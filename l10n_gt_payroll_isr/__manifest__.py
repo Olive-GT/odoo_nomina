@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     "name": "Guatemala - Nómina ISR Asalariados",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.1.0",
     "category": "Human Resources/Payroll",
     "summary": "Proyección anual del ISR asalariados y su retención mensual (§4.10).",
     "author": "URBOP / OliveGT",

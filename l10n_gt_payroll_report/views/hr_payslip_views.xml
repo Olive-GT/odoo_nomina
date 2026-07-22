@@ -12,102 +12,53 @@
             </field>
 
             <notebook position="inside">
-                <page string="Comprobantes de pago" name="l10n_gt_comprobantes">
+                <page string="Estado de cuenta / Pagos" name="l10n_gt_estado_cuenta">
                     <div class="alert alert-info" role="alert">
-                        Este recibo es el <b>cálculo mensual</b> (para IGSS, ISR,
-                        contabilidad y Libro de Salarios). Según la <b>frecuencia de
-                        pago del contrato</b>, imprime el/los comprobante(s), el
-                        trabajador los firma, y subes el firmado para resguardo.
+                        El recibo calcula el <b>líquido del mes</b> (IGSS, ISR,
+                        contabilidad y Libro de Salarios). Aquí llevas el
+                        <b>estado de cuenta</b>: registra cada pago y márcalo como
+                        <b>Pagado</b> al entregarlo. El <b>saldo pendiente</b> =
+                        líquido − pagado; si reduces días (faltas) el líquido baja y
+                        la reducción recae sobre el saldo pendiente, sin afectar lo
+                        ya pagado. Imprime el comprobante de cada pago para que el
+                        trabajador lo firme.
                     </div>
 
-                    <!-- MENSUAL: una boleta -->
-                    <group invisible="l10n_gt_payment_frequency != 'monthly'">
-                        <group string="Mes">
-                            <button name="%(l10n_gt_payroll_report.action_report_boleta)d"
-                                    string="Imprimir boleta del mes" type="action"
-                                    class="btn-primary" icon="fa-print"/>
-                            <field name="l10n_gt_signed_month"
-                                   filename="l10n_gt_signed_month_name"
-                                   string="Boleta firmada"/>
-                        </group>
-                    </group>
-
-                    <!-- QUINCENAL: dos comprobantes -->
-                    <group invisible="l10n_gt_payment_frequency != 'biweekly'">
-                        <group string="Reparto de quincenas" colspan="2">
-                            <field name="l10n_gt_quincena_method"/>
+                    <group>
+                        <group string="Reparto (según el contrato)">
+                            <field name="l10n_gt_payment_frequency"/>
+                            <field name="l10n_gt_quincena_method"
+                                   invisible="l10n_gt_payment_frequency != 'biweekly'"/>
                             <field name="l10n_gt_first_quincena_amount"
-                                   invisible="l10n_gt_quincena_method != 'manual'"/>
-                            <label for="l10n_gt_amount_q1" string="Se pagará"/>
-                            <div class="o_row">
-                                <span>1ª quincena: </span>
-                                <field name="l10n_gt_amount_q1" nolabel="1" class="oe_inline"/>
-                                <span class="mx-2">·  2ª quincena: </span>
-                                <field name="l10n_gt_amount_q2" nolabel="1" class="oe_inline"/>
-                            </div>
+                                   invisible="l10n_gt_payment_frequency != 'biweekly' or l10n_gt_quincena_method != 'manual'"/>
                         </group>
-                        <group string="Primera quincena">
-                            <button name="%(l10n_gt_payroll_report.action_report_boleta_q1)d"
-                                    string="Imprimir comprobante 1ª quincena"
-                                    type="action" class="btn-primary" icon="fa-print"/>
-                            <field name="l10n_gt_signed_q1"
-                                   filename="l10n_gt_signed_q1_name"
-                                   string="1ª firmado"/>
-                        </group>
-                        <group string="Segunda quincena">
-                            <button name="%(l10n_gt_payroll_report.action_report_boleta_q2)d"
-                                    string="Imprimir comprobante 2ª quincena"
-                                    type="action" class="btn-primary" icon="fa-print"/>
-                            <field name="l10n_gt_signed_q2"
-                                   filename="l10n_gt_signed_q2_name"
-                                   string="2ª firmado"/>
+                        <group string="Resumen">
+                            <field name="l10n_gt_net_amount"/>
+                            <field name="l10n_gt_paid_amount"/>
+                            <field name="l10n_gt_pending_amount"/>
                         </group>
                     </group>
 
-                    <!-- SEMANAL: cuatro comprobantes -->
-                    <group invisible="l10n_gt_payment_frequency != 'weekly'">
-                        <group string="Reparto de semanas (líquido ÷ 4)" colspan="2">
-                            <label for="l10n_gt_amount_w1" string="Se pagará"/>
-                            <div class="o_row">
-                                <span>S1: </span>
-                                <field name="l10n_gt_amount_w1" nolabel="1" class="oe_inline"/>
-                                <span class="mx-2">· S2: </span>
-                                <field name="l10n_gt_amount_w2" nolabel="1" class="oe_inline"/>
-                                <span class="mx-2">· S3: </span>
-                                <field name="l10n_gt_amount_w3" nolabel="1" class="oe_inline"/>
-                                <span class="mx-2">· S4: </span>
-                                <field name="l10n_gt_amount_w4" nolabel="1" class="oe_inline"/>
-                            </div>
-                        </group>
-                        <group string="Semana 1">
-                            <button name="%(l10n_gt_payroll_report.action_report_boleta_w1)d"
-                                    string="Imprimir semana 1" type="action"
-                                    class="btn-primary" icon="fa-print"/>
-                            <field name="l10n_gt_signed_w1"
-                                   filename="l10n_gt_signed_w1_name" string="S1 firmado"/>
-                        </group>
-                        <group string="Semana 2">
-                            <button name="%(l10n_gt_payroll_report.action_report_boleta_w2)d"
-                                    string="Imprimir semana 2" type="action"
-                                    class="btn-primary" icon="fa-print"/>
-                            <field name="l10n_gt_signed_w2"
-                                   filename="l10n_gt_signed_w2_name" string="S2 firmado"/>
-                        </group>
-                        <group string="Semana 3">
-                            <button name="%(l10n_gt_payroll_report.action_report_boleta_w3)d"
-                                    string="Imprimir semana 3" type="action"
-                                    class="btn-primary" icon="fa-print"/>
-                            <field name="l10n_gt_signed_w3"
-                                   filename="l10n_gt_signed_w3_name" string="S3 firmado"/>
-                        </group>
-                        <group string="Semana 4">
-                            <button name="%(l10n_gt_payroll_report.action_report_boleta_w4)d"
-                                    string="Imprimir semana 4" type="action"
-                                    class="btn-primary" icon="fa-print"/>
-                            <field name="l10n_gt_signed_w4"
-                                   filename="l10n_gt_signed_w4_name" string="S4 firmado"/>
-                        </group>
-                    </group>
+                    <button name="action_l10n_gt_generar_pagos" type="object"
+                            string="Generar programación de pagos" icon="fa-refresh"
+                            class="btn-secondary"
+                            help="Crea/actualiza las líneas pendientes según la frecuencia y el método. No toca lo ya marcado como pagado."/>
+
+                    <field name="l10n_gt_payment_ids" class="mt-2">
+                        <list editable="bottom">
+                            <field name="date"/>
+                            <field name="name"/>
+                            <field name="amount" sum="Total"/>
+                            <field name="paid" widget="boolean_toggle"/>
+                            <field name="reference"/>
+                            <field name="signed_doc" filename="signed_doc_name"
+                                   widget="binary" string="Firmado"/>
+                            <field name="signed_doc_name" column_invisible="1"/>
+                            <button name="%(l10n_gt_payroll_report.action_report_comprobante_pago)d"
+                                    type="action" icon="fa-print"
+                                    string="Comprobante" class="btn-link"/>
+                        </list>
+                    </field>
                 </page>
             </notebook>
         </field>

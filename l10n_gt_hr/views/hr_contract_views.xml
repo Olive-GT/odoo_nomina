@@ -18,6 +18,8 @@
                             <field name="l10n_gt_first_quincena_amount"
                                    invisible="l10n_gt_payment_frequency != 'biweekly' or l10n_gt_quincena_method != 'manual'"/>
                             <field name="l10n_gt_economic_zone_id"/>
+                            <field name="l10n_gt_igss_applies"/>
+                            <field name="l10n_gt_isr_applies"/>
                             <field name="l10n_gt_exclude_overtime"/>
                         </group>
                         <group string="Documentación">
