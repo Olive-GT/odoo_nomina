@@ -58,12 +58,12 @@ result = monto
         <field name="l10n_gt_afecto_igss" eval="True"/>
         <field name="l10n_gt_afecto_isr" eval="True"/>
         <field name="amount_python_compute"><![CDATA[
-# §4.3.2 valor hora ordinaria x factor x horas
+# §4.3.2 valor hora ordinaria x factor; el total = result_qty(horas) x result
 factor = payslip._l10n_gt_param('l10n_gt_he_diurna_factor')
 horas = payslip._l10n_gt_input('HE_DIURNA')
 valor_hora = contract.wage / 240.0
 result_qty = horas
-result = valor_hora * factor * horas
+result = valor_hora * factor
 ]]></field>
     </record>
 
@@ -84,7 +84,7 @@ factor = payslip._l10n_gt_param('l10n_gt_he_nocturna_factor')
 horas = payslip._l10n_gt_input('HE_NOCTURNA')
 valor_hora = contract.wage / 240.0
 result_qty = horas
-result = valor_hora * factor * horas
+result = valor_hora * factor
 ]]></field>
     </record>
 

@@ -31,13 +31,15 @@ class TestBenefits(TransactionCase):
 
     def test_ventana_aguinaldo(self):
         """§4.7: aguinaldo del 01-dic al 30-nov."""
-        run = self._run("aguinaldo")
+        run = self.env["l10n.gt.benefit.run"].create({
+            "benefit_type": "aguinaldo", "year": 2026})
         self.assertEqual(run.date_from, date(2025, 12, 1))
         self.assertEqual(run.date_to, date(2026, 11, 30))
 
     def test_ventana_bono14(self):
         """§4.8: bono 14 del 01-jul al 30-jun."""
-        run = self._run("bono14")
+        run = self.env["l10n.gt.benefit.run"].create({
+            "benefit_type": "bono14", "year": 2026})
         self.assertEqual(run.date_from, date(2025, 7, 1))
         self.assertEqual(run.date_to, date(2026, 6, 30))
 
