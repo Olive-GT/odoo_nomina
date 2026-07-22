@@ -12,6 +12,7 @@
     ],
     "data": [
         "views/res_company_views.xml",
+        "views/hr_payslip_views.xml",
         "report/report_actions.xml",
         "report/boleta_pago.xml",
         "report/boleta_quincena.xml",

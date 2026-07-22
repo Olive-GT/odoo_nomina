@@ -1,9 +1,17 @@
 # -*- coding: utf-8 -*-
-from odoo import models
+from odoo import fields, models
 
 
 class HrPayslip(models.Model):
     _inherit = "hr.payslip"
+
+    l10n_gt_first_quincena_amount = fields.Monetary(
+        "Pago 1ª quincena (manual)",
+        help="Monto de la primera quincena SOLO para este recibo. Tiene prioridad "
+             "sobre el del contrato y sobre el método automático. La segunda "
+             "quincena será el líquido del mes menos este monto. Déjalo vacío para "
+             "usar el del contrato o la fórmula.",
+    )
 
     def _l10n_gt_line(self, code):
         """Total de una línea por código (positivo). 0 si no existe."""
@@ -32,8 +40,10 @@ class HrPayslip(models.Model):
         """
         self.ensure_one()
         net = self._l10n_gt_line("NET")
-        contract = self.contract_id
-        fixed = contract.l10n_gt_first_quincena_amount if contract else 0.0
+        # Prioridad: monto manual del recibo > monto del contrato > método empresa
+        fixed = self.l10n_gt_first_quincena_amount
+        if not fixed and self.contract_id:
+            fixed = self.contract_id.l10n_gt_first_quincena_amount
         if fixed and fixed > 0:
             first = round(min(fixed, net), 2)
         else:
