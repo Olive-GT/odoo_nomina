@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Comprobante de quincena (formato anexo 8.2). El cálculo es mensual; este
+         comprobante muestra el mes y paga la quincena correspondiente (líquido/2). -->
+
+    <record id="action_report_boleta_q1" model="ir.actions.report">
+        <field name="name">Comprobante 1ª Quincena</field>
+        <field name="model">hr.payslip</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">l10n_gt_payroll_report.report_boleta_q1</field>
+        <field name="report_file">l10n_gt_payroll_report.report_boleta_q1</field>
+        <field name="binding_model_id" ref="hr_payroll.model_hr_payslip"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <record id="action_report_boleta_q2" model="ir.actions.report">
+        <field name="name">Comprobante 2ª Quincena</field>
+        <field name="model">hr.payslip</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">l10n_gt_payroll_report.report_boleta_q2</field>
+        <field name="report_file">l10n_gt_payroll_report.report_boleta_q2</field>
+        <field name="binding_model_id" ref="hr_payroll.model_hr_payslip"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- Cuerpo común: espera 'doc' y 'quincena' (1 o 2) -->
+    <template id="boleta_quincena_body">
+        <t t-set="qd" t-value="doc._l10n_gt_quincena_dates(quincena)"/>
+        <div class="page">
+            <div class="text-center">
+                <h4 t-field="doc.company_id.name"/>
+                <h5>Comprobante de Pago —
+                    <span t-esc="'Primera' if quincena == 1 else 'Segunda'"/> Quincena</h5>
+            </div>
+            <table class="table table-sm table-borderless">
+                <tr>
+                    <td><strong>Empleado:</strong> <span t-field="doc.employee_id.name"/></td>
+                    <td><strong>Código:</strong> <span t-field="doc.employee_id.barcode"/></td>
+                </tr>
+                <tr>
+                    <td><strong>DPI:</strong> <span t-field="doc.employee_id.l10n_gt_dpi"/></td>
+                    <td><strong>Puesto:</strong> <span t-field="doc.employee_id.job_id.name"/></td>
+                </tr>
+                <tr>
+                    <td colspan="2"><strong>Período de pago:</strong>
+                        <span t-esc="qd[0]"/> al <span t-esc="qd[1]"/></td>
+                </tr>
+            </table>
+
+            <div class="row">
+                <div class="col-6">
+                    <h6>Devengado del mes</h6>
+                    <table class="table table-sm">
+                        <tr t-foreach="doc.line_ids.filtered(lambda l: l.total &gt; 0 and l.category_id.code in ('GTIGSS','ALW'))" t-as="line">
+                            <td><span t-field="line.name"/></td>
+                            <td class="text-end"><span t-field="line.total"/></td>
+                        </tr>
+                        <tr class="fw-bold">
+                            <td>Total devengado</td>
+                            <td class="text-end"><span t-esc="'%.2f' % doc._l10n_gt_line('GROSS')"/></td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-6">
+                    <h6>Deducciones del mes</h6>
+                    <table class="table table-sm">
+                        <tr t-foreach="doc.line_ids.filtered(lambda l: l.total &lt; 0)" t-as="line">
+                            <td><span t-field="line.name"/></td>
+                            <td class="text-end"><span t-esc="'%.2f' % (-line.total)"/></td>
+                        </tr>
+                        <tr class="fw-bold">
+                            <td>Total deducciones</td>
+                            <td class="text-end"><span t-esc="'%.2f' % doc._l10n_gt_lines_by_category('DED','out')"/></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <table class="table table-sm" style="max-width:420px; margin-left:auto;">
+                <tr>
+                    <td>Salario líquido (mes)</td>
+                    <td class="text-end"><span t-esc="'%.2f' % doc._l10n_gt_line('NET')"/></td>
+                </tr>
+                <tr>
+                    <td>Primera quincena</td>
+                    <td class="text-end"><span t-esc="'%.2f' % doc._l10n_gt_quincena_amount(1)"/></td>
+                </tr>
+                <tr>
+                    <td>Segunda quincena</td>
+                    <td class="text-end"><span t-esc="'%.2f' % doc._l10n_gt_quincena_amount(2)"/></td>
+                </tr>
+                <tr class="fw-bold table-active">
+                    <td>TOTAL A PAGAR (esta quincena)</td>
+                    <td class="text-end"><span t-esc="'%.2f' % doc._l10n_gt_quincena_amount(quincena)"/></td>
+                </tr>
+            </table>
+
+            <div class="row mt-5">
+                <div class="col-6 offset-3 text-center">
+                    <p>_______________________________</p>
+                    <p>Recibí conforme<br/><span t-field="doc.employee_id.name"/></p>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="report_boleta_q1">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <t t-set="quincena" t-value="1"/>
+                    <t t-call="l10n_gt_payroll_report.boleta_quincena_body"/>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <template id="report_boleta_q2">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <t t-set="quincena" t-value="2"/>
+                    <t t-call="l10n_gt_payroll_report.boleta_quincena_body"/>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

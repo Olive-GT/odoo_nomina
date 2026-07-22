@@ -11,8 +11,10 @@
         "l10n_gt_payroll",
     ],
     "data": [
+        "views/res_company_views.xml",
         "report/report_actions.xml",
         "report/boleta_pago.xml",
+        "report/boleta_quincena.xml",
         "report/planilla_general.xml",
         "report/reporte_igss.xml",
         "report/costos_personal.xml",

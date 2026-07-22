@@ -11,6 +11,21 @@ class HrPayslip(models.Model):
         line = self.line_ids.filtered(lambda l: l.code == code)
         return line.total if line else 0.0
 
+    def _l10n_gt_quincena_dates(self, n):
+        """Fechas de la 1ª (1-15) o 2ª (16-fin) quincena del período."""
+        self.ensure_one()
+        df = self.date_from
+        if n == 1:
+            return df, df.replace(day=15)
+        return df.replace(day=16), self.date_to
+
+    def _l10n_gt_quincena_amount(self, n):
+        """Monto a pagar en la quincena n (líquido del mes dividido en dos)."""
+        self.ensure_one()
+        net = self._l10n_gt_line("NET")
+        first = round(net / 2.0, 2)
+        return first if n == 1 else round(net - first, 2)
+
     def _l10n_gt_lines_by_category(self, category_code, sign="all"):
         """Suma de líneas por categoría; sign='in' positivas, 'out' negativas."""
         self.ensure_one()
