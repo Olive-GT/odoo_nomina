@@ -7,37 +7,13 @@ from odoo import api, fields, models
 class HrPayslip(models.Model):
     _inherit = "hr.payslip"
 
-    # Desglose de comprobantes derivado del campo NATIVO "Programar pago"
-    # (schedule_pay) del contrato. No es un campo que se capture aparte: se calcula.
-    # Mensual -> 1 comprobante; Quincenal (semi-monthly/bi-weekly) -> 2; Semanal -> 4.
+    # Desglose de comprobantes: se hereda del contrato (campo propio, distinto de
+    # 'Programar pago' que es el período del salario). Mensual->1, Quincenal->2,
+    # Semanal->4. El cálculo siempre es mensual.
     l10n_gt_payment_frequency = fields.Selection(
-        selection=[
-            ("monthly", "Mensual"),
-            ("biweekly", "Quincenal"),
-            ("weekly", "Semanal"),
-        ],
-        string="Desglose de comprobantes",
-        compute="_compute_l10n_gt_payment_frequency",
-        help="Se deriva del campo 'Programar pago' del contrato. Define cuántos "
-             "comprobantes se imprimen: mensual (1), quincenal (2), semanal (4). "
-             "El cálculo siempre es mensual.",
+        related="contract_id.l10n_gt_payment_frequency",
+        string="Frecuencia de pago (comprobantes)", store=True, readonly=True,
     )
-
-    @api.depends("contract_id")
-    def _compute_l10n_gt_payment_frequency(self):
-        for slip in self:
-            schedule = "monthly"
-            contract = slip.contract_id
-            if contract:
-                schedule = getattr(contract, "schedule_pay", False) or (
-                    contract.structure_type_id.default_schedule_pay
-                    if contract.structure_type_id else False) or "monthly"
-            if schedule in ("bi-weekly", "semi-monthly"):
-                slip.l10n_gt_payment_frequency = "biweekly"
-            elif schedule == "weekly":
-                slip.l10n_gt_payment_frequency = "weekly"
-            else:
-                slip.l10n_gt_payment_frequency = "monthly"
 
     # Comprobantes de pago firmados (se imprimen, se firman y se suben de vuelta
     # para resguardo). El recibo/cálculo sigue siendo mensual.

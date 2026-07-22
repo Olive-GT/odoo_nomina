@@ -34,6 +34,20 @@ class HrContract(models.Model):
         string="Circunscripción económica",
         tracking=True,
     )
+    l10n_gt_payment_frequency = fields.Selection(
+        selection=[
+            ("monthly", "Mensual"),
+            ("biweekly", "Quincenal"),
+            ("weekly", "Semanal"),
+        ],
+        string="Frecuencia de pago (comprobantes)",
+        default="biweekly",
+        tracking=True,
+        help="Cada cuánto se le paga al trabajador. El salario y el cálculo son "
+             "SIEMPRE mensuales; esto solo define en cuántos comprobantes se reparte "
+             "el pago del mes: Mensual (1), Quincenal (2) o Semanal (4). Es lo único "
+             "que defines para la frecuencia de pago.",
+    )
     l10n_gt_first_quincena_amount = fields.Monetary(
         "Pago primera quincena (anticipo)",
         tracking=True,
