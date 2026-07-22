@@ -4,7 +4,8 @@
 
     <!-- ================================================================
          Reglas salariales de la Nómina Ordinaria (Guatemala) - capítulo 4
-         Base IGSS = categories.GTIGSS (ordinario + horas extra + comisiones)
+         Base IGSS = categories['GTIGSS'] (ordinario + horas extra + comisiones)
+         Nota Odoo 18: categories/inputs son dicts -> acceso por clave.
          ================================================================ -->
 
     <!-- 4.1 Salario ordinario -->
@@ -52,14 +53,14 @@ result = monto
         <field name="category_id" ref="GTIGSS"/>
         <field name="struct_id" ref="structure_gt_ordinaria"/>
         <field name="condition_select">python</field>
-        <field name="condition_python">result = bool(inputs.HE_DIURNA) and not contract.l10n_gt_exclude_overtime</field>
+        <field name="condition_python">result = payslip._l10n_gt_input('HE_DIURNA') > 0 and not contract.l10n_gt_exclude_overtime</field>
         <field name="amount_select">code</field>
         <field name="l10n_gt_afecto_igss" eval="True"/>
         <field name="l10n_gt_afecto_isr" eval="True"/>
         <field name="amount_python_compute"><![CDATA[
 # §4.3.2 valor hora ordinaria x factor x horas
 factor = payslip._l10n_gt_param('l10n_gt_he_diurna_factor')
-horas = inputs.HE_DIURNA.amount if inputs.HE_DIURNA else 0.0
+horas = payslip._l10n_gt_input('HE_DIURNA')
 valor_hora = contract.wage / 240.0
 result_qty = horas
 result = valor_hora * factor * horas
@@ -74,13 +75,13 @@ result = valor_hora * factor * horas
         <field name="category_id" ref="GTIGSS"/>
         <field name="struct_id" ref="structure_gt_ordinaria"/>
         <field name="condition_select">python</field>
-        <field name="condition_python">result = bool(inputs.HE_NOCTURNA) and not contract.l10n_gt_exclude_overtime</field>
+        <field name="condition_python">result = payslip._l10n_gt_input('HE_NOCTURNA') > 0 and not contract.l10n_gt_exclude_overtime</field>
         <field name="amount_select">code</field>
         <field name="l10n_gt_afecto_igss" eval="True"/>
         <field name="l10n_gt_afecto_isr" eval="True"/>
         <field name="amount_python_compute"><![CDATA[
 factor = payslip._l10n_gt_param('l10n_gt_he_nocturna_factor')
-horas = inputs.HE_NOCTURNA.amount if inputs.HE_NOCTURNA else 0.0
+horas = payslip._l10n_gt_input('HE_NOCTURNA')
 valor_hora = contract.wage / 240.0
 result_qty = horas
 result = valor_hora * factor * horas
@@ -95,12 +96,12 @@ result = valor_hora * factor * horas
         <field name="category_id" ref="GTIGSS"/>
         <field name="struct_id" ref="structure_gt_ordinaria"/>
         <field name="condition_select">python</field>
-        <field name="condition_python">result = bool(inputs.COMIS)</field>
+        <field name="condition_python">result = payslip._l10n_gt_input('COMIS') > 0</field>
         <field name="amount_select">code</field>
         <field name="l10n_gt_afecto_igss" eval="True"/>
         <field name="l10n_gt_afecto_isr" eval="True"/>
         <field name="amount_python_compute"><![CDATA[
-result = inputs.COMIS.amount if inputs.COMIS else 0.0
+result = payslip._l10n_gt_input('COMIS')
 ]]></field>
     </record>
 
@@ -112,10 +113,10 @@ result = inputs.COMIS.amount if inputs.COMIS else 0.0
         <field name="category_id" ref="hr_payroll.ALW"/>
         <field name="struct_id" ref="structure_gt_ordinaria"/>
         <field name="condition_select">python</field>
-        <field name="condition_python">result = bool(inputs.BONIF)</field>
+        <field name="condition_python">result = payslip._l10n_gt_input('BONIF') > 0</field>
         <field name="amount_select">code</field>
         <field name="amount_python_compute"><![CDATA[
-result = inputs.BONIF.amount if inputs.BONIF else 0.0
+result = payslip._l10n_gt_input('BONIF')
 ]]></field>
     </record>
 
@@ -128,8 +129,8 @@ result = inputs.BONIF.amount if inputs.BONIF else 0.0
         <field name="struct_id" ref="structure_gt_ordinaria"/>
         <field name="condition_select">none</field>
         <field name="amount_select">code</field>
-        <!-- categories.BASIC incluye GTIGSS (categoría hija): ordinario+HE+comisiones -->
-        <field name="amount_python_compute">result = categories.BASIC + categories.ALW</field>
+        <!-- categories['BASIC'] incluye GTIGSS (categoría hija): ordinario+HE+comisiones -->
+        <field name="amount_python_compute">result = categories['BASIC'] + categories['ALW']</field>
     </record>
 
     <!-- 4.9 IGSS laboral -->
@@ -145,7 +146,7 @@ result = inputs.BONIF.amount if inputs.BONIF else 0.0
         <field name="amount_python_compute"><![CDATA[
 # §4.9.2 base afecta (ordinario + HE + comisiones) x tasa laboral
 tasa = payslip._l10n_gt_param('l10n_gt_igss_laboral')
-result = -(categories.GTIGSS * tasa)
+result = -(categories['GTIGSS'] * tasa)
 ]]></field>
     </record>
 
@@ -157,10 +158,10 @@ result = -(categories.GTIGSS * tasa)
         <field name="category_id" ref="hr_payroll.DED"/>
         <field name="struct_id" ref="structure_gt_ordinaria"/>
         <field name="condition_select">python</field>
-        <field name="condition_python">result = bool(inputs.OTRDED)</field>
+        <field name="condition_python">result = payslip._l10n_gt_input('OTRDED') > 0</field>
         <field name="amount_select">code</field>
         <field name="amount_python_compute"><![CDATA[
-result = -(inputs.OTRDED.amount if inputs.OTRDED else 0.0)
+result = -payslip._l10n_gt_input('OTRDED')
 ]]></field>
     </record>
 
@@ -173,7 +174,7 @@ result = -(inputs.OTRDED.amount if inputs.OTRDED else 0.0)
         <field name="struct_id" ref="structure_gt_ordinaria"/>
         <field name="condition_select">none</field>
         <field name="amount_select">code</field>
-        <field name="amount_python_compute">result = categories.BASIC + categories.ALW + categories.DED</field>
+        <field name="amount_python_compute">result = categories['BASIC'] + categories['ALW'] + categories['DED']</field>
     </record>
 
     <!-- 4.15 IGSS patronal (costo empresa, no afecta líquido) -->
@@ -190,7 +191,7 @@ result = -(inputs.OTRDED.amount if inputs.OTRDED else 0.0)
         <field name="amount_python_compute"><![CDATA[
 # §4.15 no descuenta al empleado; se usa para costos/póliza
 tasa = payslip._l10n_gt_param('l10n_gt_igss_patronal')
-result = categories.GTIGSS * tasa
+result = categories['GTIGSS'] * tasa
 ]]></field>
     </record>
 

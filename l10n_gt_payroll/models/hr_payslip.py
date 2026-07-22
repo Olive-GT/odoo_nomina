@@ -17,6 +17,16 @@ class HrPayslip(models.Model):
             code, self.date_to
         )
 
+    def _l10n_gt_input(self, code):
+        """Monto de una novedad (input) del recibo por código.
+
+        En Odoo 18 el `inputs` del contexto de reglas es un dict; acceder por
+        atributo (inputs.CODE) falla. Este helper lee las líneas directamente.
+        """
+        self.ensure_one()
+        lines = self.input_line_ids.filtered(lambda l: l.code == code)
+        return sum(lines.mapped("amount"))
+
     # ------------------------------------------------------------------
     # Días trabajados
     # ------------------------------------------------------------------
