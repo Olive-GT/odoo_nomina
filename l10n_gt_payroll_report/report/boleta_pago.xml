@@ -76,13 +76,13 @@
                                     <tr>
                                         <td>Primera quincena</td>
                                         <td class="text-end">
-                                            <span t-esc="'%.2f' % (doc._l10n_gt_line('NET') / 2.0)"/>
+                                            <span t-esc="'%.2f' % doc._l10n_gt_quincena_amount(1)"/>
                                         </td>
                                     </tr>
                                     <tr>
                                         <td>Segunda quincena</td>
                                         <td class="text-end">
-                                            <span t-esc="'%.2f' % (doc._l10n_gt_line('NET') - doc._l10n_gt_line('NET') / 2.0)"/>
+                                            <span t-esc="'%.2f' % doc._l10n_gt_quincena_amount(2)"/>
                                         </td>
                                     </tr>
                                 </table>

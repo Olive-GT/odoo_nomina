@@ -20,10 +20,21 @@ class HrPayslip(models.Model):
         return df.replace(day=16), self.date_to
 
     def _l10n_gt_quincena_amount(self, n):
-        """Monto a pagar en la quincena n (líquido del mes dividido en dos)."""
+        """Monto a pagar en la quincena n, según el método de la empresa.
+
+        - ordinary_half: la 1ª quincena es un anticipo del salario ordinario
+          (ordinario/2) y la 2ª liquida el resto del líquido del mes (incluye la
+          bonificación y todas las deducciones). La 2ª suele ser mayor.
+        - net_half: cada quincena paga la mitad del líquido del mes (como en el
+          anexo 8.1/8.2 del diseño funcional).
+        """
         self.ensure_one()
         net = self._l10n_gt_line("NET")
-        first = round(net / 2.0, 2)
+        method = self.company_id.l10n_gt_quincena_method or "ordinary_half"
+        if method == "net_half":
+            first = round(net / 2.0, 2)
+        else:  # ordinary_half
+            first = round(self._l10n_gt_line("SALORD") / 2.0, 2)
         return first if n == 1 else round(net - first, 2)
 
     def _l10n_gt_lines_by_category(self, category_code, sign="all"):
