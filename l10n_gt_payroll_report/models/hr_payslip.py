@@ -6,11 +6,14 @@ class HrPayslip(models.Model):
     _inherit = "hr.payslip"
 
     l10n_gt_first_quincena_amount = fields.Monetary(
-        "Pago 1ª quincena (manual)",
-        help="Monto de la primera quincena SOLO para este recibo. Tiene prioridad "
-             "sobre el del contrato y sobre el método automático. La segunda "
-             "quincena será el líquido del mes menos este monto. Déjalo vacío para "
-             "usar el del contrato o la fórmula.",
+        "Anticipo 1ª quincena (opcional)",
+        help="Este recibo es del MES completo. Este campo es opcional: sirve solo "
+             "para fijar manualmente cuánto se paga en el PRIMER pago (a mitad de "
+             "mes) de este mes en particular. El segundo pago (fin de mes) será el "
+             "líquido del mes menos este monto. Déjalo vacío (0) para que el sistema "
+             "use el monto fijo del contrato o el método de la empresa (mitades "
+             "iguales por defecto). No indica que el recibo sea de una quincena: el "
+             "recibo siempre es mensual y de él imprimes los dos comprobantes.",
     )
 
     def _l10n_gt_line(self, code):
