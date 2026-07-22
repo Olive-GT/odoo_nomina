@@ -12,10 +12,12 @@
     ],
     "data": [
         "views/res_company_views.xml",
-        "views/hr_payslip_views.xml",
+        "views/hr_contract_views.xml",
         "report/report_actions.xml",
         "report/boleta_pago.xml",
         "report/boleta_quincena.xml",
+        "report/boleta_semana.xml",
+        "views/hr_payslip_views.xml",
         "report/planilla_general.xml",
         "report/reporte_igss.xml",
         "report/costos_personal.xml",

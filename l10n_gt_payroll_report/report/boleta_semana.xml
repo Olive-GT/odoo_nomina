@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Comprobantes semanales (para contratos con frecuencia Semanal).
+         El cálculo es mensual; cada comprobante paga la semana correspondiente. -->
+
+    <record id="action_report_boleta_w1" model="ir.actions.report">
+        <field name="name">Comprobante Semana 1</field>
+        <field name="model">hr.payslip</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">l10n_gt_payroll_report.report_boleta_w1</field>
+        <field name="report_file">l10n_gt_payroll_report.report_boleta_w1</field>
+        <field name="binding_model_id" ref="hr_payroll.model_hr_payslip"/>
+        <field name="binding_type">report</field>
+    </record>
+    <record id="action_report_boleta_w2" model="ir.actions.report">
+        <field name="name">Comprobante Semana 2</field>
+        <field name="model">hr.payslip</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">l10n_gt_payroll_report.report_boleta_w2</field>
+        <field name="report_file">l10n_gt_payroll_report.report_boleta_w2</field>
+        <field name="binding_model_id" ref="hr_payroll.model_hr_payslip"/>
+        <field name="binding_type">report</field>
+    </record>
+    <record id="action_report_boleta_w3" model="ir.actions.report">
+        <field name="name">Comprobante Semana 3</field>
+        <field name="model">hr.payslip</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">l10n_gt_payroll_report.report_boleta_w3</field>
+        <field name="report_file">l10n_gt_payroll_report.report_boleta_w3</field>
+        <field name="binding_model_id" ref="hr_payroll.model_hr_payslip"/>
+        <field name="binding_type">report</field>
+    </record>
+    <record id="action_report_boleta_w4" model="ir.actions.report">
+        <field name="name">Comprobante Semana 4</field>
+        <field name="model">hr.payslip</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">l10n_gt_payroll_report.report_boleta_w4</field>
+        <field name="report_file">l10n_gt_payroll_report.report_boleta_w4</field>
+        <field name="binding_model_id" ref="hr_payroll.model_hr_payslip"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- Cuerpo común: espera 'doc' y 'semana' (1-4) -->
+    <template id="boleta_semana_body">
+        <t t-set="sd" t-value="doc._l10n_gt_semana_dates(semana)"/>
+        <div class="page">
+            <div class="text-center">
+                <h4 t-field="doc.company_id.name"/>
+                <h5>Comprobante de Pago — Semana <span t-esc="semana"/></h5>
+            </div>
+            <table class="table table-sm table-borderless">
+                <tr>
+                    <td><strong>Empleado:</strong> <span t-field="doc.employee_id.name"/></td>
+                    <td><strong>DPI:</strong> <span t-field="doc.employee_id.l10n_gt_dpi"/></td>
+                </tr>
+                <tr>
+                    <td colspan="2"><strong>Período de pago:</strong>
+                        <span t-esc="sd[0]"/> al <span t-esc="sd[1]"/></td>
+                </tr>
+            </table>
+
+            <table class="table table-sm" style="max-width:420px; margin-left:auto;">
+                <tr>
+                    <td>Salario líquido (mes)</td>
+                    <td class="text-end"><span t-esc="'%.2f' % doc._l10n_gt_line('NET')"/></td>
+                </tr>
+                <tr t-foreach="[1, 2, 3, 4]" t-as="w">
+                    <td>Semana <span t-esc="w"/></td>
+                    <td class="text-end"><span t-esc="'%.2f' % doc._l10n_gt_semana_amount(w)"/></td>
+                </tr>
+                <tr class="fw-bold table-active">
+                    <td>TOTAL A PAGAR (esta semana)</td>
+                    <td class="text-end"><span t-esc="'%.2f' % doc._l10n_gt_semana_amount(semana)"/></td>
+                </tr>
+            </table>
+
+            <div class="row mt-5">
+                <div class="col-6 offset-3 text-center">
+                    <p>_______________________________</p>
+                    <p>Recibí conforme<br/><span t-field="doc.employee_id.name"/></p>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="report_boleta_w1">
+        <t t-call="web.html_container"><t t-foreach="docs" t-as="doc">
+            <t t-call="web.external_layout"><t t-set="semana" t-value="1"/>
+                <t t-call="l10n_gt_payroll_report.boleta_semana_body"/></t>
+        </t></t>
+    </template>
+    <template id="report_boleta_w2">
+        <t t-call="web.html_container"><t t-foreach="docs" t-as="doc">
+            <t t-call="web.external_layout"><t t-set="semana" t-value="2"/>
+                <t t-call="l10n_gt_payroll_report.boleta_semana_body"/></t>
+        </t></t>
+    </template>
+    <template id="report_boleta_w3">
+        <t t-call="web.html_container"><t t-foreach="docs" t-as="doc">
+            <t t-call="web.external_layout"><t t-set="semana" t-value="3"/>
+                <t t-call="l10n_gt_payroll_report.boleta_semana_body"/></t>
+        </t></t>
+    </template>
+    <template id="report_boleta_w4">
+        <t t-call="web.html_container"><t t-foreach="docs" t-as="doc">
+            <t t-call="web.external_layout"><t t-set="semana" t-value="4"/>
+                <t t-call="l10n_gt_payroll_report.boleta_semana_body"/></t>
+        </t></t>
+    </template>
+
+</odoo>

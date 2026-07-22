@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_contract_form_gt_frequency" model="ir.ui.view">
+        <field name="name">hr.contract.form.gt.frequency</field>
+        <field name="model">hr.contract</field>
+        <field name="inherit_id" ref="l10n_gt_hr.view_contract_form_l10n_gt"/>
+        <field name="arch" type="xml">
+            <field name="l10n_gt_bonif_incentivo" position="after">
+                <field name="l10n_gt_payment_frequency"/>
+            </field>
+        </field>
+    </record>
+
+</odoo>

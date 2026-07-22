@@ -6,12 +6,17 @@ class ResCompany(models.Model):
     _inherit = "res.company"
 
     l10n_gt_payslip_period = fields.Selection(
-        selection=[("monthly", "Mensual"), ("biweekly", "Quincenal")],
-        string="Modalidad de comprobante de nómina",
-        default="monthly",
-        help="Define qué comprobante se entrega al trabajador. El cálculo de la "
-             "nómina siempre es mensual; esta opción solo indica si se imprime una "
-             "boleta mensual o dos comprobantes quincenales.",
+        selection=[
+            ("monthly", "Mensual"),
+            ("biweekly", "Quincenal"),
+            ("weekly", "Semanal"),
+        ],
+        string="Frecuencia de pago por defecto",
+        default="biweekly",
+        help="Frecuencia de pago que tomarán por defecto los contratos NUEVOS de "
+             "esta empresa. La frecuencia real se define en cada contrato (puede "
+             "variar por empleado). El cálculo de la nómina siempre es mensual; "
+             "esto solo define en cuántos comprobantes se reparte el pago.",
     )
     l10n_gt_quincena_method = fields.Selection(
         selection=[

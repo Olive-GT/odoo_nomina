@@ -7,25 +7,41 @@
         <field name="inherit_id" ref="hr_payroll.view_hr_payslip_form"/>
         <field name="arch" type="xml">
             <field name="struct_id" position="after">
-                <field name="l10n_gt_first_quincena_amount"/>
+                <field name="l10n_gt_payment_frequency"/>
+                <field name="l10n_gt_first_quincena_amount"
+                       invisible="l10n_gt_payment_frequency != 'biweekly'"/>
             </field>
 
             <notebook position="inside">
-                <page string="Comprobantes de quincena" name="l10n_gt_comprobantes">
+                <page string="Comprobantes de pago" name="l10n_gt_comprobantes">
                     <div class="alert alert-info" role="alert">
                         Este recibo es el <b>cálculo mensual</b> (para IGSS, ISR,
-                        contabilidad y Libro de Salarios). Desde aquí imprimes el
-                        <b>comprobante de cada quincena</b> para que el trabajador lo
-                        firme, y luego subes el comprobante firmado para su resguardo.
+                        contabilidad y Libro de Salarios). Según la <b>frecuencia de
+                        pago del contrato</b>, imprime el/los comprobante(s), el
+                        trabajador los firma, y subes el firmado para resguardo.
                     </div>
-                    <group>
+
+                    <!-- MENSUAL: una boleta -->
+                    <group invisible="l10n_gt_payment_frequency != 'monthly'">
+                        <group string="Mes">
+                            <button name="%(l10n_gt_payroll_report.action_report_boleta)d"
+                                    string="Imprimir boleta del mes" type="action"
+                                    class="btn-primary" icon="fa-print"/>
+                            <field name="l10n_gt_signed_month"
+                                   filename="l10n_gt_signed_month_name"
+                                   string="Boleta firmada"/>
+                        </group>
+                    </group>
+
+                    <!-- QUINCENAL: dos comprobantes -->
+                    <group invisible="l10n_gt_payment_frequency != 'biweekly'">
                         <group string="Primera quincena">
                             <button name="%(l10n_gt_payroll_report.action_report_boleta_q1)d"
                                     string="Imprimir comprobante 1ª quincena"
                                     type="action" class="btn-primary" icon="fa-print"/>
                             <field name="l10n_gt_signed_q1"
                                    filename="l10n_gt_signed_q1_name"
-                                   string="Comprobante 1ª firmado"/>
+                                   string="1ª firmado"/>
                         </group>
                         <group string="Segunda quincena">
                             <button name="%(l10n_gt_payroll_report.action_report_boleta_q2)d"
@@ -33,7 +49,39 @@
                                     type="action" class="btn-primary" icon="fa-print"/>
                             <field name="l10n_gt_signed_q2"
                                    filename="l10n_gt_signed_q2_name"
-                                   string="Comprobante 2ª firmado"/>
+                                   string="2ª firmado"/>
+                        </group>
+                    </group>
+
+                    <!-- SEMANAL: cuatro comprobantes -->
+                    <group invisible="l10n_gt_payment_frequency != 'weekly'">
+                        <group string="Semana 1">
+                            <button name="%(l10n_gt_payroll_report.action_report_boleta_w1)d"
+                                    string="Imprimir semana 1" type="action"
+                                    class="btn-primary" icon="fa-print"/>
+                            <field name="l10n_gt_signed_w1"
+                                   filename="l10n_gt_signed_w1_name" string="S1 firmado"/>
+                        </group>
+                        <group string="Semana 2">
+                            <button name="%(l10n_gt_payroll_report.action_report_boleta_w2)d"
+                                    string="Imprimir semana 2" type="action"
+                                    class="btn-primary" icon="fa-print"/>
+                            <field name="l10n_gt_signed_w2"
+                                   filename="l10n_gt_signed_w2_name" string="S2 firmado"/>
+                        </group>
+                        <group string="Semana 3">
+                            <button name="%(l10n_gt_payroll_report.action_report_boleta_w3)d"
+                                    string="Imprimir semana 3" type="action"
+                                    class="btn-primary" icon="fa-print"/>
+                            <field name="l10n_gt_signed_w3"
+                                   filename="l10n_gt_signed_w3_name" string="S3 firmado"/>
+                        </group>
+                        <group string="Semana 4">
+                            <button name="%(l10n_gt_payroll_report.action_report_boleta_w4)d"
+                                    string="Imprimir semana 4" type="action"
+                                    class="btn-primary" icon="fa-print"/>
+                            <field name="l10n_gt_signed_w4"
+                                   filename="l10n_gt_signed_w4_name" string="S4 firmado"/>
                         </group>
                     </group>
                 </page>
