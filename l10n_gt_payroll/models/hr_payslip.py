@@ -2,11 +2,48 @@
 from calendar import monthrange
 
 from odoo import api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import UserError, ValidationError
 
 
 class HrPayslip(models.Model):
     _inherit = "hr.payslip"
+
+    @api.model
+    def _get_email_template(self):
+        """Bloquea el correo automático de "nuevo recibo disponible" que Odoo envía
+        al confirmar la nómina.
+
+        Odoo lo dispara en hr.payslip._generate_pdf() con
+        `if template: template.send_mail(...)`. Al devolver un recordset vacío, el
+        `if template` da falso y NO se envía nada — pero el PDF adjunto SÍ se sigue
+        generando (esa parte no depende de la plantilla).
+
+        El envío queda bajo control manual: el botón "Enviar recibo por correo"
+        (action_l10n_gt_send_payslip) reactiva la plantilla vía contexto.
+        """
+        if self.env.context.get("l10n_gt_send_payslip_email"):
+            return super()._get_email_template()
+        return self.env["mail.template"]
+
+    def action_l10n_gt_send_payslip(self):
+        """Envío controlado del recibo por correo (cuando el usuario lo decide)."""
+        self.ensure_one()
+        template = self.with_context(
+            l10n_gt_send_payslip_email=True)._get_email_template()
+        if not template:
+            raise UserError(
+                "No se encontró la plantilla de correo del recibo de nómina "
+                "(hr_payroll.mail_template_new_payslip)."
+            )
+        template.send_mail(
+            self.id, email_layout_xmlid="mail.mail_notification_light",
+            force_send=True,
+        )
+        self.message_post(
+            body="Recibo de nómina enviado por correo a %s."
+                 % (self.employee_id.name or "")
+        )
+        return True
 
     l10n_gt_unpaid_days = fields.Float(
         string="Faltas / días no pagados",

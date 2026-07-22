@@ -35,6 +35,15 @@
                 <field name="l10n_gt_unpaid_days"/>
             </field>
 
+            <!-- Envío de correo bajo control: se bloquea el automático y se ofrece
+                 un botón explícito. -->
+            <xpath expr="//header" position="inside">
+                <button name="action_l10n_gt_send_payslip" type="object"
+                        string="Enviar recibo por correo" class="btn-secondary"
+                        invisible="state == 'draft'"
+                        confirm="¿Enviar el recibo de nómina por correo al empleado?"/>
+            </xpath>
+
             <notebook position="inside">
                 <page string="Estado de cuenta / Pagos" name="l10n_gt_estado_cuenta">
                     <div class="alert alert-info" role="alert">
