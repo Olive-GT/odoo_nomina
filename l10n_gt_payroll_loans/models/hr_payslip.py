@@ -16,6 +16,24 @@ class HrPayslip(models.Model):
         help="Cuánto recuperar de los anticipos pendientes en ESTE recibo (total o "
              "parcial, cuando la empresa lo decida). Se descuenta del líquido y baja "
              "el saldo del anticipo. Déjalo en 0 para no recuperar este mes.")
+    l10n_gt_advance_ids = fields.One2many(
+        related="employee_id.l10n_gt_advance_ids",
+        string="Anticipos del empleado", readonly=True)
+
+    def action_l10n_gt_new_advance(self):
+        """Registrar un anticipo del empleado directo desde el recibo."""
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Registrar anticipo",
+            "res_model": "l10n.gt.advance",
+            "view_mode": "form",
+            "target": "new",
+            "context": {
+                "default_employee_id": self.employee_id.id,
+                "default_date": self.date_from,
+            },
+        }
 
     @api.depends("employee_id")
     def _compute_l10n_gt_advance_pending(self):

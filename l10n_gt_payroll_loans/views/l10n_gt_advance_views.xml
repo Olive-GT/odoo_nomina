@@ -111,9 +111,29 @@
                     <span>. Indica cuánto recuperar este mes en </span>
                     <b>"Descontar de anticipos"</b>.
                 </div>
-                <group invisible="l10n_gt_advance_pending &lt;= 0">
-                    <field name="l10n_gt_advance_recover"/>
+                <group>
+                    <group string="Anticipos">
+                        <button name="action_l10n_gt_new_advance" type="object"
+                                string="Registrar anticipo" class="btn-secondary"
+                                icon="fa-plus"/>
+                        <field name="l10n_gt_advance_recover"
+                               invisible="l10n_gt_advance_pending &lt;= 0"/>
+                    </group>
                 </group>
+                <field name="l10n_gt_advance_ids" readonly="1"
+                       invisible="not l10n_gt_advance_ids">
+                    <list>
+                        <field name="date"/>
+                        <field name="name"/>
+                        <field name="amount"/>
+                        <field name="amount_recovered"/>
+                        <field name="balance"/>
+                        <field name="state" widget="badge"
+                               decoration-success="state == 'recovered'"
+                               decoration-warning="state == 'pending'"/>
+                        <field name="currency_id" column_invisible="1"/>
+                    </list>
+                </field>
             </xpath>
         </field>
     </record>

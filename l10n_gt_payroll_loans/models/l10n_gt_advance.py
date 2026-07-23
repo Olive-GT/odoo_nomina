@@ -52,6 +52,13 @@ class L10nGtAdvance(models.Model):
             rec.state = "recovered" if rec.balance <= 0.005 else "pending"
 
 
+class HrEmployee(models.Model):
+    _inherit = "hr.employee"
+
+    l10n_gt_advance_ids = fields.One2many(
+        "l10n.gt.advance", "employee_id", string="Anticipos")
+
+
 class L10nGtAdvanceRecovery(models.Model):
     """Cada devolución (descuento) de un anticipo, ligada al recibo que lo aplicó."""
 
