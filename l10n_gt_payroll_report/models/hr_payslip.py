@@ -135,7 +135,8 @@ class HrPayslip(models.Model):
         if (not self.env.context.get("l10n_gt_skip_regen")
                 and "l10n_gt_payment_ids" in vals):
             for slip in self:
-                if slip.state == "draft" and slip._l10n_gt_recover_total() > 0:
+                if (slip.state in ("draft", "verify")
+                        and slip._l10n_gt_recover_total() > 0):
                     slip.with_context(
                         l10n_gt_skip_regen=True).action_l10n_gt_generar_pagos()
         return res
