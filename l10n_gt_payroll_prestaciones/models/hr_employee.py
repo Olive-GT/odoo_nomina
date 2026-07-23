@@ -34,8 +34,7 @@ class HrEmployee(models.Model):
 
     def _l10n_gt_sum_provision(self, code):
         """Suma de una provisión (PROVAGUI/PROVBONO14/PROVINDEM) devengada en las
-        nóminas ya confirmadas del empleado. A futuro se le restarán los pagos que
-        dren el pasivo (cuando se pague la prestación)."""
+        nóminas ya confirmadas del empleado."""
         self.ensure_one()
         lines = self.env["hr.payslip.line"].search([
             ("slip_id.employee_id", "=", self.id),
@@ -44,16 +43,35 @@ class HrEmployee(models.Model):
         ])
         return sum(lines.mapped("total"))
 
+    def _l10n_gt_sum_benefit_paid(self, benefit_type):
+        """Suma de pagos de una prestación (marcados como Pagados) que drenan el
+        pasivo acumulado."""
+        self.ensure_one()
+        payments = self.env["l10n.gt.payslip.payment"].search([
+            ("payslip_id.employee_id", "=", self.id),
+            ("benefit_type", "=", benefit_type),
+            ("paid", "=", True),
+        ])
+        return sum(payments.mapped("amount"))
+
     @api.depends("l10n_gt_vacation_taken_ids.days")
     def _compute_labor_liability(self):
         today = fields.Date.today()
         for emp in self:
-            emp.l10n_gt_liab_aguinaldo = emp._l10n_gt_sum_provision("PROVAGUI")
-            emp.l10n_gt_liab_bono14 = emp._l10n_gt_sum_provision("PROVBONO14")
-            emp.l10n_gt_liab_indemnizacion = emp._l10n_gt_sum_provision("PROVINDEM")
+            # Pasivo = provisión devengada − lo ya pagado de esa prestación.
+            emp.l10n_gt_liab_aguinaldo = (
+                emp._l10n_gt_sum_provision("PROVAGUI")
+                - emp._l10n_gt_sum_benefit_paid("aguinaldo"))
+            emp.l10n_gt_liab_bono14 = (
+                emp._l10n_gt_sum_provision("PROVBONO14")
+                - emp._l10n_gt_sum_benefit_paid("bono14"))
+            emp.l10n_gt_liab_indemnizacion = (
+                emp._l10n_gt_sum_provision("PROVINDEM")
+                - emp._l10n_gt_sum_benefit_paid("indemnizacion"))
             dias_pend = emp._l10n_gt_vacation_pending_at(today)
             daily = emp._l10n_gt_daily_average(today - timedelta(days=365), today)
-            emp.l10n_gt_liab_vacaciones = dias_pend * daily
+            emp.l10n_gt_liab_vacaciones = (
+                dias_pend * daily - emp._l10n_gt_sum_benefit_paid("vacaciones"))
             emp.l10n_gt_liab_total = (
                 emp.l10n_gt_liab_aguinaldo + emp.l10n_gt_liab_bono14
                 + emp.l10n_gt_liab_indemnizacion + emp.l10n_gt_liab_vacaciones

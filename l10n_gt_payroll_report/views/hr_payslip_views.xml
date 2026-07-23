@@ -55,6 +55,10 @@
                         la reducción recae sobre el saldo pendiente, sin afectar lo
                         ya pagado. Imprime el comprobante de cada pago para que el
                         trabajador lo firme.
+                        <br/>Para pagar una <b>prestación</b> (Bono 14, Aguinaldo…),
+                        agrega una línea y elige el <b>Tipo</b>: se propone el saldo
+                        por pagar y ese pago <b>drena su pasivo</b> sin afectar el
+                        líquido del salario.
                     </div>
 
                     <group>
@@ -78,8 +82,10 @@
                             help="Crea/actualiza las líneas pendientes según la frecuencia y el método. No toca lo ya marcado como pagado."/>
 
                     <field name="l10n_gt_payment_ids" class="mt-2">
-                        <list editable="bottom" decoration-muted="paid">
+                        <list editable="bottom" decoration-muted="paid"
+                              decoration-info="benefit_type != 'salary'">
                             <field name="date" readonly="paid"/>
+                            <field name="benefit_type" readonly="paid"/>
                             <field name="name" readonly="paid"/>
                             <field name="amount" sum="Total" readonly="paid"/>
                             <field name="paid" widget="boolean_toggle"/>

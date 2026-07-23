@@ -26,6 +26,19 @@ class L10nGtPayslipPayment(models.Model):
     date = fields.Date(
         "Fecha de pago", required=True, default=fields.Date.context_today)
     name = fields.Char("Concepto", required=True, default="Pago")
+    benefit_type = fields.Selection(
+        selection=[
+            ("salary", "Salario"),
+            ("aguinaldo", "Aguinaldo"),
+            ("bono14", "Bono 14"),
+            ("vacaciones", "Vacaciones"),
+            ("indemnizacion", "Indemnización"),
+        ],
+        string="Tipo", default="salary", required=True,
+        help="Salario: cuenta contra el líquido del mes. Prestaciones (Aguinaldo, "
+             "Bono 14, Vacaciones, Indemnización): drenan su pasivo acumulado sin "
+             "afectar el líquido del salario.",
+    )
     amount = fields.Monetary("Monto", required=True)
     paid = fields.Boolean(
         "Pagado", default=False,
@@ -42,7 +55,7 @@ class L10nGtPayslipPayment(models.Model):
             rec.display_name = "%s — %.2f" % (rec.name or "Pago", rec.amount or 0.0)
 
     # --- Inmutabilidad: un pago ya realizado no se puede modificar ni borrar ---
-    _LOCKED_FIELDS = {"amount", "date", "name", "paid", "payslip_id"}
+    _LOCKED_FIELDS = {"amount", "date", "name", "paid", "payslip_id", "benefit_type"}
 
     def write(self, vals):
         """Una vez marcado 'Pagado', el pago es histórico: solo se permite adjuntar

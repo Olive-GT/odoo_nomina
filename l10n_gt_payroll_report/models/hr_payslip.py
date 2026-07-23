@@ -113,13 +113,16 @@ class HrPayslip(models.Model):
         store=True, default="none",
     )
 
-    @api.depends("line_ids.total", "line_ids.code",
-                 "l10n_gt_payment_ids.amount", "l10n_gt_payment_ids.paid")
+    @api.depends("line_ids.total", "line_ids.code", "l10n_gt_payment_ids.amount",
+                 "l10n_gt_payment_ids.paid", "l10n_gt_payment_ids.benefit_type")
     def _compute_l10n_gt_estado_cuenta(self):
         for slip in self:
             net = slip._l10n_gt_line("NET")
-            paid = sum(slip.l10n_gt_payment_ids
-                       .filtered("paid").mapped("amount"))
+            # El saldo del salario solo considera pagos de tipo 'salary'. Las
+            # prestaciones (bono 14, aguinaldo…) drenan su propio pasivo, no el
+            # líquido del mes.
+            paid = sum(slip.l10n_gt_payment_ids.filtered(
+                lambda p: p.paid and p.benefit_type == "salary").mapped("amount"))
             slip.l10n_gt_net_amount = net
             slip.l10n_gt_paid_amount = paid
             slip.l10n_gt_pending_amount = net - paid
@@ -137,10 +140,12 @@ class HrPayslip(models.Model):
         entrega cada pago. Reemplaza las líneas aún NO pagadas para no alterar el
         historial de lo ya entregado."""
         for slip in self:
-            # Conserva lo ya pagado; regenera solo lo pendiente.
-            slip.l10n_gt_payment_ids.filtered(lambda p: not p.paid).unlink()
-            paid_total = sum(slip.l10n_gt_payment_ids
-                             .filtered("paid").mapped("amount"))
+            # Solo el salario: conserva lo ya pagado y las prestaciones; regenera
+            # únicamente las líneas de salario pendientes.
+            slip.l10n_gt_payment_ids.filtered(
+                lambda p: not p.paid and p.benefit_type == "salary").unlink()
+            paid_total = sum(slip.l10n_gt_payment_ids.filtered(
+                lambda p: p.paid and p.benefit_type == "salary").mapped("amount"))
             freq = slip.l10n_gt_payment_frequency or "monthly"
             vals = []
             if freq == "biweekly":
@@ -172,6 +177,7 @@ class HrPayslip(models.Model):
                     "date": fecha,
                     "amount": pendiente,
                     "paid": False,
+                    "benefit_type": "salary",
                 })
         return True
 

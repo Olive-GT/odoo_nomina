@@ -9,6 +9,7 @@
     "license": "OEEL-1",
     "depends": [
         "l10n_gt_payroll",
+        "l10n_gt_payroll_report",
     ],
     "data": [
         "security/ir.model.access.csv",
