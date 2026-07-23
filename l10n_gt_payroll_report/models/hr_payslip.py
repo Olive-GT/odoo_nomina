@@ -165,47 +165,47 @@ class HrPayslip(models.Model):
             paid_total = sum(slip.l10n_gt_payment_ids.filtered(
                 lambda p: p.paid and p.benefit_type == "salary").mapped("amount"))
             freq = slip.l10n_gt_payment_frequency or "monthly"
+            # Programa completo con los montos plenos (según el método).
             vals = []
             if freq == "biweekly":
                 for n in (1, 2):
-                    fecha = slip._l10n_gt_quincena_dates(n)[1]
-                    monto = slip._l10n_gt_quincena_amount(n)
-                    vals.append((n, "%s quincena" % ("Primera" if n == 1 else "Segunda"),
-                                 fecha, monto))
+                    vals.append((
+                        "%s quincena" % ("Primera" if n == 1 else "Segunda"),
+                        slip._l10n_gt_quincena_dates(n)[1],
+                        slip._l10n_gt_quincena_amount(n)))
             elif freq == "weekly":
                 for n in (1, 2, 3, 4):
-                    fecha = slip._l10n_gt_semana_dates(n)[1]
-                    monto = slip._l10n_gt_semana_amount(n)
-                    vals.append((n, "Semana %s" % n, fecha, monto))
+                    vals.append(("Semana %s" % n,
+                                 slip._l10n_gt_semana_dates(n)[1],
+                                 slip._l10n_gt_semana_amount(n)))
             else:  # monthly
-                vals.append((1, "Pago del mes", slip.date_to,
-                             slip._l10n_gt_line("NET")))
-            # Recuperación de anticipos: se reparte por igual entre los pagos del
-            # mes, reduciendo cada quincena/semana (el trabajador recibe menos).
-            recover = slip._l10n_gt_recover_total()
-            if vals and recover > 0:
-                n = len(vals)
-                per = round(recover / n, 2)
-                nuevos = []
-                for i, (seq, concepto, fecha, monto) in enumerate(vals):
-                    baja = per if i < n - 1 else round(recover - per * (n - 1), 2)
-                    nuevos.append((seq, concepto, fecha,
-                                   max(round(monto - baja, 2), 0.0)))
-                vals = nuevos
-            # Descuenta de la programación lo que ya se haya pagado, para que la
-            # suma de pendientes + pagados cuadre con el líquido.
+                vals.append(("Pago del mes", slip.date_to, slip._l10n_gt_line("NET")))
+            # Descuenta lo ya pagado -> monto PENDIENTE por pagar de cada línea.
             restante_pagado = paid_total
-            for _seq, concepto, fecha, monto in vals:
+            pendientes = []
+            for concepto, fecha, monto in vals:
                 aplica = min(restante_pagado, monto)
                 restante_pagado -= aplica
-                pendiente = round(monto - aplica, 2)
-                if pendiente <= 0:
+                pend = round(monto - aplica, 2)
+                if pend > 0:
+                    pendientes.append([concepto, fecha, pend])
+            # La recuperación de anticipos se reparte SOLO sobre las líneas NO
+            # pagadas (lo ya entregado no se toca).
+            recover = slip._l10n_gt_recover_total()
+            if pendientes and recover > 0:
+                k = len(pendientes)
+                per = round(recover / k, 2)
+                for i, row in enumerate(pendientes):
+                    baja = per if i < k - 1 else round(recover - per * (k - 1), 2)
+                    row[2] = max(round(row[2] - baja, 2), 0.0)
+            for concepto, fecha, pend in pendientes:
+                if pend <= 0:
                     continue
                 slip.l10n_gt_payment_ids.create({
                     "payslip_id": slip.id,
                     "name": concepto,
                     "date": fecha,
-                    "amount": pendiente,
+                    "amount": pend,
                     "paid": False,
                     "benefit_type": "salary",
                 })
