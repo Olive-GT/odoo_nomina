@@ -71,6 +71,10 @@
                         </group>
                         <group string="Resumen">
                             <field name="l10n_gt_net_amount"/>
+                            <field name="l10n_gt_recover_amount"
+                                   invisible="l10n_gt_recover_amount == 0"/>
+                            <field name="l10n_gt_topay_amount"
+                                   invisible="l10n_gt_recover_amount == 0"/>
                             <field name="l10n_gt_paid_amount"/>
                             <field name="l10n_gt_pending_amount"/>
                         </group>

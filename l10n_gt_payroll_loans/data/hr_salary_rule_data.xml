@@ -3,8 +3,9 @@
      La secuencia conserva su number_next (campo no presente en el XML). -->
 <odoo>
 
-    <!-- 4.11 Anticipos: descuenta las cuotas de anticipos formales (con plan) y la
-         recuperación flexible de anticipos de sueldo capturada en el recibo. -->
+    <!-- 4.11 Anticipos formales (con plan de cuotas). Los anticipos de sueldo
+         flexibles se recuperan como líneas del Estado de Cuenta (reducen las
+         quincenas), no por esta regla. -->
     <record id="rule_antic" model="hr.salary.rule">
         <field name="name">Anticipos</field>
         <field name="code">ANTIC</field>
@@ -12,9 +13,9 @@
         <field name="category_id" ref="hr_payroll.DED"/>
         <field name="struct_id" ref="l10n_gt_payroll.structure_gt_ordinaria"/>
         <field name="condition_select">python</field>
-        <field name="condition_python">result = (payslip._l10n_gt_loan_deduction('advance') + payslip._l10n_gt_advance_recover_amount()) > 0</field>
+        <field name="condition_python">result = payslip._l10n_gt_loan_deduction('advance') > 0</field>
         <field name="amount_select">code</field>
-        <field name="amount_python_compute">result = -(payslip._l10n_gt_loan_deduction('advance') + payslip._l10n_gt_advance_recover_amount())</field>
+        <field name="amount_python_compute">result = -payslip._l10n_gt_loan_deduction('advance')</field>
     </record>
 
     <!-- 4.12 Préstamos -->

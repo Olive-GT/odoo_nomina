@@ -99,6 +99,11 @@ class HrPayslip(models.Model):
         "l10n.gt.payslip.payment", "payslip_id", string="Pagos del mes")
     l10n_gt_net_amount = fields.Monetary(
         "Líquido del mes", compute="_compute_l10n_gt_estado_cuenta", store=True)
+    l10n_gt_recover_amount = fields.Monetary(
+        "(−) Recuperación de anticipos", compute="_compute_l10n_gt_estado_cuenta",
+        store=True)
+    l10n_gt_topay_amount = fields.Monetary(
+        "Líquido a pagar", compute="_compute_l10n_gt_estado_cuenta", store=True)
     l10n_gt_paid_amount = fields.Monetary(
         "Total pagado", compute="_compute_l10n_gt_estado_cuenta", store=True)
     l10n_gt_pending_amount = fields.Monetary(
@@ -115,20 +120,33 @@ class HrPayslip(models.Model):
 
     @api.depends("line_ids.total", "line_ids.code", "l10n_gt_payment_ids.amount",
                  "l10n_gt_payment_ids.paid", "l10n_gt_payment_ids.benefit_type")
+    def _l10n_gt_recover_total(self):
+        """Total de recuperación de anticipos capturada en el recibo (líneas de
+        tipo 'anticipo_recover'). Reduce el líquido a pagar del mes."""
+        self.ensure_one()
+        return sum(self.l10n_gt_payment_ids.filtered(
+            lambda p: p.benefit_type == "anticipo_recover").mapped("amount"))
+
     def _compute_l10n_gt_estado_cuenta(self):
         for slip in self:
             net = slip._l10n_gt_line("NET")
+            # La recuperación de anticipos reduce el líquido a pagar (se descuenta
+            # de las quincenas).
+            recover = slip._l10n_gt_recover_total()
+            topay = net - recover
             # El saldo del salario solo considera pagos de tipo 'salary'. Las
             # prestaciones (bono 14, aguinaldo…) drenan su propio pasivo, no el
             # líquido del mes.
             paid = sum(slip.l10n_gt_payment_ids.filtered(
                 lambda p: p.paid and p.benefit_type == "salary").mapped("amount"))
             slip.l10n_gt_net_amount = net
+            slip.l10n_gt_recover_amount = recover
+            slip.l10n_gt_topay_amount = topay
             slip.l10n_gt_paid_amount = paid
-            slip.l10n_gt_pending_amount = net - paid
+            slip.l10n_gt_pending_amount = topay - paid
             if paid <= 0.005:
                 slip.l10n_gt_payment_state = "none"
-            elif paid + 0.005 >= net:
+            elif paid + 0.005 >= topay:
                 slip.l10n_gt_payment_state = "paid"
             else:
                 slip.l10n_gt_payment_state = "partial"
@@ -162,6 +180,18 @@ class HrPayslip(models.Model):
             else:  # monthly
                 vals.append((1, "Pago del mes", slip.date_to,
                              slip._l10n_gt_line("NET")))
+            # Recuperación de anticipos: se reparte por igual entre los pagos del
+            # mes, reduciendo cada quincena/semana (el trabajador recibe menos).
+            recover = slip._l10n_gt_recover_total()
+            if vals and recover > 0:
+                n = len(vals)
+                per = round(recover / n, 2)
+                nuevos = []
+                for i, (seq, concepto, fecha, monto) in enumerate(vals):
+                    baja = per if i < n - 1 else round(recover - per * (n - 1), 2)
+                    nuevos.append((seq, concepto, fecha,
+                                   max(round(monto - baja, 2), 0.0)))
+                vals = nuevos
             # Descuenta de la programación lo que ya se haya pagado, para que la
             # suma de pendientes + pagados cuadre con el líquido.
             restante_pagado = paid_total

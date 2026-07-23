@@ -37,15 +37,6 @@ class HrPayslip(models.Model):
 
         return _sum("anticipo_given") - _sum("anticipo_recover")
 
-    def _l10n_gt_advance_recover_amount(self):
-        """Recuperación de anticipos capturada en ESTE recibo (líneas
-        'anticipo_recover'), sin exceder el saldo disponible. Alimenta la
-        deducción ANTIC del cálculo del salario."""
-        self.ensure_one()
-        requested = sum(self.l10n_gt_payment_ids.filtered(
-            lambda p: p.benefit_type == "anticipo_recover").mapped("amount"))
-        return min(requested, max(self._l10n_gt_advance_balance(), 0.0))
-
     # ------------------------------------------------------------------
     # Préstamos / anticipos formales con cuotas
     # ------------------------------------------------------------------
