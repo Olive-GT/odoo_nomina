@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     "name": "Guatemala - Nómina Préstamos y Anticipos",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.1.0",
     "category": "Human Resources/Payroll",
     "summary": "Préstamos y anticipos con plan de cuotas y descuento automático "
                "en nómina (§4.11, §4.12).",

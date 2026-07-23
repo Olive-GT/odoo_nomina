@@ -23,4 +23,11 @@
         <field name="code">OTRDED</field>
     </record>
 
+    <!-- Anticipo de sueldo del propio mes: se registra como entrada en el recibo
+         y se descuenta directo, sin necesidad de crear un préstamo formal. -->
+    <record id="input_anticipo" model="hr.payslip.input.type">
+        <field name="name">Anticipo de sueldo</field>
+        <field name="code">ANTICIPO</field>
+    </record>
+
 </odoo>
