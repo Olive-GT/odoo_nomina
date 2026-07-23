@@ -54,27 +54,6 @@ class L10nGtPayslipPayment(models.Model):
         for rec in self:
             rec.display_name = "%s — %.2f" % (rec.name or "Pago", rec.amount or 0.0)
 
-    # --- Recálculo automático de quincenas al cambiar una recuperación ---
-    def _l10n_gt_regen_if_recover(self):
-        """Si cambió una línea de 'Recuperación de anticipo', regenera las líneas de
-        salario pendientes para que las quincenas ya reflejen el descuento (sin tener
-        que pulsar 'Generar programación'). No toca lo pagado."""
-        if self.env.context.get("l10n_gt_skip_regen"):
-            return
-        payslips = self.filtered(
-            lambda r: r.benefit_type == "anticipo_recover"
-            and r.payslip_id and r.payslip_id.state == "draft"
-        ).mapped("payslip_id")
-        if payslips:
-            payslips.with_context(
-                l10n_gt_skip_regen=True).action_l10n_gt_generar_pagos()
-
-    @api.model_create_multi
-    def create(self, vals_list):
-        records = super().create(vals_list)
-        records._l10n_gt_regen_if_recover()
-        return records
-
     # --- Inmutabilidad: un pago ya realizado no se puede modificar ni borrar ---
     _LOCKED_FIELDS = {"amount", "date", "name", "paid", "payslip_id", "benefit_type"}
 
@@ -92,22 +71,11 @@ class L10nGtPayslipPayment(models.Model):
                         "pendiente. (Sí puedes adjuntar el comprobante firmado o "
                         "una observación.)" % (rec.name or "")
                     )
-        res = super().write(vals)
-        if {"amount", "benefit_type"} & set(vals):
-            self._l10n_gt_regen_if_recover()
-        return res
+        return super().write(vals)
 
     def unlink(self):
         if any(rec.paid for rec in self):
             raise UserError(
                 "No se puede eliminar un pago ya realizado. Lo pagado es histórico."
             )
-        payslips = self.filtered(
-            lambda r: r.benefit_type == "anticipo_recover"
-            and r.payslip_id and r.payslip_id.state == "draft"
-        ).mapped("payslip_id")
-        res = super().unlink()
-        if payslips and not self.env.context.get("l10n_gt_skip_regen"):
-            payslips.with_context(
-                l10n_gt_skip_regen=True).action_l10n_gt_generar_pagos()
-        return res
+        return super().unlink()

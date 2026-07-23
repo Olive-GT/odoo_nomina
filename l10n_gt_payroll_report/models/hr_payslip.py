@@ -127,6 +127,19 @@ class HrPayslip(models.Model):
         return sum(self.l10n_gt_payment_ids.filtered(
             lambda p: p.benefit_type == "anticipo_recover").mapped("amount"))
 
+    def write(self, vals):
+        """Al guardar cambios en las líneas de pago (p. ej. una recuperación de
+        anticipo), regenera las quincenas pendientes para que ya reflejen el
+        descuento, sin tener que pulsar 'Generar programación'."""
+        res = super().write(vals)
+        if (not self.env.context.get("l10n_gt_skip_regen")
+                and "l10n_gt_payment_ids" in vals):
+            for slip in self:
+                if slip.state == "draft" and slip._l10n_gt_recover_total() > 0:
+                    slip.with_context(
+                        l10n_gt_skip_regen=True).action_l10n_gt_generar_pagos()
+        return res
+
     def _compute_l10n_gt_estado_cuenta(self):
         for slip in self:
             net = slip._l10n_gt_line("NET")
