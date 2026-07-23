@@ -93,6 +93,19 @@ class HrContract(models.Model):
     l10n_gt_contract_pdf = fields.Binary("Contrato firmado (PDF)", attachment=True)
     l10n_gt_contract_pdf_name = fields.Char("Nombre del archivo")
 
+    def write(self, vals):
+        """Al archivar un contrato que sigue "En proceso", pásalo a "Vencido"
+        automáticamente. Un contrato archivado no debería seguir vigente: si lo
+        hace, la nómina puede seleccionarlo por error (dos contratos corriendo a
+        la vez para el mismo empleado)."""
+        if vals.get("active") is False and "state" not in vals:
+            running = self.filtered(lambda c: c.state == "open")
+            res = super().write(vals)
+            if running:
+                super(HrContract, running).write({"state": "close"})
+            return res
+        return super().write(vals)
+
     def _l10n_gt_daily_wage(self):
         """Salario diario base para cálculos proporcionales (§4.1.2)."""
         self.ensure_one()

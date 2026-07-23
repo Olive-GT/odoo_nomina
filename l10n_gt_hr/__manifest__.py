@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     "name": "Guatemala - Datos de RRHH / Nómina",
-    "version": "18.0.1.2.0",
+    "version": "18.0.1.3.0",
     "category": "Human Resources/Payroll",
     "summary": "Datos maestros guatemaltecos para empleados y contratos "
                "(DPI, NIT, IGSS, circunscripción económica, salario mínimo).",
