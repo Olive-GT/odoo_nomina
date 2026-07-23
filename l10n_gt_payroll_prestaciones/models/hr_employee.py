@@ -54,6 +54,60 @@ class HrEmployee(models.Model):
         ])
         return sum(payments.mapped("amount"))
 
+    # ------------------------------------------------------------------
+    # Monto pagable de la prestación en su PERÍODO legal (§4.7 / §4.8)
+    # ------------------------------------------------------------------
+    def _l10n_gt_benefit_window(self, benefit_type, ref_date):
+        """Ventana [inicio, fin] del período de la prestación que se paga
+        alrededor de ref_date.
+        - Bono 14: 1-jul (año-1) a 30-jun; se paga en julio.
+        - Aguinaldo: 1-dic (año-1) a 30-nov; se paga en dic/ene."""
+        y = ref_date.year
+        if benefit_type == "bono14":
+            pe = y if ref_date.month >= 7 else y - 1
+            return date(pe - 1, 7, 1), date(pe, 6, 30)
+        if benefit_type == "aguinaldo":
+            pe = y if ref_date.month >= 12 else y - 1
+            return date(pe - 1, 12, 1), date(pe, 11, 30)
+        return None, None
+
+    def _l10n_gt_sum_provision_window(self, code, date_from, date_to):
+        """Provisión devengada de recibos confirmados cuyo período (date_to) cae
+        dentro de la ventana [date_from, date_to]."""
+        self.ensure_one()
+        lines = self.env["hr.payslip.line"].search([
+            ("slip_id.employee_id", "=", self.id),
+            ("slip_id.state", "in", ("done", "paid")),
+            ("code", "=", code),
+            ("slip_id.date_to", ">=", date_from),
+            ("slip_id.date_to", "<=", date_to),
+        ])
+        return sum(lines.mapped("total"))
+
+    def _l10n_gt_benefit_payable(self, benefit_type, ref_date):
+        """Monto legal a pagar de la prestación en su período actual:
+        provisión devengada dentro de la ventana − lo ya pagado por ESE período.
+
+        Así la provisión del mes siguiente (que pertenece al período del año
+        entrante) no se incluye por error."""
+        self.ensure_one()
+        code = {"bono14": "PROVBONO14", "aguinaldo": "PROVAGUI"}.get(benefit_type)
+        if not code:
+            return 0.0
+        win_start, win_end = self._l10n_gt_benefit_window(benefit_type, ref_date)
+        accrued = self._l10n_gt_sum_provision_window(code, win_start, win_end)
+        # Pagos ya hechos para ESTE período (posteriores a su cierre y antes del
+        # cierre del período siguiente).
+        next_end = date(win_end.year + 1, win_end.month, win_end.day)
+        payments = self.env["l10n.gt.payslip.payment"].search([
+            ("payslip_id.employee_id", "=", self.id),
+            ("benefit_type", "=", benefit_type),
+            ("paid", "=", True),
+            ("date", ">", win_end),
+            ("date", "<=", next_end),
+        ])
+        return max(accrued - sum(payments.mapped("amount")), 0.0)
+
     @api.depends("l10n_gt_vacation_taken_ids.days")
     def _compute_labor_liability(self):
         today = fields.Date.today()
