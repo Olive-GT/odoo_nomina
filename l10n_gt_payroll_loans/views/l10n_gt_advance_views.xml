@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ===== Anticipo de sueldo (flexible) ===== -->
+    <record id="view_advance_list" model="ir.ui.view">
+        <field name="name">l10n.gt.advance.list</field>
+        <field name="model">l10n.gt.advance</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="state == 'recovered'">
+                <field name="name"/>
+                <field name="employee_id"/>
+                <field name="date"/>
+                <field name="amount"/>
+                <field name="amount_recovered"/>
+                <field name="balance" sum="Pendiente"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'recovered'"
+                       decoration-warning="state == 'pending'"/>
+                <field name="currency_id" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_advance_form" model="ir.ui.view">
+        <field name="name">l10n.gt.advance.form</field>
+        <field name="model">l10n.gt.advance</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="employee_id"/>
+                            <field name="date"/>
+                            <field name="amount"/>
+                            <field name="reference"/>
+                        </group>
+                        <group>
+                            <field name="amount_recovered"/>
+                            <field name="balance"/>
+                            <field name="state"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Devoluciones">
+                            <field name="recovery_ids">
+                                <list>
+                                    <field name="date"/>
+                                    <field name="payslip_id"/>
+                                    <field name="amount" sum="Total devuelto"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_advance" model="ir.actions.act_window">
+        <field name="name">Anticipos</field>
+        <field name="res_model">l10n.gt.advance</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_pending': 1}</field>
+    </record>
+
+    <record id="view_advance_search" model="ir.ui.view">
+        <field name="name">l10n.gt.advance.search</field>
+        <field name="model">l10n.gt.advance</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="employee_id"/>
+                <filter name="pending" string="Pendientes"
+                        domain="[('state', '=', 'pending')]"/>
+                <filter name="recovered" string="Saldados"
+                        domain="[('state', '=', 'recovered')]"/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="grp_employee" string="Empleado"
+                            context="{'group_by': 'employee_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <menuitem id="menu_advance"
+              name="Anticipos"
+              parent="l10n_gt_payroll.menu_l10n_gt_payroll_root"
+              action="action_advance"
+              sequence="45"/>
+
+    <!-- ===== Badge + recuperación en el Estado de Cuenta del recibo ===== -->
+    <record id="view_payslip_form_gt_advance" model="ir.ui.view">
+        <field name="name">hr.payslip.form.gt.advance</field>
+        <field name="model">hr.payslip</field>
+        <field name="inherit_id"
+               ref="l10n_gt_payroll_report.view_payslip_form_gt_quincena"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='l10n_gt_estado_cuenta']/group[1]"
+                   position="before">
+                <field name="l10n_gt_advance_pending" invisible="1"/>
+                <div class="alert alert-warning" role="alert"
+                     invisible="l10n_gt_advance_pending &lt;= 0">
+                    <span>⚠️ <b>Anticipos pendientes de devolución: </b></span>
+                    <field name="l10n_gt_advance_pending" class="oe_inline"
+                           nolabel="1"/>
+                    <span>. Indica cuánto recuperar este mes en </span>
+                    <b>"Descontar de anticipos"</b>.
+                </div>
+                <group invisible="l10n_gt_advance_pending &lt;= 0">
+                    <field name="l10n_gt_advance_recover"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

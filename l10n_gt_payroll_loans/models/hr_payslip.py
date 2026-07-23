@@ -1,10 +1,70 @@
 # -*- coding: utf-8 -*-
-from odoo import models
+from odoo import api, fields, models
 
 
 class HrPayslip(models.Model):
     _inherit = "hr.payslip"
 
+    # ------------------------------------------------------------------
+    # Anticipos de sueldo (flexibles): saldo pendiente + recuperación
+    # ------------------------------------------------------------------
+    l10n_gt_advance_pending = fields.Monetary(
+        "Anticipos pendientes", compute="_compute_l10n_gt_advance_pending",
+        help="Saldo de anticipos de sueldo que el empleado aún no ha devuelto.")
+    l10n_gt_advance_recover = fields.Monetary(
+        "Descontar de anticipos",
+        help="Cuánto recuperar de los anticipos pendientes en ESTE recibo (total o "
+             "parcial, cuando la empresa lo decida). Se descuenta del líquido y baja "
+             "el saldo del anticipo. Déjalo en 0 para no recuperar este mes.")
+
+    @api.depends("employee_id")
+    def _compute_l10n_gt_advance_pending(self):
+        for slip in self:
+            advances = self.env["l10n.gt.advance"].search([
+                ("employee_id", "=", slip.employee_id.id),
+                ("state", "=", "pending"),
+            ])
+            slip.l10n_gt_advance_pending = sum(advances.mapped("balance"))
+
+    def _l10n_gt_advance_recover_amount(self):
+        """Monto real a recuperar este período: lo solicitado, sin exceder el saldo
+        pendiente de anticipos del empleado."""
+        self.ensure_one()
+        return min(self.l10n_gt_advance_recover or 0.0, self.l10n_gt_advance_pending)
+
+    def _l10n_gt_apply_advance_recovery(self):
+        """Aplica la recuperación de anticipos al confirmar: crea las devoluciones
+        (FIFO por fecha) y baja el saldo. Evita doble aplicación si el recibo ya
+        tenía devoluciones registradas."""
+        self.ensure_one()
+        if self.env["l10n.gt.advance.recovery"].search_count([
+                ("payslip_id", "=", self.id)]):
+            return
+        remaining = self._l10n_gt_advance_recover_amount()
+        if remaining <= 0:
+            return
+        advances = self.env["l10n.gt.advance"].search([
+            ("employee_id", "=", self.employee_id.id),
+            ("state", "=", "pending"),
+        ], order="date, id")
+        Recovery = self.env["l10n.gt.advance.recovery"].sudo()
+        for adv in advances:
+            if remaining <= 0.005:
+                break
+            take = min(remaining, adv.balance)
+            if take <= 0:
+                continue
+            Recovery.create({
+                "advance_id": adv.id,
+                "payslip_id": self.id,
+                "date": self.date_to,
+                "amount": take,
+            })
+            remaining -= take
+
+    # ------------------------------------------------------------------
+    # Préstamos / anticipos formales con cuotas
+    # ------------------------------------------------------------------
     def _l10n_gt_loan_lines_due(self, loan_type):
         """Cuotas pendientes exigibles en el período para un tipo (préstamo/anticipo)."""
         self.ensure_one()
@@ -29,8 +89,8 @@ class HrPayslip(models.Model):
         return total
 
     def action_payslip_done(self):
-        """Al confirmar, marcar como pagadas las cuotas descontadas y actualizar
-        el saldo (§4.12.4)."""
+        """Al confirmar: marcar cuotas pagadas y aplicar la recuperación de
+        anticipos flexibles (§4.11.4/§4.12.4)."""
         res = super().action_payslip_done()
         for slip in self:
             for loan_type in ("loan", "advance"):
@@ -41,4 +101,5 @@ class HrPayslip(models.Model):
                     "payslip_id": slip.id,
                     "paid_date": slip.date_to,
                 })
+            slip._l10n_gt_apply_advance_recovery()
         return res
