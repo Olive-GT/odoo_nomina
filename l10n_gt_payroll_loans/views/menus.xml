@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Retirado: los préstamos formales se eliminaron; los anticipos son líneas del
+     Estado de Cuenta. -->
 <odoo>
-    <menuitem id="menu_loan"
-              name="Préstamos (formales)"
-              parent="l10n_gt_payroll.menu_l10n_gt_payroll_root"
-              action="action_loan"
-              sequence="60"/>
 </odoo>
