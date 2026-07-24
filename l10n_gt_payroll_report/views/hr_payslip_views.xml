@@ -32,8 +32,15 @@
         <field name="arch" type="xml">
             <field name="struct_id" position="after">
                 <field name="l10n_gt_payment_frequency"/>
-                <field name="l10n_gt_unpaid_days"/>
             </field>
+
+            <!-- Faltas y vacaciones en la pestaña de días (su lugar natural):
+                 solo se marcan las EXCEPCIONES al 'trabajó todos los días'. -->
+            <xpath expr="//field[@name='worked_days_line_ids']" position="before">
+                <group string="Ausencias y vacaciones del período">
+                    <field name="l10n_gt_unpaid_days"/>
+                </group>
+            </xpath>
 
             <!-- Envío de correo bajo control: se bloquea el automático y se ofrece
                  un botón explícito. -->

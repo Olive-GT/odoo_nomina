@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     "name": "Guatemala - Nómina Reportes",
-    "version": "18.0.1.17.0",
+    "version": "18.0.1.18.0",
     "category": "Human Resources/Payroll",
     "summary": "Boleta de pago, planilla general, reporte de IGSS, costos de "
                "personal, Libro de Salarios e Informe del Empleador (§6).",
