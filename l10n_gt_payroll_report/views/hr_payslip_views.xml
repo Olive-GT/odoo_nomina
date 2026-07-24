@@ -25,6 +25,21 @@
         </field>
     </record>
 
+    <!-- Agrega Inicio/Fin del período a la lista NATIVA de recibos, que es la que
+         usa el diálogo "Agregar recibos de nómina" del lote y la lista general.
+         Sin esto, varios recibos del mismo empleado se ven idénticos. -->
+    <record id="view_payslip_list_gt_fechas" model="ir.ui.view">
+        <field name="name">hr.payslip.list.gt.fechas</field>
+        <field name="model">hr.payslip</field>
+        <field name="inherit_id" ref="hr_payroll.view_hr_payslip_tree"/>
+        <field name="arch" type="xml">
+            <field name="employee_id" position="after">
+                <field name="date_from" string="Inicio"/>
+                <field name="date_to" string="Fin"/>
+            </field>
+        </field>
+    </record>
+
     <record id="view_payslip_form_gt_quincena" model="ir.ui.view">
         <field name="name">hr.payslip.form.gt.quincena</field>
         <field name="model">hr.payslip</field>
