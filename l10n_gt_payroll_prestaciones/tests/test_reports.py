@@ -27,7 +27,7 @@ class TestPrestacionesReports(TransactionCase):
             "date_start": "2024-07-01",
             "structure_type_id": cls.structure.type_id.id,
         })
-        cls.run = cls.env["hr.payslip.run"].create({
+        cls.batch = cls.env["hr.payslip.run"].create({
             "name": "Nómina julio 2026",
             "date_start": "2026-07-01",
             "date_end": "2026-07-31",
@@ -37,7 +37,7 @@ class TestPrestacionesReports(TransactionCase):
             "employee_id": cls.employee.id,
             "contract_id": cls.contract.id,
             "struct_id": cls.structure.id,
-            "payslip_run_id": cls.run.id,
+            "payslip_run_id": cls.batch.id,
             "date_from": "2026-07-01",
             "date_to": "2026-07-31",
         })
@@ -50,13 +50,13 @@ class TestPrestacionesReports(TransactionCase):
 
     def test_render_aguinaldo(self):
         html = self._render(
-            "l10n_gt_payroll_prestaciones.report_planilla_aguinaldo", self.run.ids)
+            "l10n_gt_payroll_prestaciones.report_planilla_aguinaldo", self.batch.ids)
         self.assertIn("AGUINALDO", html)
         self.assertIn("Juan Andres Rivera", html)
 
     def test_render_bono14(self):
         html = self._render(
-            "l10n_gt_payroll_prestaciones.report_planilla_bono14", self.run.ids)
+            "l10n_gt_payroll_prestaciones.report_planilla_bono14", self.batch.ids)
         self.assertIn("BONO 14", html)
         self.assertIn("Juan Andres Rivera", html)
 
@@ -68,8 +68,8 @@ class TestPrestacionesReports(TransactionCase):
 
     def test_benefit_planilla_rows_windows(self):
         """§4.7/§4.8: ventana de Aguinaldo dic→nov y Bono 14 jul→jun."""
-        rows_agui = self.run._l10n_gt_benefit_planilla_rows("aguinaldo")
-        rows_b14 = self.run._l10n_gt_benefit_planilla_rows("bono14")
+        rows_agui = self.batch._l10n_gt_benefit_planilla_rows("aguinaldo")
+        rows_b14 = self.batch._l10n_gt_benefit_planilla_rows("bono14")
         self.assertEqual(len(rows_agui), 1)
         self.assertEqual(len(rows_b14), 1)
         # Bono 14 pagado en julio 2026 -> ventana jul-2025 a jun-2026

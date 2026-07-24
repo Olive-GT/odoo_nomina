@@ -34,7 +34,7 @@ class TestReports(TransactionCase):
             "date_start": "2025-11-19",
             "structure_type_id": cls.structure.type_id.id,
         })
-        cls.run = cls.env["hr.payslip.run"].create({
+        cls.batch = cls.env["hr.payslip.run"].create({
             "name": "Nómina junio 2026",
             "date_start": "2026-06-01",
             "date_end": "2026-06-30",
@@ -44,7 +44,7 @@ class TestReports(TransactionCase):
             "employee_id": cls.employee.id,
             "contract_id": cls.contract.id,
             "struct_id": cls.structure.id,
-            "payslip_run_id": cls.run.id,
+            "payslip_run_id": cls.batch.id,
             "date_from": "2026-06-01",
             "date_to": "2026-06-30",
         })
@@ -63,27 +63,27 @@ class TestReports(TransactionCase):
 
     # ---------------- Renderizado (no debe reventar) ----------------
     def test_render_planilla(self):
-        html = self._render("l10n_gt_payroll_report.report_planilla", self.run.ids)
+        html = self._render("l10n_gt_payroll_report.report_planilla", self.batch.ids)
         self.assertIn("PLANILLA GENERAL", html)
         self.assertIn("Glenda", html)
         self.assertIn("Q4,002.28", html)  # formato monetario aplicado
 
     def test_render_igss(self):
-        html = self._render("l10n_gt_payroll_report.report_igss", self.run.ids)
+        html = self._render("l10n_gt_payroll_report.report_igss", self.batch.ids)
         self.assertIn("IGSS", html)
         self.assertIn("Glenda", html)
 
     def test_render_costos(self):
-        html = self._render("l10n_gt_payroll_report.report_costos", self.run.ids)
+        html = self._render("l10n_gt_payroll_report.report_costos", self.batch.ids)
         self.assertIn("COSTO DE PERSONAL", html)
         self.assertIn("Glenda", html)
 
     def test_render_libro(self):
-        html = self._render("l10n_gt_payroll_report.report_libro", self.run.ids)
+        html = self._render("l10n_gt_payroll_report.report_libro", self.batch.ids)
         self.assertIn("LIBRO DE SALARIOS", html)
 
     def test_render_informe(self):
-        html = self._render("l10n_gt_payroll_report.report_informe", self.run.ids)
+        html = self._render("l10n_gt_payroll_report.report_informe", self.batch.ids)
         self.assertIn("INFORME DEL EMPLEADOR", html)
 
     def test_render_boleta(self):
@@ -94,7 +94,7 @@ class TestReports(TransactionCase):
     def test_igss_rows_numbers(self):
         """§4.9/§4.15: base afecta 4,002.28; laboral 4.83% = 193.31;
         patronal 12.67% = 507.09; total 700.40."""
-        rows = self.run._l10n_gt_igss_rows()
+        rows = self.batch._l10n_gt_igss_rows()
         self.assertEqual(len(rows), 1)
         r = rows[0]
         self.assertAlmostEqual(r["base"], 4002.28, 2)
@@ -104,7 +104,7 @@ class TestReports(TransactionCase):
 
     def test_costos_rows_numbers(self):
         """§6.8: costo total = ordinario + bonif + HE + comis + patronal."""
-        rows = self.run._l10n_gt_costos_rows()
+        rows = self.batch._l10n_gt_costos_rows()
         r = rows[0]
         self.assertAlmostEqual(r["ordinario"], 4002.28, 2)
         self.assertAlmostEqual(r["bonif"], 250.0, 2)
@@ -113,11 +113,11 @@ class TestReports(TransactionCase):
         self.assertAlmostEqual(r["total"], 4759.37, 1)
 
     def test_money_format(self):
-        self.assertEqual(self.run._l10n_gt_money(4002.28), "Q4,002.28")
-        self.assertEqual(self.run._l10n_gt_money(1234567.5), "Q1,234,567.50")
+        self.assertEqual(self.batch._l10n_gt_money(4002.28), "Q4,002.28")
+        self.assertEqual(self.batch._l10n_gt_money(1234567.5), "Q1,234,567.50")
 
     def test_period_label(self):
-        self.assertEqual(self.run._l10n_gt_period_label(),
+        self.assertEqual(self.batch._l10n_gt_period_label(),
                          "Del 01 al 30 de junio de 2026")
 
     def test_libro_sections_rows(self):
@@ -125,7 +125,7 @@ class TestReports(TransactionCase):
         debe traer al menos una fila mensual."""
         if not self.done_ok:
             self.skipTest("El recibo no pudo confirmarse en este entorno")
-        sections = self.run._l10n_gt_libro_sections()
+        sections = self.batch._l10n_gt_libro_sections()
         self.assertTrue(sections)
         rows = sections[0]["rows"]
         self.assertTrue(rows)
