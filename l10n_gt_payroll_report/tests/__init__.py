@@ -1,2 +1,1 @@
-from . import test_isr
 from . import test_reports
