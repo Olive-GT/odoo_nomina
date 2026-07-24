@@ -55,6 +55,16 @@ for xml in sorted(report_xmls):
         if tid not in defined_templates and tid not in CORE_TEMPLATES:
             line = raw[:m.start()].count("\n") + 1
             problems.append((rel, line, "T-CALL", tid))
+    # t-set con nombre de builtin de Python (QWeb resuelve el builtin, no la
+    # variable -> TypeError en render, p.ej. 'ord').
+    PY_BUILTINS = {"ord", "sum", "min", "max", "abs", "round", "id", "type",
+                   "dict", "list", "str", "int", "len", "map", "filter",
+                   "format", "vars", "all", "any", "sorted", "zip", "range",
+                   "next", "iter", "bytes", "bool", "set", "hash", "open", "dir"}
+    for m in re.finditer(r't-set="([^"]+)"', raw):
+        if m.group(1) in PY_BUILTINS:
+            line = raw[:m.start()].count("\n") + 1
+            problems.append((rel, line, "BUILTIN", m.group(1)))
     # quitar los valores de t-call para que no contaminen el escaneo de campos
     txt = re.sub(r't-call="[^"]+"', 't-call=""', raw)
     # llamadas a métodos: .algo(   con prefijo _l10n_gt_

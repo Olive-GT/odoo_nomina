@@ -46,12 +46,12 @@
                                 <t t-set="t_ded" t-value="0"/>
                                 <t t-set="t_net" t-value="0"/>
                                 <tr t-foreach="run.slip_ids" t-as="slip">
-                                    <t t-set="ord" t-value="slip._l10n_gt_line('SALORD')"/>
+                                    <t t-set="ordi" t-value="slip._l10n_gt_line('SALORD')"/>
                                     <t t-set="bon" t-value="slip._l10n_gt_line('BONINC')"/>
                                     <t t-set="he" t-value="slip._l10n_gt_line('HEXTD') + slip._l10n_gt_line('HEXTN')"/>
                                     <t t-set="com" t-value="slip._l10n_gt_line('COMIS')"/>
                                     <t t-set="dev" t-value="slip._l10n_gt_line('GROSS')"/>
-                                    <t t-set="otr" t-value="dev - ord - bon - he - com"/>
+                                    <t t-set="otr" t-value="dev - ordi - bon - he - com"/>
                                     <t t-set="igss" t-value="-slip._l10n_gt_line('IGSSLAB')"/>
                                     <t t-set="isr" t-value="-slip._l10n_gt_line('ISR')"/>
                                     <t t-set="ded" t-value="slip._l10n_gt_lines_by_category('DED','out')"/>
@@ -61,7 +61,7 @@
                                     <td style="border:0.5px solid #ccc; padding:3px;"><span t-field="slip.employee_id.name"/></td>
                                     <td style="border:0.5px solid #ccc; padding:3px; text-align:center;"><span t-field="slip.employee_id.l10n_gt_dpi"/></td>
                                     <td style="border:0.5px solid #ccc; padding:3px;"><span t-field="slip.employee_id.job_id.name"/></td>
-                                    <td style="border:0.5px solid #ccc; padding:3px; text-align:right;"><span t-esc="run._l10n_gt_money(ord)"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:3px; text-align:right;"><span t-esc="run._l10n_gt_money(ordi)"/></td>
                                     <td style="border:0.5px solid #ccc; padding:3px; text-align:right;"><span t-esc="run._l10n_gt_money(bon)"/></td>
                                     <td style="border:0.5px solid #ccc; padding:3px; text-align:right;"><span t-esc="run._l10n_gt_money(he)"/></td>
                                     <td style="border:0.5px solid #ccc; padding:3px; text-align:right;"><span t-esc="run._l10n_gt_money(com)"/></td>
@@ -72,7 +72,7 @@
                                     <td style="border:0.5px solid #ccc; padding:3px; text-align:right;"><span t-esc="run._l10n_gt_money(otd)"/></td>
                                     <td style="border:0.5px solid #ccc; padding:3px; text-align:right; font-weight:bold;"><span t-esc="run._l10n_gt_money(ded)"/></td>
                                     <td style="border:0.5px solid #ccc; padding:3px; text-align:right; font-weight:bold;"><span t-esc="run._l10n_gt_money(net)"/></td>
-                                    <t t-set="t_ord" t-value="t_ord + ord"/>
+                                    <t t-set="t_ord" t-value="t_ord + ordi"/>
                                     <t t-set="t_bon" t-value="t_bon + bon"/>
                                     <t t-set="t_he" t-value="t_he + he"/>
                                     <t t-set="t_com" t-value="t_com + com"/>
