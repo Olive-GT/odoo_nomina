@@ -17,4 +17,35 @@
         </field>
     </record>
 
+    <!-- Lista enfocada en las cuentas por concepto (para configurar la póliza). -->
+    <record id="view_salary_rule_list_gt_account" model="ir.ui.view">
+        <field name="name">hr.salary.rule.list.gt.account</field>
+        <field name="model">hr.salary.rule</field>
+        <field name="arch" type="xml">
+            <list string="Cuentas por concepto" editable="bottom" create="false">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="l10n_gt_account_debit_id" options="{'no_create': True}"/>
+                <field name="l10n_gt_account_credit_id" options="{'no_create': True}"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_gt_salary_rules_account" model="ir.actions.act_window">
+        <field name="name">Cuentas contables por concepto</field>
+        <field name="res_model">hr.salary.rule</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_salary_rule_list_gt_account"/>
+        <field name="help" type="html">
+            <p>Asigna la cuenta de <b>débito</b> y <b>crédito</b> a cada concepto
+               para generar la póliza contable de la nómina.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_gt_salary_rules_account"
+              name="Cuentas contables (póliza)"
+              parent="l10n_gt_payroll.menu_l10n_gt_payroll_config"
+              action="action_gt_salary_rules_account"
+              sequence="40"/>
+
 </odoo>
