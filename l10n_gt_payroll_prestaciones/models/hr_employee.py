@@ -141,9 +141,15 @@ class HrEmployee(models.Model):
     def _compute_labor_liability(self):
         today = fields.Date.today()
         for emp in self:
-            # Aguinaldo/Bono 14: pagable del período vigente (incluye apertura).
-            emp.l10n_gt_liab_aguinaldo = emp._l10n_gt_benefit_payable("aguinaldo", today)
-            emp.l10n_gt_liab_bono14 = emp._l10n_gt_benefit_payable("bono14", today)
+            # Pasivo = saldo de apertura + provisiones devengadas − lo ya pagado.
+            emp.l10n_gt_liab_aguinaldo = (
+                emp.l10n_gt_opening_aguinaldo
+                + emp._l10n_gt_sum_provision("PROVAGUI")
+                - emp._l10n_gt_sum_benefit_paid("aguinaldo"))
+            emp.l10n_gt_liab_bono14 = (
+                emp.l10n_gt_opening_bono14
+                + emp._l10n_gt_sum_provision("PROVBONO14")
+                - emp._l10n_gt_sum_benefit_paid("bono14"))
             # Indemnización: apertura + provisiones acumuladas − pagado.
             emp.l10n_gt_liab_indemnizacion = (
                 emp.l10n_gt_opening_indemnizacion
@@ -239,8 +245,10 @@ class HrEmployee(models.Model):
         self.ensure_one()
         if not date_ref:
             return 0.0
-        if self.l10n_gt_opening_date and date_ref >= self.l10n_gt_opening_date:
-            anios = (date_ref - self.l10n_gt_opening_date).days / 365.0
+        if self.l10n_gt_opening_date:
+            # Parte de los días pendientes a la apertura y acumula 15/año desde la
+            # fecha de corte (sin acumulación negativa si la fecha aún no llega).
+            anios = max((date_ref - self.l10n_gt_opening_date).days, 0) / 365.0
             return round((self.l10n_gt_opening_vacation_days or 0.0) + anios * 15.0, 2)
         start = self.contract_id.date_start if self.contract_id else False
         if not start:
