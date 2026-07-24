@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Cuerpo común de las planillas de Aguinaldo (§6.3) y Bono 14 (§6.4).
+         El llamador define: run, r_benefit (str), r_title (str). -->
+    <template id="l10n_gt_benefit_planilla_body">
+        <div class="page" style="font-family:Arial, sans-serif;">
+            <t t-call="l10n_gt_payroll_report.l10n_gt_report_header">
+                <t t-set="company" t-value="run.company_id"/>
+                <t t-set="r_period" t-value="run._l10n_gt_period_label()"/>
+            </t>
+            <t t-set="rows" t-value="run._l10n_gt_benefit_planilla_rows(r_benefit)"/>
+            <table style="width:100%; border-collapse:collapse; font-size:9px;">
+                <thead>
+                    <tr style="background:#333333; color:#ffffff;">
+                        <th style="border:0.5px solid #999; padding:4px;">No.</th>
+                        <th style="border:0.5px solid #999; padding:4px; text-align:left;">Empleado</th>
+                        <th style="border:0.5px solid #999; padding:4px;">DPI</th>
+                        <th style="border:0.5px solid #999; padding:4px;">Fecha ingreso</th>
+                        <th style="border:0.5px solid #999; padding:4px;">Período computado</th>
+                        <th style="border:0.5px solid #999; padding:4px; text-align:right;">Días laborados</th>
+                        <th style="border:0.5px solid #999; padding:4px; text-align:right;">Salario promedio</th>
+                        <th style="border:0.5px solid #999; padding:4px; text-align:right; background:#555;">Monto a pagar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-set="total" t-value="0"/>
+                    <tr t-foreach="rows" t-as="r">
+                        <td style="border:0.5px solid #ccc; padding:4px; text-align:center;"><span t-esc="r_index + 1"/></td>
+                        <td style="border:0.5px solid #ccc; padding:4px;"><span t-esc="r['employee']"/></td>
+                        <td style="border:0.5px solid #ccc; padding:4px; text-align:center;"><span t-esc="r['dpi']"/></td>
+                        <td style="border:0.5px solid #ccc; padding:4px; text-align:center;"><span t-esc="r['ingreso']"/></td>
+                        <td style="border:0.5px solid #ccc; padding:4px; text-align:center;">
+                            <span t-esc="r['win_from']"/> al <span t-esc="r['win_to']"/>
+                        </td>
+                        <td style="border:0.5px solid #ccc; padding:4px; text-align:right;"><span t-esc="'%.0f' % r['dias']"/></td>
+                        <td style="border:0.5px solid #ccc; padding:4px; text-align:right;"><span t-esc="run._l10n_gt_money(r['average'])"/></td>
+                        <td style="border:0.5px solid #ccc; padding:4px; text-align:right; font-weight:bold;"><span t-esc="run._l10n_gt_money(r['amount'])"/></td>
+                        <t t-set="total" t-value="total + r['amount']"/>
+                    </tr>
+                    <tr style="background:#e6e6e6; font-weight:bold;">
+                        <td colspan="7" style="border:0.5px solid #999; padding:4px; text-align:right;">TOTAL</td>
+                        <td style="border:0.5px solid #999; padding:4px; text-align:right;"><span t-esc="run._l10n_gt_money(total)"/></td>
+                    </tr>
+                </tbody>
+            </table>
+            <p style="font-size:8px; color:#555; margin-top:6px;">
+                El monto a pagar es la prestación devengada dentro del período
+                computado menos lo ya pagado por ese mismo período. El cálculo
+                proporcional se aplica cuando el trabajador no laboró el período
+                completo.
+            </p>
+            <t t-call="l10n_gt_payroll_report.l10n_gt_report_firma"/>
+        </div>
+    </template>
+
+    <!-- §6.3 Planilla de Aguinaldo -->
+    <template id="report_planilla_aguinaldo">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="run">
+                <t t-call="web.basic_layout">
+                    <t t-set="r_benefit">aguinaldo</t>
+                    <t t-set="r_title">PLANILLA DE AGUINALDO (Decreto 76-78)</t>
+                    <t t-call="l10n_gt_payroll_prestaciones.l10n_gt_benefit_planilla_body"/>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- §6.4 Planilla de Bono 14 -->
+    <template id="report_planilla_bono14">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="run">
+                <t t-call="web.basic_layout">
+                    <t t-set="r_benefit">bono14</t>
+                    <t t-set="r_title">PLANILLA DE BONIFICACIÓN ANUAL — BONO 14 (Decreto 42-92)</t>
+                    <t t-call="l10n_gt_payroll_prestaciones.l10n_gt_benefit_planilla_body"/>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_planilla_aguinaldo" model="ir.actions.report">
+        <field name="name">Planilla de Aguinaldo</field>
+        <field name="model">hr.payslip.run</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">l10n_gt_payroll_prestaciones.report_planilla_aguinaldo</field>
+        <field name="report_file">l10n_gt_payroll_prestaciones.report_planilla_aguinaldo</field>
+        <field name="print_report_name">'Planilla Aguinaldo - %s' % (object.name or '')</field>
+        <field name="binding_model_id" ref="hr_payroll.model_hr_payslip_run"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="l10n_gt_payroll_report.paperformat_gt_landscape"/>
+    </record>
+
+    <record id="action_report_planilla_bono14" model="ir.actions.report">
+        <field name="name">Planilla de Bono 14</field>
+        <field name="model">hr.payslip.run</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">l10n_gt_payroll_prestaciones.report_planilla_bono14</field>
+        <field name="report_file">l10n_gt_payroll_prestaciones.report_planilla_bono14</field>
+        <field name="print_report_name">'Planilla Bono 14 - %s' % (object.name or '')</field>
+        <field name="binding_model_id" ref="hr_payroll.model_hr_payslip_run"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="l10n_gt_payroll_report.paperformat_gt_landscape"/>
+    </record>
+
+</odoo>

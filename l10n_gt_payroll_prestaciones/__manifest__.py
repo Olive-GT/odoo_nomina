@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     "name": "Guatemala - Nómina Prestaciones",
-    "version": "18.0.1.7.0",
+    "version": "18.0.1.8.0",
     "category": "Human Resources/Payroll",
     "summary": "Provisiones de prestaciones (aguinaldo, bono 14, indemnización), "
                "pasivo laboral y control de vacaciones (§4.6, §4.7, §4.8).",
@@ -20,6 +20,8 @@
         "views/hr_employee_views.xml",
         "views/hr_payslip_views.xml",
         "report/pasivo_laboral.xml",
+        "report/planillas_prestaciones.xml",
+        "report/vacaciones.xml",
         "views/l10n_gt_liability_views.xml",
         "views/menus.xml",
     ],

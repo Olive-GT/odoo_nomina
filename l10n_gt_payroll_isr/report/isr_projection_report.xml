@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- §6.7 Reporte de ISR: proyección anual y retención mensual (anexo 8.5). -->
+    <template id="report_isr_projection">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="proj">
+                <t t-call="web.basic_layout">
+                    <div class="page" style="font-family:Arial, sans-serif;">
+                        <t t-set="company" t-value="proj.employee_id.company_id or env.company"/>
+                        <div style="text-align:center; margin-bottom:8px;">
+                            <div style="font-size:14px; font-weight:bold; text-transform:uppercase;"><span t-esc="company.name"/></div>
+                            <div t-if="company.vat" style="font-size:9px; color:#333;">NIT: <span t-esc="company.vat"/></div>
+                            <div style="font-size:12px; font-weight:bold; margin-top:2px;">PROYECCIÓN DE ISR DE ASALARIADOS</div>
+                            <div style="font-size:10px; color:#333;">Ejercicio <span t-esc="proj.year"/></div>
+                        </div>
+
+                        <table style="width:100%; border-collapse:collapse; font-size:10px; margin-bottom:10px;">
+                            <tr>
+                                <td style="border:0.5px solid #999; padding:4px; background:#e6e6e6; width:25%;"><b>Colaborador</b></td>
+                                <td style="border:0.5px solid #999; padding:4px; width:40%;"><span t-esc="proj.employee_id.name"/></td>
+                                <td style="border:0.5px solid #999; padding:4px; background:#e6e6e6; width:15%;"><b>NIT</b></td>
+                                <td style="border:0.5px solid #999; padding:4px;"><span t-esc="proj.employee_id.l10n_gt_nit or ''"/></td>
+                            </tr>
+                        </table>
+
+                        <!-- Detalle mensual proyectado -->
+                        <table style="width:100%; border-collapse:collapse; font-size:9px;">
+                            <thead>
+                                <tr style="background:#333333; color:#ffffff;">
+                                    <th style="border:0.5px solid #999; padding:4px; text-align:left;">Mes</th>
+                                    <th style="border:0.5px solid #999; padding:4px; text-align:right;">Sueldo afecto</th>
+                                    <th style="border:0.5px solid #999; padding:4px; text-align:right;">Aguinaldo</th>
+                                    <th style="border:0.5px solid #999; padding:4px; text-align:right;">Bono 14</th>
+                                    <th style="border:0.5px solid #999; padding:4px; text-align:right;">IGSS</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="proj.line_ids" t-as="ln">
+                                    <td style="border:0.5px solid #ccc; padding:4px;"><span t-esc="ln.month_name"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:4px; text-align:right;"><span t-esc="'Q{:,.2f}'.format(ln.sueldo_afecto)"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:4px; text-align:right;"><span t-esc="'Q{:,.2f}'.format(ln.aguinaldo)"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:4px; text-align:right;"><span t-esc="'Q{:,.2f}'.format(ln.bono14)"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:4px; text-align:right;"><span t-esc="'Q{:,.2f}'.format(ln.igss)"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- Liquidación del impuesto anual -->
+                        <table style="width:60%; border-collapse:collapse; font-size:10px; margin-top:12px;">
+                            <tr>
+                                <td style="border:0.5px solid #999; padding:4px;">Renta bruta anual proyectada</td>
+                                <td style="border:0.5px solid #999; padding:4px; text-align:right;"><span t-esc="'Q{:,.2f}'.format(proj.renta_bruta_anual)"/></td>
+                            </tr>
+                            <tr>
+                                <td style="border:0.5px solid #999; padding:4px;">(−) Rentas exentas (Aguinaldo + Bono 14)</td>
+                                <td style="border:0.5px solid #999; padding:4px; text-align:right;"><span t-esc="'Q{:,.2f}'.format(proj.renta_exenta)"/></td>
+                            </tr>
+                            <tr>
+                                <td style="border:0.5px solid #999; padding:4px;">(−) Deducción personal (sin comprobación)</td>
+                                <td style="border:0.5px solid #999; padding:4px; text-align:right;"><span t-esc="'Q{:,.2f}'.format(proj.deduccion_personal)"/></td>
+                            </tr>
+                            <tr>
+                                <td style="border:0.5px solid #999; padding:4px;">(−) IGSS anual</td>
+                                <td style="border:0.5px solid #999; padding:4px; text-align:right;"><span t-esc="'Q{:,.2f}'.format(proj.igss_anual)"/></td>
+                            </tr>
+                            <tr>
+                                <td style="border:0.5px solid #999; padding:4px;">(−) Deducciones comprobables</td>
+                                <td style="border:0.5px solid #999; padding:4px; text-align:right;"><span t-esc="'Q{:,.2f}'.format(proj.deducciones_comprobables)"/></td>
+                            </tr>
+                            <tr style="background:#e6e6e6; font-weight:bold;">
+                                <td style="border:0.5px solid #999; padding:4px;">Renta imponible</td>
+                                <td style="border:0.5px solid #999; padding:4px; text-align:right;"><span t-esc="'Q{:,.2f}'.format(proj.renta_imponible)"/></td>
+                            </tr>
+                            <tr>
+                                <td style="border:0.5px solid #999; padding:4px;">ISR anual proyectado</td>
+                                <td style="border:0.5px solid #999; padding:4px; text-align:right;"><span t-esc="'Q{:,.2f}'.format(proj.isr_anual)"/></td>
+                            </tr>
+                            <tr style="background:#333333; color:#ffffff; font-weight:bold;">
+                                <td style="border:0.5px solid #999; padding:4px;">Retención mensual</td>
+                                <td style="border:0.5px solid #999; padding:4px; text-align:right;"><span t-esc="'Q{:,.2f}'.format(proj.retencion_mensual)"/></td>
+                            </tr>
+                        </table>
+
+                        <p style="font-size:8px; color:#555; margin-top:8px;">
+                            Tarifa: 5% hasta Q300,000 de renta imponible; sobre el excedente,
+                            Q15,000 fijos + 7%. La retención mensual = ISR anual ÷ 12.
+                        </p>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_isr_projection" model="ir.actions.report">
+        <field name="name">Proyección de ISR</field>
+        <field name="model">l10n.gt.isr.projection</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">l10n_gt_payroll_isr.report_isr_projection</field>
+        <field name="report_file">l10n_gt_payroll_isr.report_isr_projection</field>
+        <field name="print_report_name">'Proyeccion ISR - %s %s' % (object.employee_id.name or '', object.year or '')</field>
+        <field name="binding_model_id" ref="model_l10n_gt_isr_projection"/>
+        <field name="binding_type">report</field>
+    </record>
+
+</odoo>

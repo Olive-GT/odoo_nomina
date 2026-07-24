@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- §6.13 Reporte de vacaciones: control por empleado (acumuladas, gozadas,
+         pendientes). Se imprime desde la lista de Empleados (uno o varios). -->
+    <template id="report_vacaciones">
+        <t t-call="web.html_container">
+            <t t-call="web.basic_layout">
+                <div class="page" style="font-family:Arial, sans-serif;">
+                    <t t-call="l10n_gt_payroll_report.l10n_gt_report_header">
+                        <t t-set="company" t-value="docs[:1].company_id or env.company"/>
+                        <t t-set="r_title">CONTROL DE VACACIONES</t>
+                        <t t-set="r_period">15 días hábiles por año trabajado (Art. 130 Código de Trabajo)</t>
+                    </t>
+                    <table style="width:100%; border-collapse:collapse; font-size:9px;">
+                        <thead>
+                            <tr style="background:#333333; color:#ffffff;">
+                                <th style="border:0.5px solid #999; padding:4px;">No.</th>
+                                <th style="border:0.5px solid #999; padding:4px; text-align:left;">Empleado</th>
+                                <th style="border:0.5px solid #999; padding:4px;">DPI</th>
+                                <th style="border:0.5px solid #999; padding:4px;">Fecha ingreso</th>
+                                <th style="border:0.5px solid #999; padding:4px; text-align:right;">Días acumulados</th>
+                                <th style="border:0.5px solid #999; padding:4px; text-align:right;">Días gozados</th>
+                                <th style="border:0.5px solid #999; padding:4px; text-align:right; background:#555;">Días pendientes</th>
+                                <th style="border:0.5px solid #999; padding:4px;">Último goce</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="docs" t-as="emp">
+                                <td style="border:0.5px solid #ccc; padding:4px; text-align:center;"><span t-esc="emp_index + 1"/></td>
+                                <td style="border:0.5px solid #ccc; padding:4px;"><span t-esc="emp.name"/></td>
+                                <td style="border:0.5px solid #ccc; padding:4px; text-align:center;"><span t-esc="emp.l10n_gt_dpi or ''"/></td>
+                                <td style="border:0.5px solid #ccc; padding:4px; text-align:center;"><span t-esc="emp.first_contract_date"/></td>
+                                <td style="border:0.5px solid #ccc; padding:4px; text-align:right;"><span t-esc="'%.2f' % emp.l10n_gt_vacation_accrued"/></td>
+                                <td style="border:0.5px solid #ccc; padding:4px; text-align:right;"><span t-esc="'%.2f' % emp.l10n_gt_vacation_taken"/></td>
+                                <td style="border:0.5px solid #ccc; padding:4px; text-align:right; font-weight:bold;"><span t-esc="'%.2f' % emp.l10n_gt_vacation_pending"/></td>
+                                <td style="border:0.5px solid #ccc; padding:4px; text-align:center;">
+                                    <span t-esc="max(emp.l10n_gt_vacation_taken_ids.mapped('date_to')) if emp.l10n_gt_vacation_taken_ids else ''"/>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p style="font-size:8px; color:#555; margin-top:6px;">
+                        Días acumulados = 15 por año trabajado (más el saldo de apertura
+                        configurado). Días gozados = registrados en los recibos de nómina.
+                    </p>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_vacaciones" model="ir.actions.report">
+        <field name="name">Control de vacaciones</field>
+        <field name="model">hr.employee</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">l10n_gt_payroll_prestaciones.report_vacaciones</field>
+        <field name="report_file">l10n_gt_payroll_prestaciones.report_vacaciones</field>
+        <field name="binding_model_id" ref="hr.model_hr_employee"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="l10n_gt_payroll_report.paperformat_gt_landscape"/>
+    </record>
+
+</odoo>

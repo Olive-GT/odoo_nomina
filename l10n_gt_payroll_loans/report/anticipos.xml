@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- §6.12 Reporte de anticipos: entregados, recuperados y saldo pendiente
+         por empleado. Se imprime desde la lista de Empleados. -->
+    <template id="report_anticipos">
+        <t t-call="web.html_container">
+            <t t-call="web.basic_layout">
+                <div class="page" style="font-family:Arial, sans-serif;">
+                    <t t-call="l10n_gt_payroll_report.l10n_gt_report_header">
+                        <t t-set="company" t-value="docs[:1].company_id or env.company"/>
+                        <t t-set="r_title">ANTICIPOS DE SALARIO — SALDO POR RECUPERAR</t>
+                    </t>
+                    <table style="width:100%; border-collapse:collapse; font-size:9px;">
+                        <thead>
+                            <tr style="background:#333333; color:#ffffff;">
+                                <th style="border:0.5px solid #999; padding:4px;">No.</th>
+                                <th style="border:0.5px solid #999; padding:4px; text-align:left;">Empleado</th>
+                                <th style="border:0.5px solid #999; padding:4px;">DPI</th>
+                                <th style="border:0.5px solid #999; padding:4px; text-align:right;">Total entregado</th>
+                                <th style="border:0.5px solid #999; padding:4px; text-align:right;">Total recuperado</th>
+                                <th style="border:0.5px solid #999; padding:4px; text-align:right; background:#555;">Saldo pendiente</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-set="t_g" t-value="0"/><t t-set="t_r" t-value="0"/><t t-set="t_b" t-value="0"/>
+                            <tr t-foreach="docs" t-as="emp">
+                                <t t-set="s" t-value="emp._l10n_gt_advance_summary()"/>
+                                <td style="border:0.5px solid #ccc; padding:4px; text-align:center;"><span t-esc="emp_index + 1"/></td>
+                                <td style="border:0.5px solid #ccc; padding:4px;"><span t-esc="emp.name"/></td>
+                                <td style="border:0.5px solid #ccc; padding:4px; text-align:center;"><span t-esc="emp.l10n_gt_dpi or ''"/></td>
+                                <td style="border:0.5px solid #ccc; padding:4px; text-align:right;"><span t-esc="'Q{:,.2f}'.format(s['given'])"/></td>
+                                <td style="border:0.5px solid #ccc; padding:4px; text-align:right;"><span t-esc="'Q{:,.2f}'.format(s['recovered'])"/></td>
+                                <td style="border:0.5px solid #ccc; padding:4px; text-align:right; font-weight:bold;"><span t-esc="'Q{:,.2f}'.format(s['balance'])"/></td>
+                                <t t-set="t_g" t-value="t_g + s['given']"/>
+                                <t t-set="t_r" t-value="t_r + s['recovered']"/>
+                                <t t-set="t_b" t-value="t_b + s['balance']"/>
+                            </tr>
+                            <tr style="background:#e6e6e6; font-weight:bold;">
+                                <td colspan="3" style="border:0.5px solid #999; padding:4px;">TOTALES</td>
+                                <td style="border:0.5px solid #999; padding:4px; text-align:right;"><span t-esc="'Q{:,.2f}'.format(t_g)"/></td>
+                                <td style="border:0.5px solid #999; padding:4px; text-align:right;"><span t-esc="'Q{:,.2f}'.format(t_r)"/></td>
+                                <td style="border:0.5px solid #999; padding:4px; text-align:right;"><span t-esc="'Q{:,.2f}'.format(t_b)"/></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p style="font-size:8px; color:#555; margin-top:6px;">
+                        El anticipo se entrega y se recupera desde el Estado de Cuenta
+                        de los recibos de nómina. El saldo no puede quedar negativo.
+                    </p>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_anticipos" model="ir.actions.report">
+        <field name="name">Anticipos (saldo por recuperar)</field>
+        <field name="model">hr.employee</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">l10n_gt_payroll_loans.report_anticipos</field>
+        <field name="report_file">l10n_gt_payroll_loans.report_anticipos</field>
+        <field name="binding_model_id" ref="hr.model_hr_employee"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="l10n_gt_payroll_report.paperformat_gt_landscape"/>
+    </record>
+
+</odoo>
