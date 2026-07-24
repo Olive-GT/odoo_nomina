@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     "name": "Guatemala - Nómina Anticipos",
-    "version": "18.0.1.8.0",
+    "version": "18.0.1.9.0",
     "category": "Human Resources/Payroll",
     "summary": "Anticipos de sueldo como líneas del Estado de Cuenta del recibo "
                "(entrega y recuperación flexible) (§4.11).",

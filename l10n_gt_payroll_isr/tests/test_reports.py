@@ -10,7 +10,6 @@ class TestIsrReport(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.env.company.vat = "1234567-8"
         cls.structure = cls.env.ref("l10n_gt_payroll.structure_gt_ordinaria")
         cls.employee = cls.env["hr.employee"].create({
             "name": "Heidi Vanessa Avila",
