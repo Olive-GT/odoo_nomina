@@ -2,51 +2,87 @@
 <odoo>
 
     <!-- §6.14 Libro de Salarios (Acuerdo Ministerial 124-2019, formato anexo 8.3).
-         Scaffold funcional con las columnas legales; el layout/exportación exacta
-         se afina contra la plantilla oficial vigente del cliente. -->
+         Una sección por trabajador con su identificación y las filas mensuales
+         del año del lote. -->
     <template id="report_libro">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="run">
-                <t t-call="web.external_layout">
-                    <div class="page">
-                        <div class="text-center">
-                            <h3 t-field="run.company_id.name"/>
-                            <h5>Libro de Salarios — <span t-field="run.name"/></h5>
-                            <p style="font-size:9px;">Libro para la operación de salarios de
-                            trabajadores permanentes, autorizado por el Ministerio de Trabajo y
-                            Previsión Social. Art. 102 Decreto 1441 y Ac. Min. 124-2019.</p>
-                        </div>
-                        <table class="table table-sm table-bordered" style="font-size:9px;">
-                            <thead>
-                                <tr>
-                                    <th>Trabajador</th><th>DPI</th><th>Afiliación IGSS</th>
-                                    <th>Período</th><th class="text-end">Días</th>
-                                    <th class="text-end">Ordinario</th>
-                                    <th class="text-end">Extra</th>
-                                    <th class="text-end">Bonif. Inc.</th>
-                                    <th class="text-end">IGSS</th>
-                                    <th class="text-end">ISR</th>
-                                    <th class="text-end">Líquido</th>
+                <t t-call="web.basic_layout">
+                    <t t-set="sections" t-value="run._l10n_gt_libro_sections()"/>
+                    <div class="page" style="font-family:Arial, sans-serif;">
+                        <t t-call="l10n_gt_payroll_report.l10n_gt_report_header">
+                            <t t-set="company" t-value="run.company_id"/>
+                            <t t-set="r_title">LIBRO DE SALARIOS</t>
+                            <t t-set="r_period">Ejercicio <span t-esc="(run.date_end or run.date_start).year"/></t>
+                            <t t-set="r_legal">Libro computarizado para la operación de salarios de trabajadores permanentes, autorizado por el Ministerio de Trabajo y Previsión Social. Fundamento legal: Art. 102 del Decreto 1441 y Art. 2 del Acuerdo Ministerial 124-2019.</t>
+                        </t>
+
+                        <t t-foreach="sections" t-as="sec">
+                            <t t-set="emp" t-value="sec['employee']"/>
+                            <!-- Identificación del trabajador -->
+                            <table style="width:100%; border-collapse:collapse; font-size:8px; margin-top:10px;">
+                                <tr style="background:#e6e6e6;">
+                                    <td style="border:0.5px solid #999; padding:3px;"><b>Trabajador:</b> <span t-esc="emp.name"/></td>
+                                    <td style="border:0.5px solid #999; padding:3px;"><b>Ocupación:</b> <span t-esc="emp.job_id.name or ''"/></td>
+                                    <td style="border:0.5px solid #999; padding:3px;"><b>Género:</b> <span t-esc="{'male':'Masculino','female':'Femenino','other':'Otro'}.get(emp.gender, '')"/></td>
+                                    <td style="border:0.5px solid #999; padding:3px;"><b>Nacionalidad:</b> <span t-esc="emp.country_id.name or ''"/></td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                <tr t-foreach="run.slip_ids" t-as="slip">
-                                    <td><span t-field="slip.employee_id.name"/></td>
-                                    <td><span t-field="slip.employee_id.l10n_gt_dpi"/></td>
-                                    <td><span t-field="slip.employee_id.l10n_gt_igss_affiliation"/></td>
-                                    <td><span t-field="slip.date_from"/> - <span t-field="slip.date_to"/></td>
-                                    <td class="text-end"><span t-esc="'%.0f' % slip._l10n_gt_worked_days()"/></td>
-                                    <td class="text-end"><span t-esc="'%.2f' % slip._l10n_gt_line('SALORD')"/></td>
-                                    <td class="text-end">
-                                        <span t-esc="'%.2f' % (slip._l10n_gt_line('HEXTD') + slip._l10n_gt_line('HEXTN'))"/>
-                                    </td>
-                                    <td class="text-end"><span t-esc="'%.2f' % slip._l10n_gt_line('BONINC')"/></td>
-                                    <td class="text-end"><span t-esc="'%.2f' % (-slip._l10n_gt_line('IGSSLAB'))"/></td>
-                                    <td class="text-end"><span t-esc="'%.2f' % (-slip._l10n_gt_line('ISR'))"/></td>
-                                    <td class="text-end"><span t-esc="'%.2f' % slip._l10n_gt_line('NET')"/></td>
+                                <tr style="background:#e6e6e6;">
+                                    <td style="border:0.5px solid #999; padding:3px;"><b>Afiliación IGSS:</b> <span t-esc="emp.l10n_gt_igss_affiliation or ''"/></td>
+                                    <td style="border:0.5px solid #999; padding:3px;"><b>DPI:</b> <span t-esc="emp.l10n_gt_dpi or ''"/></td>
+                                    <td style="border:0.5px solid #999; padding:3px;"><b>NIT:</b> <span t-esc="emp.l10n_gt_nit or ''"/></td>
+                                    <td style="border:0.5px solid #999; padding:3px;"><b>Ingreso:</b> <span t-esc="emp.first_contract_date"/></td>
                                 </tr>
-                            </tbody>
-                        </table>
+                            </table>
+
+                            <table style="width:100%; border-collapse:collapse; font-size:7px;">
+                                <thead>
+                                    <tr style="background:#333333; color:#ffffff;">
+                                        <th style="border:0.5px solid #999; padding:2px;">No.</th>
+                                        <th style="border:0.5px solid #999; padding:2px;">Período</th>
+                                        <th style="border:0.5px solid #999; padding:2px; text-align:right;">Salario Q</th>
+                                        <th style="border:0.5px solid #999; padding:2px; text-align:right;">Días</th>
+                                        <th style="border:0.5px solid #999; padding:2px; text-align:right;">Ordinario</th>
+                                        <th style="border:0.5px solid #999; padding:2px; text-align:right;">Extraord.</th>
+                                        <th style="border:0.5px solid #999; padding:2px; text-align:right;">Otros</th>
+                                        <th style="border:0.5px solid #999; padding:2px; text-align:right;">Vacac.</th>
+                                        <th style="border:0.5px solid #999; padding:2px; text-align:right; background:#555;">Sal. total</th>
+                                        <th style="border:0.5px solid #999; padding:2px; text-align:right;">IGSS</th>
+                                        <th style="border:0.5px solid #999; padding:2px; text-align:right;">ISR</th>
+                                        <th style="border:0.5px solid #999; padding:2px; text-align:right;">Otras</th>
+                                        <th style="border:0.5px solid #999; padding:2px; text-align:right;">Bonif. Inc.</th>
+                                        <th style="border:0.5px solid #999; padding:2px; text-align:right; background:#555;">Líquido</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-set="s_tot" t-value="0"/><t t-set="s_net" t-value="0"/>
+                                    <tr t-foreach="sec['rows']" t-as="row">
+                                        <td style="border:0.5px solid #ccc; padding:2px; text-align:center;"><span t-esc="row['n']"/></td>
+                                        <td style="border:0.5px solid #ccc; padding:2px;"><span t-esc="row['periodo']"/></td>
+                                        <td style="border:0.5px solid #ccc; padding:2px; text-align:right;"><span t-esc="run._l10n_gt_money(row['wage'])"/></td>
+                                        <td style="border:0.5px solid #ccc; padding:2px; text-align:right;"><span t-esc="'%.0f' % row['dias']"/></td>
+                                        <td style="border:0.5px solid #ccc; padding:2px; text-align:right;"><span t-esc="run._l10n_gt_money(row['ordinario'])"/></td>
+                                        <td style="border:0.5px solid #ccc; padding:2px; text-align:right;"><span t-esc="run._l10n_gt_money(row['extraordinario'])"/></td>
+                                        <td style="border:0.5px solid #ccc; padding:2px; text-align:right;"><span t-esc="run._l10n_gt_money(row['otros'])"/></td>
+                                        <td style="border:0.5px solid #ccc; padding:2px; text-align:right;"><span t-esc="run._l10n_gt_money(row['vacaciones'])"/></td>
+                                        <td style="border:0.5px solid #ccc; padding:2px; text-align:right; font-weight:bold;"><span t-esc="run._l10n_gt_money(row['total'])"/></td>
+                                        <td style="border:0.5px solid #ccc; padding:2px; text-align:right;"><span t-esc="run._l10n_gt_money(row['igss'])"/></td>
+                                        <td style="border:0.5px solid #ccc; padding:2px; text-align:right;"><span t-esc="run._l10n_gt_money(row['isr'])"/></td>
+                                        <td style="border:0.5px solid #ccc; padding:2px; text-align:right;"><span t-esc="run._l10n_gt_money(row['otras_ded'])"/></td>
+                                        <td style="border:0.5px solid #ccc; padding:2px; text-align:right;"><span t-esc="run._l10n_gt_money(row['bonif_inc'])"/></td>
+                                        <td style="border:0.5px solid #ccc; padding:2px; text-align:right; font-weight:bold;"><span t-esc="run._l10n_gt_money(row['liquido'])"/></td>
+                                        <t t-set="s_tot" t-value="s_tot + row['total']"/>
+                                        <t t-set="s_net" t-value="s_net + row['liquido']"/>
+                                    </tr>
+                                    <tr style="background:#e6e6e6; font-weight:bold;">
+                                        <td colspan="8" style="border:0.5px solid #999; padding:2px; text-align:right;">TOTAL ANUAL</td>
+                                        <td style="border:0.5px solid #999; padding:2px; text-align:right;"><span t-esc="run._l10n_gt_money(s_tot)"/></td>
+                                        <td colspan="4" style="border:0.5px solid #999; padding:2px;"></td>
+                                        <td style="border:0.5px solid #999; padding:2px; text-align:right;"><span t-esc="run._l10n_gt_money(s_net)"/></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </t>
                     </div>
                 </t>
             </t>

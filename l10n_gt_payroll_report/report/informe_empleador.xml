@@ -1,53 +1,113 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- §6.15 Informe del Empleador (formato anexo 8.4).
-         Scaffold funcional con los campos principales; los ~40 campos completos y
-         los códigos de nomenclatura MinTrab se afinan contra la plantilla oficial
-         vigente (idealmente exportado a Excel con report_xlsx). -->
+    <!-- §6.15 Informe del Empleador (formato anexo 8.4). Dos bloques:
+         identificación del trabajador y datos laborales + montos anuales. -->
     <template id="report_informe">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="run">
-                <t t-call="web.external_layout">
-                    <div class="page">
-                        <div class="text-center">
-                            <h3 t-field="run.company_id.name"/>
-                            <h5>Informe del Empleador</h5>
-                        </div>
-                        <table class="table table-sm table-bordered" style="font-size:8px;">
+                <t t-call="web.basic_layout">
+                    <t t-set="rows" t-value="run._l10n_gt_informe_rows()"/>
+                    <div class="page" style="font-family:Arial, sans-serif;">
+                        <t t-call="l10n_gt_payroll_report.l10n_gt_report_header">
+                            <t t-set="company" t-value="run.company_id"/>
+                            <t t-set="r_title">INFORME DEL EMPLEADOR</t>
+                            <t t-set="r_period">Ejercicio <span t-esc="(run.date_end or run.date_start).year"/></t>
+                        </t>
+
+                        <!-- Bloque 1: Identificación -->
+                        <div style="font-size:9px; font-weight:bold; margin:6px 0 2px;">1. Identificación del trabajador</div>
+                        <table style="width:100%; border-collapse:collapse; font-size:7px;">
                             <thead>
-                                <tr>
-                                    <th>No.</th>
-                                    <th>Primer nombre</th><th>Segundo nombre</th>
-                                    <th>Primer apellido</th><th>Segundo apellido</th>
-                                    <th>DPI</th><th>NIT</th><th>Afil. IGSS</th>
-                                    <th>Fecha nac.</th><th>Puesto</th>
-                                    <th class="text-end">Salario mensual</th>
-                                    <th class="text-end">Bonif. (250)</th>
+                                <tr style="background:#333333; color:#ffffff;">
+                                    <th style="border:0.5px solid #999; padding:2px;">No.</th>
+                                    <th style="border:0.5px solid #999; padding:2px;">1er nombre</th>
+                                    <th style="border:0.5px solid #999; padding:2px;">2do nombre</th>
+                                    <th style="border:0.5px solid #999; padding:2px;">3er nombre</th>
+                                    <th style="border:0.5px solid #999; padding:2px;">1er apellido</th>
+                                    <th style="border:0.5px solid #999; padding:2px;">2do apellido</th>
+                                    <th style="border:0.5px solid #999; padding:2px;">Ap. casada</th>
+                                    <th style="border:0.5px solid #999; padding:2px;">Estado civil</th>
+                                    <th style="border:0.5px solid #999; padding:2px;">DPI</th>
+                                    <th style="border:0.5px solid #999; padding:2px;">NIT</th>
+                                    <th style="border:0.5px solid #999; padding:2px;">Afil. IGSS</th>
+                                    <th style="border:0.5px solid #999; padding:2px;">Sexo</th>
+                                    <th style="border:0.5px solid #999; padding:2px;">Fecha nac.</th>
+                                    <th style="border:0.5px solid #999; padding:2px;">Profesión</th>
+                                    <th style="border:0.5px solid #999; padding:2px;">Hijos</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr t-foreach="run.slip_ids" t-as="slip">
-                                    <td><span t-field="slip.employee_id.barcode"/></td>
-                                    <td><span t-field="slip.employee_id.l10n_gt_first_name"/></td>
-                                    <td><span t-field="slip.employee_id.l10n_gt_middle_name"/></td>
-                                    <td><span t-field="slip.employee_id.l10n_gt_first_surname"/></td>
-                                    <td><span t-field="slip.employee_id.l10n_gt_second_surname"/></td>
-                                    <td><span t-field="slip.employee_id.l10n_gt_dpi"/></td>
-                                    <td><span t-field="slip.employee_id.l10n_gt_nit"/></td>
-                                    <td><span t-field="slip.employee_id.l10n_gt_igss_affiliation"/></td>
-                                    <td><span t-field="slip.employee_id.birthday"/></td>
-                                    <td><span t-field="slip.employee_id.job_id.name"/></td>
-                                    <td class="text-end"><span t-esc="'%.2f' % slip._l10n_gt_line('SALORD')"/></td>
-                                    <td class="text-end"><span t-esc="'%.2f' % min(250.0, slip._l10n_gt_line('BONINC'))"/></td>
+                                <tr t-foreach="rows" t-as="row">
+                                    <t t-set="emp" t-value="row['employee']"/>
+                                    <td style="border:0.5px solid #ccc; padding:2px; text-align:center;"><span t-esc="row_index + 1"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:2px;"><span t-esc="emp.l10n_gt_first_name or ''"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:2px;"><span t-esc="emp.l10n_gt_middle_name or ''"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:2px;"><span t-esc="emp.l10n_gt_third_name or ''"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:2px;"><span t-esc="emp.l10n_gt_first_surname or ''"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:2px;"><span t-esc="emp.l10n_gt_second_surname or ''"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:2px;"><span t-esc="emp.l10n_gt_married_surname or ''"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:2px;"><span t-esc="{'single':'Soltero/a','married':'Casado/a','cohabitant':'Unido/a','widower':'Viudo/a','divorced':'Divorciado/a'}.get(emp.marital, '')"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:2px;"><span t-esc="emp.l10n_gt_dpi or ''"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:2px;"><span t-esc="emp.l10n_gt_nit or ''"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:2px;"><span t-esc="emp.l10n_gt_igss_affiliation or ''"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:2px;"><span t-esc="{'male':'M','female':'F','other':'O'}.get(emp.gender, '')"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:2px;"><span t-esc="emp.birthday"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:2px;"><span t-esc="emp.l10n_gt_profession or ''"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:2px; text-align:center;"><span t-esc="emp.l10n_gt_children_count or 0"/></td>
                                 </tr>
                             </tbody>
                         </table>
-                        <p style="font-size:8px;" class="text-muted">
-                            Nota: reporte funcional. Los campos completos del Informe del
-                            Empleador (§6.15) y los códigos MinTrab (nacionalidad, estado civil,
-                            pueblo de pertenencia, nivel académico, temporalidad, etc.) se
-                            completan según la plantilla oficial vigente, preferiblemente en Excel.
+
+                        <!-- Bloque 2: Datos laborales y montos anuales -->
+                        <div style="font-size:9px; font-weight:bold; margin:10px 0 2px;">2. Datos laborales y montos pagados en el año</div>
+                        <table style="width:100%; border-collapse:collapse; font-size:7px;">
+                            <thead>
+                                <tr style="background:#333333; color:#ffffff;">
+                                    <th style="border:0.5px solid #999; padding:2px;">No.</th>
+                                    <th style="border:0.5px solid #999; padding:2px; text-align:left;">Empleado</th>
+                                    <th style="border:0.5px solid #999; padding:2px;">Ingreso</th>
+                                    <th style="border:0.5px solid #999; padding:2px;">Ocupación</th>
+                                    <th style="border:0.5px solid #999; padding:2px; text-align:right;">Días año</th>
+                                    <th style="border:0.5px solid #999; padding:2px; text-align:right;">Sal. mensual</th>
+                                    <th style="border:0.5px solid #999; padding:2px; text-align:right;">Sal. anual</th>
+                                    <th style="border:0.5px solid #999; padding:2px; text-align:right;">Bonif. 78-89</th>
+                                    <th style="border:0.5px solid #999; padding:2px; text-align:right;">H. extra año</th>
+                                    <th style="border:0.5px solid #999; padding:2px; text-align:right;">Aguinaldo</th>
+                                    <th style="border:0.5px solid #999; padding:2px; text-align:right;">Bono 14</th>
+                                    <th style="border:0.5px solid #999; padding:2px; text-align:right;">Comisiones</th>
+                                    <th style="border:0.5px solid #999; padding:2px; text-align:right;">Bonif. adic.</th>
+                                    <th style="border:0.5px solid #999; padding:2px; text-align:right;">Vacaciones</th>
+                                    <th style="border:0.5px solid #999; padding:2px; text-align:right;">Indemniz.</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="rows" t-as="row">
+                                    <t t-set="emp" t-value="row['employee']"/>
+                                    <td style="border:0.5px solid #ccc; padding:2px; text-align:center;"><span t-esc="row_index + 1"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:2px;"><span t-esc="emp.name"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:2px; text-align:center;"><span t-esc="emp.first_contract_date"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:2px;"><span t-esc="emp.job_id.name or ''"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:2px; text-align:right;"><span t-esc="'%.0f' % row['dias']"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:2px; text-align:right;"><span t-esc="run._l10n_gt_money(row['sal_mensual'])"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:2px; text-align:right;"><span t-esc="run._l10n_gt_money(row['sal_anual'])"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:2px; text-align:right;">Q250.00</td>
+                                    <td style="border:0.5px solid #ccc; padding:2px; text-align:right;"><span t-esc="run._l10n_gt_money(row['he_anual'])"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:2px; text-align:right;"><span t-esc="run._l10n_gt_money(row['aguinaldo'])"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:2px; text-align:right;"><span t-esc="run._l10n_gt_money(row['bono14'])"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:2px; text-align:right;"><span t-esc="run._l10n_gt_money(row['comisiones'])"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:2px; text-align:right;"><span t-esc="run._l10n_gt_money(row['bonif_adicional'])"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:2px; text-align:right;"><span t-esc="run._l10n_gt_money(row['vacaciones'])"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:2px; text-align:right;"><span t-esc="run._l10n_gt_money(row['indemnizacion'])"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <p style="font-size:7px; color:#555; margin-top:8px;">
+                            Los códigos de nomenclatura MinTrab (nacionalidad, tipo de
+                            discapacidad, pueblo de pertenencia, nivel académico,
+                            temporalidad y tipo de contrato) se cargan en la plantilla
+                            oficial del Ministerio de Trabajo a partir de estos datos.
                         </p>
                     </div>
                 </t>
