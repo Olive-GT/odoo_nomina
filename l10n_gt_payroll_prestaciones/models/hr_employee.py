@@ -280,5 +280,7 @@ class L10nGtVacationTaken(models.Model):
     employee_id = fields.Many2one("hr.employee", required=True, ondelete="cascade")
     date_from = fields.Date("Desde", required=True)
     date_to = fields.Date("Hasta", required=True)
-    days = fields.Float("Días gozados", required=True)
+    days = fields.Float("Días gozados", required=True,
+                        help="Admite medios (0.5) y cuartos (0.25) de día.")
+    payslip_id = fields.Many2one("hr.payslip", string="Recibo", ondelete="set null")
     company_id = fields.Many2one("res.company", default=lambda s: s.env.company)

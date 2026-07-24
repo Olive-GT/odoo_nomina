@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 {
     "name": "Guatemala - Nómina Prestaciones",
-    "version": "18.0.1.5.0",
+    "version": "18.0.1.6.0",
     "category": "Human Resources/Payroll",
-    "summary": "Aguinaldo, Bono 14 y control de vacaciones con planillas "
-               "independientes (§4.6, §4.7, §4.8).",
+    "summary": "Provisiones de prestaciones (aguinaldo, bono 14, indemnización), "
+               "pasivo laboral y control de vacaciones (§4.6, §4.7, §4.8).",
     "author": "URBOP / OliveGT",
     "license": "OEEL-1",
     "depends": [
@@ -18,6 +18,7 @@
         "data/hr_salary_rule_data.xml",
         "views/l10n_gt_benefit_views.xml",
         "views/hr_employee_views.xml",
+        "views/hr_payslip_views.xml",
         "report/pasivo_laboral.xml",
         "views/l10n_gt_liability_views.xml",
         "views/menus.xml",
