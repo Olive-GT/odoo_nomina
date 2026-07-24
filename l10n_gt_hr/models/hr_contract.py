@@ -12,16 +12,6 @@ class HrContract(models.Model):
 
     _inherit = "hr.contract"
 
-    l10n_gt_salary_type = fields.Selection(
-        selection=[
-            ("monthly", "Mensual"),
-            ("daily", "Diario"),
-            ("hourly", "Por hora"),
-        ],
-        string="Tipo de salario",
-        default="monthly",
-        tracking=True,
-    )
     l10n_gt_bonif_incentivo = fields.Monetary(
         "Bonificación Incentivo",
         default=250.0,
@@ -77,18 +67,6 @@ class HrContract(models.Model):
     l10n_gt_exclude_overtime = fields.Boolean(
         "Excluir de horas extra",
         help="Puestos/empleados excluidos del cálculo de horas extra (§4.3.4).",
-    )
-    # Atajos a la configuración fiscal del empleado (se editan también desde aquí).
-    l10n_gt_igss_applies = fields.Boolean(
-        related="employee_id.l10n_gt_igss_applies", readonly=False,
-        string="Afiliado al IGSS",
-    )
-    l10n_gt_isr_applies = fields.Boolean(
-        related="employee_id.l10n_gt_isr_applies", readonly=False,
-        string="Sujeto a ISR",
-        help="Si está activo, se calcula y retiene el ISR de asalariados según la "
-             "proyección anual. La retención aparece en el recibo al pulsar "
-             "'Calcular hoja'.",
     )
     l10n_gt_contract_pdf = fields.Binary("Contrato firmado (PDF)", attachment=True)
     l10n_gt_contract_pdf_name = fields.Char("Nombre del archivo")

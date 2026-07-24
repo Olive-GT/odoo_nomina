@@ -44,9 +44,7 @@ class HrPayslip(models.Model):
     def _compute_l10n_gt_quincena_method(self):
         for slip in self:
             slip.l10n_gt_quincena_method = (
-                slip.contract_id.l10n_gt_quincena_method
-                or slip.company_id.l10n_gt_quincena_method or "net_half"
-            )
+                slip.contract_id.l10n_gt_quincena_method or "net_half")
 
     # ------------------------------------------------------------------
     # Estado de cuenta (pagos del mes)

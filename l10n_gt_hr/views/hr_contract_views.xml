@@ -9,25 +9,26 @@
             <notebook position="inside">
                 <page string="Nómina Guatemala" name="l10n_gt_payroll">
                     <group>
-                        <group string="Salario">
-                            <field name="l10n_gt_salary_type"/>
-                            <field name="l10n_gt_payment_frequency"/>
+                        <group string="Salario y pago">
                             <field name="l10n_gt_bonif_incentivo"/>
+                            <field name="l10n_gt_economic_zone_id"/>
+                            <field name="l10n_gt_payment_frequency"/>
                             <field name="l10n_gt_quincena_method"
                                    invisible="l10n_gt_payment_frequency != 'biweekly'"/>
                             <field name="l10n_gt_first_quincena_amount"
                                    invisible="l10n_gt_payment_frequency != 'biweekly' or l10n_gt_quincena_method != 'manual'"/>
-                            <field name="l10n_gt_economic_zone_id"/>
-                            <field name="l10n_gt_igss_applies"/>
-                            <field name="l10n_gt_isr_applies"/>
-                            <field name="l10n_gt_exclude_overtime"/>
                         </group>
-                        <group string="Documentación">
+                        <group string="Otros">
+                            <field name="l10n_gt_exclude_overtime"/>
                             <field name="l10n_gt_contract_pdf"
                                    filename="l10n_gt_contract_pdf_name"/>
                             <field name="l10n_gt_contract_pdf_name" invisible="1"/>
                         </group>
                     </group>
+                    <p class="text-muted">
+                        Los datos fiscales (IGSS / ISR) se configuran en la ficha del
+                        empleado (pestaña "Datos Guatemala").
+                    </p>
                 </page>
             </notebook>
         </field>
