@@ -32,6 +32,27 @@ class HrEmployee(models.Model):
         "Pasivo laboral total", compute="_compute_labor_liability",
         currency_field="l10n_gt_currency_id")
 
+    # ------------------------------------------------------------------
+    # Saldos de apertura (al adoptar el módulo con historia previa)
+    # ------------------------------------------------------------------
+    l10n_gt_opening_date = fields.Date(
+        "Fecha de corte (apertura)",
+        help="Fecha desde la que este módulo empieza a acumular. Los saldos de "
+             "apertura representan lo acumulado ANTES de esta fecha (con los "
+             "sueldos históricos que hayan sido). De aquí en adelante el sistema "
+             "sigue acumulando solo.")
+    l10n_gt_opening_aguinaldo = fields.Monetary(
+        "Aguinaldo acumulado (apertura)", currency_field="l10n_gt_currency_id")
+    l10n_gt_opening_bono14 = fields.Monetary(
+        "Bono 14 acumulado (apertura)", currency_field="l10n_gt_currency_id")
+    l10n_gt_opening_indemnizacion = fields.Monetary(
+        "Indemnización acumulada (apertura)", currency_field="l10n_gt_currency_id")
+    l10n_gt_opening_vacation_days = fields.Float(
+        "Vacaciones pendientes a la apertura (días)",
+        help="Días de vacaciones pendientes (ya netos de las gozadas) a la fecha de "
+             "corte. De aquí en adelante se acumulan 15/año y se restan las gozadas "
+             "que registres después de la fecha de corte.")
+
     def _l10n_gt_sum_provision(self, code):
         """Suma de una provisión (PROVAGUI/PROVBONO14/PROVINDEM) devengada en las
         nóminas ya confirmadas del empleado."""
@@ -96,6 +117,12 @@ class HrEmployee(models.Model):
             return 0.0
         win_start, win_end = self._l10n_gt_benefit_window(benefit_type, ref_date)
         accrued = self._l10n_gt_sum_provision_window(code, win_start, win_end)
+        # Saldo de apertura: se suma SOLO en la ventana que contiene la fecha de
+        # corte (la primera tras adoptar el módulo); en ventanas posteriores ya no.
+        if (self.l10n_gt_opening_date
+                and win_start <= self.l10n_gt_opening_date <= win_end):
+            accrued += (self.l10n_gt_opening_aguinaldo if benefit_type == "aguinaldo"
+                        else self.l10n_gt_opening_bono14)
         # Pagos ya hechos para ESTE período (posteriores a su cierre y antes del
         # cierre del período siguiente).
         next_end = date(win_end.year + 1, win_end.month, win_end.day)
@@ -108,19 +135,19 @@ class HrEmployee(models.Model):
         ])
         return max(accrued - sum(payments.mapped("amount")), 0.0)
 
-    @api.depends("l10n_gt_vacation_taken_ids.days")
+    @api.depends("l10n_gt_vacation_taken_ids.days", "l10n_gt_opening_date",
+                 "l10n_gt_opening_aguinaldo", "l10n_gt_opening_bono14",
+                 "l10n_gt_opening_indemnizacion", "l10n_gt_opening_vacation_days")
     def _compute_labor_liability(self):
         today = fields.Date.today()
         for emp in self:
-            # Pasivo = provisión devengada − lo ya pagado de esa prestación.
-            emp.l10n_gt_liab_aguinaldo = (
-                emp._l10n_gt_sum_provision("PROVAGUI")
-                - emp._l10n_gt_sum_benefit_paid("aguinaldo"))
-            emp.l10n_gt_liab_bono14 = (
-                emp._l10n_gt_sum_provision("PROVBONO14")
-                - emp._l10n_gt_sum_benefit_paid("bono14"))
+            # Aguinaldo/Bono 14: pagable del período vigente (incluye apertura).
+            emp.l10n_gt_liab_aguinaldo = emp._l10n_gt_benefit_payable("aguinaldo", today)
+            emp.l10n_gt_liab_bono14 = emp._l10n_gt_benefit_payable("bono14", today)
+            # Indemnización: apertura + provisiones acumuladas − pagado.
             emp.l10n_gt_liab_indemnizacion = (
-                emp._l10n_gt_sum_provision("PROVINDEM")
+                emp.l10n_gt_opening_indemnizacion
+                + emp._l10n_gt_sum_provision("PROVINDEM")
                 - emp._l10n_gt_sum_benefit_paid("indemnizacion"))
             dias_pend = emp._l10n_gt_vacation_pending_at(today)
             daily = emp._l10n_gt_daily_average(today - timedelta(days=365), today)
@@ -204,21 +231,35 @@ class HrEmployee(models.Model):
             )
 
     def _l10n_gt_vacation_accrued_at(self, date_ref):
-        """Días de vacaciones acumulados a una fecha de corte (15 días/año)."""
+        """Días de vacaciones acumulados a una fecha (15 días/año).
+
+        Con saldo de apertura: parte de los días pendientes a la fecha de corte y
+        acumula 15/año desde ahí. Sin apertura: acumula desde la fecha de ingreso.
+        """
         self.ensure_one()
+        if not date_ref:
+            return 0.0
+        if self.l10n_gt_opening_date and date_ref >= self.l10n_gt_opening_date:
+            anios = (date_ref - self.l10n_gt_opening_date).days / 365.0
+            return round((self.l10n_gt_opening_vacation_days or 0.0) + anios * 15.0, 2)
         start = self.contract_id.date_start if self.contract_id else False
-        if not start or not date_ref:
+        if not start:
             return 0.0
         anios = ((date_ref - start).days + 1) / 365.0
         return round(anios * 15.0, 2)
 
     def _l10n_gt_vacation_pending_at(self, date_ref):
-        """Días pendientes a una fecha de corte (para liquidaciones §4.6)."""
+        """Días pendientes a una fecha de corte (para liquidaciones §4.6).
+
+        Con apertura, solo cuenta las gozadas posteriores a la fecha de corte (las
+        anteriores ya están netas en el saldo de apertura)."""
         self.ensure_one()
         accrued = self._l10n_gt_vacation_accrued_at(date_ref)
+        opening = self.l10n_gt_opening_date
         taken = sum(
             t.days for t in self.l10n_gt_vacation_taken_ids
             if t.date_to and t.date_to <= date_ref
+            and (not opening or t.date_to >= opening)
         )
         return max(0.0, accrued - taken)
 

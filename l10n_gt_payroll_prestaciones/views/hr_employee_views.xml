@@ -7,11 +7,34 @@
         <field name="inherit_id" ref="l10n_gt_hr.view_employee_form_l10n_gt"/>
         <field name="arch" type="xml">
             <page name="l10n_gt" position="after">
-                <page string="Vacaciones GT" name="l10n_gt_vacations">
+                <page string="Prestaciones GT" name="l10n_gt_vacations">
                     <group>
-                        <field name="l10n_gt_vacation_accrued"/>
-                        <field name="l10n_gt_vacation_taken"/>
-                        <field name="l10n_gt_vacation_pending"/>
+                        <group string="Pasivo laboral (por pagar)">
+                            <field name="l10n_gt_currency_id" invisible="1"/>
+                            <field name="l10n_gt_liab_aguinaldo"/>
+                            <field name="l10n_gt_liab_bono14"/>
+                            <field name="l10n_gt_liab_indemnizacion"/>
+                            <field name="l10n_gt_liab_vacaciones"/>
+                            <field name="l10n_gt_liab_total"/>
+                        </group>
+                        <group string="Saldos de apertura (historia previa)">
+                            <field name="l10n_gt_opening_date"/>
+                            <field name="l10n_gt_opening_aguinaldo"
+                                   invisible="not l10n_gt_opening_date"/>
+                            <field name="l10n_gt_opening_bono14"
+                                   invisible="not l10n_gt_opening_date"/>
+                            <field name="l10n_gt_opening_indemnizacion"
+                                   invisible="not l10n_gt_opening_date"/>
+                            <field name="l10n_gt_opening_vacation_days"
+                                   invisible="not l10n_gt_opening_date"/>
+                        </group>
+                    </group>
+                    <group string="Vacaciones">
+                        <group>
+                            <field name="l10n_gt_vacation_accrued"/>
+                            <field name="l10n_gt_vacation_taken"/>
+                            <field name="l10n_gt_vacation_pending"/>
+                        </group>
                     </group>
                     <field name="l10n_gt_vacation_taken_ids">
                         <list editable="bottom">

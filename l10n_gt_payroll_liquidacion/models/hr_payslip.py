@@ -116,22 +116,17 @@ class HrPayslip(models.Model):
         return promedio * dias / 365.0
 
     def _l10n_gt_settlement_amounts(self):
-        """Devuelve el dict de montos legales del finiquito."""
+        """Montos del finiquito = el pasivo laboral acumulado del empleado (que ya
+        incluye los saldos de apertura + lo devengado − lo pagado). Así respeta la
+        historia previa configurada, sin depender del sueldo actual."""
         self.ensure_one()
         emp = self.employee_id
-        d = self.date_to
-        seis = self._l10n_gt_six_months_ago()
-        indemnizacion = 0.0
-        if self.l10n_gt_settlement_indemnity:
-            avg = emp._l10n_gt_average_ordinary(seis, d)
-            # Salario integrado = promedio + parte proporcional de aguinaldo y bono14
-            indemnizacion = (avg + avg / 12.0 * 2) * self._l10n_gt_settlement_years_worked()
         return {
-            "aguinaldo": self._l10n_gt_settlement_prop_benefit("aguinaldo"),
-            "bono14": self._l10n_gt_settlement_prop_benefit("bono14"),
-            "vacaciones": (emp._l10n_gt_vacation_pending_at(d)
-                           * emp._l10n_gt_daily_average(seis, d)),
-            "indemnizacion": indemnizacion,
+            "aguinaldo": emp.l10n_gt_liab_aguinaldo,
+            "bono14": emp.l10n_gt_liab_bono14,
+            "vacaciones": emp.l10n_gt_liab_vacaciones,
+            "indemnizacion": (emp.l10n_gt_liab_indemnizacion
+                              if self.l10n_gt_settlement_indemnity else 0.0),
         }
 
     def action_l10n_gt_compute_settlement(self):
