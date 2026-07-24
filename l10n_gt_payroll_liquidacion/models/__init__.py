@@ -1,1 +1,1 @@
-from . import l10n_gt_settlement
+from . import hr_payslip

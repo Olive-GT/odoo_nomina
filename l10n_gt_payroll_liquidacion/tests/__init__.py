@@ -1,2 +1,1 @@
-from . import test_settlement_golden
-from . import test_settlement_deep
+# Pruebas del modelo settlement retiradas; el finiquito es un recibo de liquidación.

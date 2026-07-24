@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <!-- Documento de finiquito: se genera desde el recibo de liquidación. -->
     <record id="action_report_settlement" model="ir.actions.report">
         <field name="name">Finiquito de liquidación</field>
-        <field name="model">l10n.gt.settlement</field>
+        <field name="model">hr.payslip</field>
         <field name="report_type">qweb-pdf</field>
         <field name="report_name">l10n_gt_payroll_liquidacion.report_settlement</field>
         <field name="report_file">l10n_gt_payroll_liquidacion.report_settlement</field>
-        <field name="binding_model_id" ref="model_l10n_gt_settlement"/>
+        <field name="binding_model_id" ref="hr_payroll.model_hr_payslip"/>
         <field name="binding_type">report</field>
     </record>
 
@@ -16,59 +17,76 @@
             <t t-foreach="docs" t-as="doc">
                 <t t-call="web.external_layout">
                     <div class="page">
-                        <h2 class="text-center">LIQUIDACIÓN — PAGO DE PRESTACIONES</h2>
-                        <div class="row mt-4">
-                            <div class="col-6">
-                                <p><strong>Nombre:</strong> <span t-field="doc.employee_id.name"/></p>
-                                <p><strong>DPI:</strong> <span t-field="doc.employee_id.l10n_gt_dpi"/></p>
-                                <p><strong>Motivo:</strong> <span t-field="doc.reason"/></p>
-                            </div>
-                            <div class="col-6">
-                                <p><strong>Fecha de ingreso:</strong> <span t-field="doc.date_start"/></p>
-                                <p><strong>Fecha de retiro:</strong> <span t-field="doc.date_end"/></p>
-                                <p><strong>Años laborados:</strong> <span t-field="doc.years_worked"/></p>
-                                <p><strong>Sueldo diario:</strong> <span t-field="doc.daily_wage"/></p>
-                            </div>
+                        <div class="text-center py-2 mb-2"
+                             style="background-color:#333333; color:#ffffff;">
+                            <div style="font-size:16px; font-weight:bold;"
+                                 t-field="doc.company_id.name"/>
+                            <div style="font-size:12px;">Finiquito de Liquidación Laboral</div>
                         </div>
 
-                        <table class="table table-sm mt-4">
-                            <thead>
+                        <table class="table table-sm table-bordered mb-3"
+                               style="font-size:11px;">
+                            <tr>
+                                <td style="width:18%; background-color:#e6e6e6;"><strong>Empleado</strong></td>
+                                <td style="width:32%;"><span t-field="doc.employee_id.name"/></td>
+                                <td style="width:18%; background-color:#e6e6e6;"><strong>DPI</strong></td>
+                                <td><span t-field="doc.employee_id.l10n_gt_dpi"/></td>
+                            </tr>
+                            <tr>
+                                <td style="background-color:#e6e6e6;"><strong>Motivo</strong></td>
+                                <td><span t-field="doc.l10n_gt_termination_reason"/></td>
+                                <td style="background-color:#e6e6e6;"><strong>Años laborados</strong></td>
+                                <td><span t-esc="'%.2f' % doc.l10n_gt_settlement_years"/></td>
+                            </tr>
+                            <tr>
+                                <td style="background-color:#e6e6e6;"><strong>Fecha de ingreso</strong></td>
+                                <td><span t-esc="doc._l10n_gt_settlement_start()"/></td>
+                                <td style="background-color:#e6e6e6;"><strong>Fecha de retiro</strong></td>
+                                <td><span t-field="doc.date_to"/></td>
+                            </tr>
+                        </table>
+
+                        <table class="table table-sm table-bordered" style="font-size:11px;">
+                            <thead style="background-color:#e6e6e6;">
                                 <tr><th>Concepto</th><th class="text-end">Monto</th></tr>
                             </thead>
                             <tbody>
-                                <tr><td>Salario ordinario pendiente</td>
-                                    <td class="text-end"><span t-field="doc.salario_pendiente"/></td></tr>
-                                <tr><td>Bonificación incentivo pendiente</td>
-                                    <td class="text-end"><span t-field="doc.bonif_pendiente"/></td></tr>
-                                <tr><td>Aguinaldo proporcional</td>
-                                    <td class="text-end"><span t-field="doc.aguinaldo_prop"/></td></tr>
-                                <tr><td>Bono 14 proporcional</td>
-                                    <td class="text-end"><span t-field="doc.bono14_prop"/></td></tr>
-                                <tr><td>Vacaciones pendientes</td>
-                                    <td class="text-end"><span t-field="doc.vacaciones"/></td></tr>
-                                <tr t-if="doc.has_indemnity"><td>Indemnización</td>
-                                    <td class="text-end"><span t-field="doc.indemnizacion"/></td></tr>
-                                <tr class="fw-bold"><td>Total prestaciones e ingresos</td>
-                                    <td class="text-end"><span t-field="doc.total_ingresos"/></td></tr>
-                                <tr><td>(-) IGSS laboral</td>
-                                    <td class="text-end"><span t-field="doc.igss_pendiente"/></td></tr>
-                                <tr><td>(-) ISR</td>
-                                    <td class="text-end"><span t-field="doc.isr_pendiente"/></td></tr>
-                                <tr><td>(-) Anticipos pendientes</td>
-                                    <td class="text-end"><span t-field="doc.anticipos_pendientes"/></td></tr>
-                                <tr><td>(-) Préstamos pendientes</td>
-                                    <td class="text-end"><span t-field="doc.prestamos_pendientes"/></td></tr>
-                                <tr class="fw-bold"><td>Total descuentos</td>
-                                    <td class="text-end"><span t-field="doc.total_descuentos"/></td></tr>
-                                <tr class="fw-bold table-active"><td>TOTAL LIQUIDACIÓN A PAGAR</td>
-                                    <td class="text-end"><span t-field="doc.total_liquidacion"/></td></tr>
+                                <t t-set="sal" t-value="doc._l10n_gt_sum_payments('salary')"/>
+                                <t t-set="agui" t-value="doc._l10n_gt_sum_payments('aguinaldo')"/>
+                                <t t-set="bono" t-value="doc._l10n_gt_sum_payments('bono14')"/>
+                                <t t-set="vac" t-value="doc._l10n_gt_sum_payments('vacaciones')"/>
+                                <t t-set="inde" t-value="doc._l10n_gt_sum_payments('indemnizacion')"/>
+                                <t t-set="antic" t-value="doc._l10n_gt_sum_payments('anticipo_recover')"/>
+                                <tr><td>Liquidación de salario (neto prorrateado)</td>
+                                    <td class="text-end"><span t-esc="doc._l10n_gt_money(sal)"/></td></tr>
+                                <tr t-if="agui"><td>Aguinaldo proporcional</td>
+                                    <td class="text-end"><span t-esc="doc._l10n_gt_money(agui)"/></td></tr>
+                                <tr t-if="bono"><td>Bono 14 proporcional</td>
+                                    <td class="text-end"><span t-esc="doc._l10n_gt_money(bono)"/></td></tr>
+                                <tr t-if="vac"><td>Vacaciones pendientes</td>
+                                    <td class="text-end"><span t-esc="doc._l10n_gt_money(vac)"/></td></tr>
+                                <tr t-if="inde"><td>Indemnización</td>
+                                    <td class="text-end"><span t-esc="doc._l10n_gt_money(inde)"/></td></tr>
+                                <tr t-if="antic"><td>(−) Recuperación de anticipos</td>
+                                    <td class="text-end"><span t-esc="doc._l10n_gt_money(-antic)"/></td></tr>
+                                <tr class="fw-bold" style="background-color:#333333; color:#ffffff;">
+                                    <td>TOTAL A PAGAR</td>
+                                    <td class="text-end">
+                                        <span t-esc="doc._l10n_gt_money(doc.l10n_gt_settlement_total)"/></td></tr>
                             </tbody>
                         </table>
 
+                        <p class="mt-2" style="font-size:11px; text-align:justify;">
+                            Recibí de conformidad el importe total de la presente
+                            liquidación laboral, que cubre la totalidad de las
+                            prestaciones e indemnización que me corresponden a la fecha
+                            de finalización de la relación de trabajo.
+                        </p>
                         <div class="row mt-5">
                             <div class="col-6 offset-3 text-center">
-                                <p>_______________________________</p>
-                                <p>Recibí conforme<br/><span t-field="doc.employee_id.name"/></p>
+                                <p class="mb-0">_______________________________</p>
+                                <p class="mb-0">Recibí Conforme</p>
+                                <p class="fw-bold"><span t-field="doc.employee_id.name"/></p>
                             </div>
                         </div>
                     </div>
