@@ -30,8 +30,8 @@
 
     <menuitem id="menu_l10n_gt_labor_liability"
               name="Pasivo laboral"
-              parent="l10n_gt_payroll.menu_l10n_gt_payroll_root"
+              parent="l10n_gt_payroll.menu_gt_reports"
               action="action_l10n_gt_labor_liability"
-              sequence="60"/>
+              sequence="10"/>
 
 </odoo>

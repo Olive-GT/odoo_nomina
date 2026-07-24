@@ -3,14 +3,14 @@
 
     <menuitem id="menu_isr_projection"
               name="Proyecciones de ISR"
-              parent="l10n_gt_payroll.menu_l10n_gt_payroll_root"
+              parent="l10n_gt_payroll.menu_l10n_gt_payroll_config"
               action="action_isr_projection"
-              sequence="70"/>
+              sequence="30"/>
 
     <menuitem id="menu_isr_deduction"
               name="Deducciones comprobables ISR"
-              parent="l10n_gt_payroll.menu_l10n_gt_payroll_root"
+              parent="l10n_gt_payroll.menu_l10n_gt_payroll_config"
               action="action_isr_deduction"
-              sequence="71"/>
+              sequence="31"/>
 
 </odoo>

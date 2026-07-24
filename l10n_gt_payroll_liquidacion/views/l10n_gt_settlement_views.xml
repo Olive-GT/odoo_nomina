@@ -34,13 +34,19 @@
         </field>
     </record>
 
-    <!-- Acción/menú de finiquitos: recibos marcados como liquidación. -->
-    <record id="action_settlement_payslips" model="ir.actions.act_window">
-        <field name="name">Liquidaciones / Finiquitos</field>
-        <field name="res_model">hr.payslip</field>
-        <field name="view_mode">list,form</field>
-        <field name="domain">[('l10n_gt_is_settlement', '=', True)]</field>
-        <field name="context">{'default_l10n_gt_is_settlement': True}</field>
+    <!-- Filtro 'Finiquitos' dentro de Recibos de nómina (los finiquitos son
+         recibos marcados como liquidación). -->
+    <record id="view_payslip_search_gt_settlement" model="ir.ui.view">
+        <field name="name">hr.payslip.search.gt.settlement</field>
+        <field name="model">hr.payslip</field>
+        <field name="inherit_id" ref="hr_payroll.view_hr_payslip_filter"/>
+        <field name="arch" type="xml">
+            <search position="inside">
+                <separator/>
+                <filter name="l10n_gt_finiquitos" string="Finiquitos"
+                        domain="[('l10n_gt_is_settlement', '=', True)]"/>
+            </search>
+        </field>
     </record>
 
 </odoo>

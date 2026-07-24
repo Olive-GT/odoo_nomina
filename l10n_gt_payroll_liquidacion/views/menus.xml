@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Las liquidaciones son recibos: se acceden como filtro 'Finiquitos' dentro de
+     Recibos de nómina (ver el filtro en l10n_gt_settlement_views.xml). Sin menú
+     propio para no duplicar. -->
 <odoo>
-    <menuitem id="menu_settlement"
-              name="Liquidaciones / Finiquitos"
-              parent="l10n_gt_payroll.menu_l10n_gt_payroll_root"
-              action="action_settlement_payslips"
-              sequence="40"/>
 </odoo>

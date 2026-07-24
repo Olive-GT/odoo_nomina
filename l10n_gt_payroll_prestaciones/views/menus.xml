@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Las vacaciones gozadas se registran en el recibo y se ven en la ficha del
+     empleado; ya no tienen menú propio. El menú de Pasivo laboral vive en
+     l10n_gt_liability_views.xml (bajo Reportes). -->
 <odoo>
-    <menuitem id="menu_vacation_taken"
-              name="Vacaciones gozadas"
-              parent="l10n_gt_payroll.menu_l10n_gt_payroll_root"
-              action="action_vacation_taken"
-              sequence="55"/>
 </odoo>

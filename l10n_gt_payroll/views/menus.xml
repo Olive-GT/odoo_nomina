@@ -1,20 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- Menú raíz propio de la nómina GT (independiente de hr_payroll, cuyo
-         id de menú raíz varía entre versiones). §3 del diseño. -->
+    <!-- Menú raíz propio de la nómina GT. El CORE (Recibos y Empleados) al frente;
+         Reportes y Configuración como cajones secundarios. §3 del diseño. -->
     <menuitem id="menu_l10n_gt_payroll_root"
               name="Nómina GT"
               sequence="85"/>
 
-    <menuitem id="menu_l10n_gt_payroll_operations"
-              name="Operación"
+    <!-- ============ CORE ============ -->
+    <record id="action_gt_payslips" model="ir.actions.act_window">
+        <field name="name">Recibos de nómina</field>
+        <field name="res_model">hr.payslip</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Crea el primer recibo de nómina</p>
+            <p>Aquí calculas el salario, registras faltas y vacaciones, pagas las
+               quincenas, prestaciones y anticipos, y generas finiquitos.</p>
+        </field>
+    </record>
+    <menuitem id="menu_gt_payslips"
+              name="Recibos de nómina"
               parent="menu_l10n_gt_payroll_root"
+              action="action_gt_payslips"
               sequence="10"/>
+
+    <record id="action_gt_employees" model="ir.actions.act_window">
+        <field name="name">Empleados</field>
+        <field name="res_model">hr.employee</field>
+        <field name="view_mode">kanban,list,form</field>
+    </record>
+    <menuitem id="menu_gt_employees"
+              name="Empleados"
+              parent="menu_l10n_gt_payroll_root"
+              action="action_gt_employees"
+              sequence="20"/>
+
+    <!-- ============ Cajones secundarios ============ -->
+    <menuitem id="menu_gt_reports"
+              name="Reportes"
+              parent="menu_l10n_gt_payroll_root"
+              sequence="80"/>
 
     <menuitem id="menu_l10n_gt_payroll_config"
               name="Configuración"
               parent="menu_l10n_gt_payroll_root"
               sequence="90"/>
+
+    <!-- Zona económica (salario mínimo): la acción está en l10n_gt_hr. -->
+    <menuitem id="menu_gt_economic_zone"
+              name="Circunscripciones económicas (salario mínimo)"
+              parent="menu_l10n_gt_payroll_config"
+              action="l10n_gt_hr.action_l10n_gt_economic_zone"
+              sequence="10"/>
 
 </odoo>

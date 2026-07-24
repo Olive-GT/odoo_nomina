@@ -41,10 +41,7 @@
         <field name="view_mode">list,form</field>
     </record>
 
-    <menuitem id="menu_l10n_gt_economic_zone"
-              name="Circunscripciones económicas"
-              parent="hr.menu_human_resources_configuration"
-              action="action_l10n_gt_economic_zone"
-              sequence="90"/>
+    <!-- El menú de circunscripciones vive en l10n_gt_payroll (bajo Configuración),
+         porque ese módulo define el menú raíz de Nómina GT. -->
 
 </odoo>
