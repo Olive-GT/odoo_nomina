@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     "name": "Guatemala - Nómina Prestaciones",
-    "version": "18.0.1.2.0",
+    "version": "18.0.1.3.0",
     "category": "Human Resources/Payroll",
     "summary": "Aguinaldo, Bono 14 y control de vacaciones con planillas "
                "independientes (§4.6, §4.7, §4.8).",

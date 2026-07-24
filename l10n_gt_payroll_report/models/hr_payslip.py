@@ -15,23 +15,6 @@ class HrPayslip(models.Model):
         string="Frecuencia de pago (comprobantes)", store=True, readonly=True,
     )
 
-    # Comprobantes de pago firmados (se imprimen, se firman y se suben de vuelta
-    # para resguardo). El recibo/cálculo sigue siendo mensual.
-    l10n_gt_signed_month = fields.Binary("Boleta mensual firmada", attachment=True)
-    l10n_gt_signed_month_name = fields.Char("Archivo boleta mensual")
-    l10n_gt_signed_q1 = fields.Binary("Comprobante 1ª quincena firmado", attachment=True)
-    l10n_gt_signed_q1_name = fields.Char("Archivo 1ª quincena")
-    l10n_gt_signed_q2 = fields.Binary("Comprobante 2ª quincena firmado", attachment=True)
-    l10n_gt_signed_q2_name = fields.Char("Archivo 2ª quincena")
-    l10n_gt_signed_w1 = fields.Binary("Comprobante semana 1 firmado", attachment=True)
-    l10n_gt_signed_w1_name = fields.Char("Archivo semana 1")
-    l10n_gt_signed_w2 = fields.Binary("Comprobante semana 2 firmado", attachment=True)
-    l10n_gt_signed_w2_name = fields.Char("Archivo semana 2")
-    l10n_gt_signed_w3 = fields.Binary("Comprobante semana 3 firmado", attachment=True)
-    l10n_gt_signed_w3_name = fields.Char("Archivo semana 3")
-    l10n_gt_signed_w4 = fields.Binary("Comprobante semana 4 firmado", attachment=True)
-    l10n_gt_signed_w4_name = fields.Char("Archivo semana 4")
-
     l10n_gt_first_quincena_amount = fields.Monetary(
         "Anticipo 1ª quincena (opcional)",
         help="Solo con método 'Manual': cuánto se paga en el PRIMER pago (a mitad de "
@@ -57,20 +40,6 @@ class HrPayslip(models.Model):
              "contrato; puedes cambiarlo solo para este recibo.",
     )
 
-    # Montos calculados de cada comprobante (solo visualización, no se almacenan).
-    l10n_gt_amount_q1 = fields.Monetary(
-        "Pago 1ª quincena", compute="_compute_l10n_gt_split")
-    l10n_gt_amount_q2 = fields.Monetary(
-        "Pago 2ª quincena", compute="_compute_l10n_gt_split")
-    l10n_gt_amount_w1 = fields.Monetary(
-        "Pago semana 1", compute="_compute_l10n_gt_split")
-    l10n_gt_amount_w2 = fields.Monetary(
-        "Pago semana 2", compute="_compute_l10n_gt_split")
-    l10n_gt_amount_w3 = fields.Monetary(
-        "Pago semana 3", compute="_compute_l10n_gt_split")
-    l10n_gt_amount_w4 = fields.Monetary(
-        "Pago semana 4", compute="_compute_l10n_gt_split")
-
     @api.depends("contract_id")
     def _compute_l10n_gt_quincena_method(self):
         for slip in self:
@@ -78,19 +47,6 @@ class HrPayslip(models.Model):
                 slip.contract_id.l10n_gt_quincena_method
                 or slip.company_id.l10n_gt_quincena_method or "net_half"
             )
-
-    @api.depends(
-        "line_ids.total", "line_ids.code", "l10n_gt_quincena_method",
-        "l10n_gt_first_quincena_amount", "contract_id.l10n_gt_first_quincena_amount",
-    )
-    def _compute_l10n_gt_split(self):
-        for slip in self:
-            slip.l10n_gt_amount_q1 = slip._l10n_gt_quincena_amount(1)
-            slip.l10n_gt_amount_q2 = slip._l10n_gt_quincena_amount(2)
-            slip.l10n_gt_amount_w1 = slip._l10n_gt_semana_amount(1)
-            slip.l10n_gt_amount_w2 = slip._l10n_gt_semana_amount(2)
-            slip.l10n_gt_amount_w3 = slip._l10n_gt_semana_amount(3)
-            slip.l10n_gt_amount_w4 = slip._l10n_gt_semana_amount(4)
 
     # ------------------------------------------------------------------
     # Estado de cuenta (pagos del mes)
