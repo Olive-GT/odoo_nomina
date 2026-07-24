@@ -14,34 +14,44 @@
     <template id="report_poliza">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="doc">
-                <t t-call="web.external_layout">
-                    <div class="page">
-                        <h2 class="text-center">Póliza contable de nómina</h2>
-                        <p class="text-center"><span t-field="doc.name"/></p>
+                <t t-call="web.basic_layout">
+                    <t t-set="company" t-value="doc.company_id"/>
+                    <div class="page" style="font-family:Arial, sans-serif;">
+                        <div style="text-align:center; margin-bottom:8px;">
+                            <div style="font-size:14px; font-weight:bold; text-transform:uppercase;"><span t-esc="company.name"/></div>
+                            <div t-if="company.vat" style="font-size:9px; color:#333;">NIT: <span t-esc="company.vat"/></div>
+                            <div style="font-size:12px; font-weight:bold; margin-top:2px;">PÓLIZA CONTABLE DE NÓMINA</div>
+                            <div style="font-size:10px; color:#333;"><span t-esc="doc.name"/> — <span t-esc="doc._l10n_gt_period_label() if hasattr(doc, '_l10n_gt_period_label') else ''"/></div>
+                        </div>
                         <t t-set="rows" t-value="doc._l10n_gt_poliza_data()"/>
                         <t t-set="total_debit" t-value="sum(r['debit'] for r in rows)"/>
                         <t t-set="total_credit" t-value="sum(r['credit'] for r in rows)"/>
-                        <table class="table table-sm mt-4">
+                        <table style="width:100%; border-collapse:collapse; font-size:10px;">
                             <thead>
-                                <tr>
-                                    <th>Cuenta</th>
-                                    <th class="text-end">Débito</th>
-                                    <th class="text-end">Crédito</th>
+                                <tr style="background:#333333; color:#ffffff;">
+                                    <th style="border:0.5px solid #999; padding:5px; text-align:left;">Cuenta contable</th>
+                                    <th style="border:0.5px solid #999; padding:5px; text-align:right;">Debe</th>
+                                    <th style="border:0.5px solid #999; padding:5px; text-align:right;">Haber</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr t-foreach="rows" t-as="row">
-                                    <td><span t-esc="row['name']"/></td>
-                                    <td class="text-end"><span t-esc="'%.2f' % row['debit']"/></td>
-                                    <td class="text-end"><span t-esc="'%.2f' % row['credit']"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:5px;"><span t-esc="row['name']"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:5px; text-align:right;"><span t-esc="'Q{:,.2f}'.format(row['debit']) if row['debit'] else ''"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:5px; text-align:right;"><span t-esc="'Q{:,.2f}'.format(row['credit']) if row['credit'] else ''"/></td>
                                 </tr>
-                                <tr class="fw-bold">
-                                    <td>Totales</td>
-                                    <td class="text-end"><span t-esc="'%.2f' % total_debit"/></td>
-                                    <td class="text-end"><span t-esc="'%.2f' % total_credit"/></td>
+                                <tr style="background:#e6e6e6; font-weight:bold;">
+                                    <td style="border:0.5px solid #999; padding:5px;">TOTALES</td>
+                                    <td style="border:0.5px solid #999; padding:5px; text-align:right;"><span t-esc="'Q{:,.2f}'.format(total_debit)"/></td>
+                                    <td style="border:0.5px solid #999; padding:5px; text-align:right;"><span t-esc="'Q{:,.2f}'.format(total_credit)"/></td>
                                 </tr>
                             </tbody>
                         </table>
+                        <p style="font-size:8px; color:#555; margin-top:8px;">
+                            Cada concepto se registra como un par balanceado (gasto/pasivo).
+                            El neto en "sueldos por pagar" corresponde al líquido a pagar a
+                            los trabajadores. Póliza en borrador hasta su contabilización.
+                        </p>
                     </div>
                 </t>
             </t>

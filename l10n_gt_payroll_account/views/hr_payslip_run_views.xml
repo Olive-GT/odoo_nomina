@@ -9,11 +9,15 @@
             <field name="l10n_gt_state" position="before">
                 <button name="action_gt_generate_move" string="Generar póliza contable"
                         type="object"
-                        invisible="l10n_gt_state not in ('confirmed','posted')"
+                        invisible="l10n_gt_state not in ('confirmed','posted') or l10n_gt_move_id"
                         groups="l10n_gt_payroll.group_payroll_manager"/>
+                <button name="action_gt_view_move" string="Ver asiento"
+                        type="object" class="btn-secondary"
+                        invisible="not l10n_gt_move_id"/>
                 <button name="%(action_report_poliza)d" string="Imprimir póliza"
                         type="action"
                         invisible="l10n_gt_state in ('draft','computing')"/>
+                <field name="l10n_gt_move_id" invisible="1"/>
             </field>
         </field>
     </record>

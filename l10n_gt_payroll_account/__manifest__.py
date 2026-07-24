@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     "name": "Guatemala - Nómina Contabilidad",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.1.0",
     "category": "Human Resources/Payroll",
     "summary": "Cuentas contables por concepto y póliza de nómina, con generación "
                "de la póliza independiente del módulo de Contabilidad (§6.9, §2.9).",

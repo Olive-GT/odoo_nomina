@@ -12,52 +12,68 @@ class HrPayslipRun(models.Model):
                                       copy=False)
 
     def _l10n_gt_poliza_data(self):
-        """Agrega débitos/créditos por cuenta contable a partir de los recibos.
+        """Agrega la póliza por cuenta contable a partir de los recibos
+        CONFIRMADOS del lote (§6.9, §2.9).
 
-        Independiente de la contabilidad: sirve para el reporte de póliza (§6.9)
-        aunque el cliente no genere el asiento en Odoo.
+        Cada concepto de nómina con cuenta débito Y crédito se contabiliza como
+        un par balanceado por su monto absoluto: DEBE a la cuenta débito, HABER
+        a la cuenta crédito. Así las retenciones (IGSS/ISR, con total negativo)
+        se registran en el sentido correcto y el asiento SIEMPRE cuadra.
+
+        Devuelve una fila por cuenta con el saldo neto (un solo lado). Sirve para
+        el reporte de póliza aunque el cliente no genere el asiento en Odoo.
         """
         self.ensure_one()
         acc = defaultdict(lambda: {"debit": 0.0, "credit": 0.0, "name": ""})
-        for slip in self.slip_ids:
+        for slip in self.slip_ids.filtered(lambda s: s.state in ("done", "paid")):
             for line in slip.line_ids:
                 rule = line.salary_rule_id
-                total = line.total
-                if not total:
-                    continue
+                amount = abs(line.total)
                 debit_acc = rule.l10n_gt_account_debit_id
                 credit_acc = rule.l10n_gt_account_credit_id
-                if debit_acc:
-                    key = debit_acc.id
-                    acc[key]["name"] = debit_acc.display_name
-                    if total >= 0:
-                        acc[key]["debit"] += total
-                    else:
-                        acc[key]["credit"] += -total
-                if credit_acc:
-                    key = credit_acc.id
-                    acc[key]["name"] = credit_acc.display_name
-                    if total >= 0:
-                        acc[key]["credit"] += total
-                    else:
-                        acc[key]["debit"] += -total
-        rows = [
-            {"account_id": k, "name": v["name"],
-             "debit": round(v["debit"], 2), "credit": round(v["credit"], 2)}
-            for k, v in acc.items()
-        ]
-        return sorted(rows, key=lambda r: r["name"])
+                # Solo conceptos con AMBAS cuentas (par balanceado). Los
+                # subtotales (GROSS/NET/TOTAL) no llevan cuentas y se ignoran.
+                if not amount or not (debit_acc and credit_acc):
+                    continue
+                acc[debit_acc.id]["name"] = debit_acc.display_name
+                acc[debit_acc.id]["debit"] += amount
+                acc[credit_acc.id]["name"] = credit_acc.display_name
+                acc[credit_acc.id]["credit"] += amount
+        rows = []
+        for k, v in acc.items():
+            bal = round(v["debit"] - v["credit"], 2)
+            if not bal:
+                continue
+            rows.append({
+                "account_id": k,
+                "name": v["name"],
+                "debit": bal if bal > 0 else 0.0,
+                "credit": -bal if bal < 0 else 0.0,
+            })
+        # Débitos primero, luego créditos; alfabético dentro de cada bloque.
+        return sorted(rows, key=lambda r: (r["credit"] > 0, r["name"]))
 
     def action_gt_generate_move(self):
-        """Genera el asiento contable de la nómina (§2.9)."""
+        """Genera el asiento contable (en borrador) de la nómina del lote (§2.9).
+        Queda en borrador para revisión; el usuario lo contabiliza (Publicar)."""
         self.ensure_one()
+        if self.l10n_gt_move_id:
+            raise UserError(
+                "Ya existe un asiento (%s) para esta nómina. Elimínelo si desea "
+                "regenerarlo." % self.l10n_gt_move_id.name)
         rows = self._l10n_gt_poliza_data()
         if not rows:
             raise UserError(
-                "No hay cuentas contables configuradas en los conceptos de "
-                "nómina. Configure las cuentas débito/crédito en las reglas "
-                "salariales."
-            )
+                "No hay conceptos con cuentas contables configuradas en recibos "
+                "confirmados. Configure las cuentas débito y crédito en las "
+                "reglas salariales (pestaña 'Contabilidad GT') y confirme los "
+                "recibos del lote.")
+        total_d = round(sum(r["debit"] for r in rows), 2)
+        total_c = round(sum(r["credit"] for r in rows), 2)
+        if total_d != total_c:
+            raise UserError(
+                "El asiento no cuadra: débitos Q%.2f ≠ créditos Q%.2f. Verifique "
+                "que cada concepto tenga cuenta débito Y crédito." % (total_d, total_c))
         journal = self.env["account.journal"].search(
             [("type", "=", "general"), ("company_id", "=", self.company_id.id)],
             limit=1)
@@ -77,9 +93,17 @@ class HrPayslipRun(models.Model):
             "line_ids": move_lines,
         })
         self.l10n_gt_move_id = move.id
+        return self.action_gt_view_move()
+
+    def action_gt_view_move(self):
+        """Abre el asiento contable generado."""
+        self.ensure_one()
+        if not self.l10n_gt_move_id:
+            raise UserError("Esta nómina aún no tiene asiento contable.")
         return {
             "type": "ir.actions.act_window",
             "res_model": "account.move",
-            "res_id": move.id,
+            "res_id": self.l10n_gt_move_id.id,
             "view_mode": "form",
+            "name": "Asiento de nómina",
         }
