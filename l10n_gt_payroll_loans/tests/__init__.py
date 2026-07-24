@@ -1,1 +1,1 @@
-from . import test_loans
+# Prestamos formales retirados; sus pruebas tambien.
