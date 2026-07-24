@@ -5,54 +5,103 @@
     <template id="report_planilla">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="run">
-                <t t-call="web.external_layout">
-                    <div class="page">
-                        <div class="text-center">
-                            <h3 t-field="run.company_id.name"/>
-                            <h4>Planilla General de Nómina</h4>
-                            <p><span t-field="run.name"/> —
-                               <span t-field="run.date_start"/> al <span t-field="run.date_end"/></p>
-                        </div>
-                        <table class="table table-sm" style="font-size:10px;">
+                <t t-call="web.basic_layout">
+                    <div class="page" style="font-family:Arial, sans-serif;">
+                        <t t-call="l10n_gt_payroll_report.l10n_gt_report_header">
+                            <t t-set="company" t-value="run.company_id"/>
+                            <t t-set="r_title">PLANILLA GENERAL DE NÓMINA</t>
+                            <t t-set="r_period" t-value="run._l10n_gt_period_label()"/>
+                        </t>
+
+                        <table style="width:100%; border-collapse:collapse; font-size:8px;">
                             <thead>
-                                <tr>
-                                    <th>Código</th><th>Empleado</th><th>DPI</th>
-                                    <th>Departamento</th><th>Puesto</th>
-                                    <th class="text-end">Salario ordinario</th>
-                                    <th class="text-end">Total ingresos</th>
-                                    <th class="text-end">Total deducciones</th>
-                                    <th class="text-end">Salario líquido</th>
+                                <tr style="background:#333333; color:#ffffff;">
+                                    <th style="border:0.5px solid #999; padding:3px;">No.</th>
+                                    <th style="border:0.5px solid #999; padding:3px; text-align:left;">Empleado</th>
+                                    <th style="border:0.5px solid #999; padding:3px;">DPI</th>
+                                    <th style="border:0.5px solid #999; padding:3px; text-align:left;">Puesto</th>
+                                    <th style="border:0.5px solid #999; padding:3px; text-align:right;">Ordinario</th>
+                                    <th style="border:0.5px solid #999; padding:3px; text-align:right;">Bonif. Inc.</th>
+                                    <th style="border:0.5px solid #999; padding:3px; text-align:right;">H. Extra</th>
+                                    <th style="border:0.5px solid #999; padding:3px; text-align:right;">Comis.</th>
+                                    <th style="border:0.5px solid #999; padding:3px; text-align:right;">Otros ing.</th>
+                                    <th style="border:0.5px solid #999; padding:3px; text-align:right; background:#555;">Total dev.</th>
+                                    <th style="border:0.5px solid #999; padding:3px; text-align:right;">IGSS</th>
+                                    <th style="border:0.5px solid #999; padding:3px; text-align:right;">ISR</th>
+                                    <th style="border:0.5px solid #999; padding:3px; text-align:right;">Otras ded.</th>
+                                    <th style="border:0.5px solid #999; padding:3px; text-align:right; background:#555;">Total desc.</th>
+                                    <th style="border:0.5px solid #999; padding:3px; text-align:right; background:#555;">Líquido</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <t t-set="t_ord" t-value="0"/>
-                                <t t-set="t_ing" t-value="0"/>
+                                <t t-set="t_bon" t-value="0"/>
+                                <t t-set="t_he" t-value="0"/>
+                                <t t-set="t_com" t-value="0"/>
+                                <t t-set="t_otr" t-value="0"/>
+                                <t t-set="t_dev" t-value="0"/>
+                                <t t-set="t_igss" t-value="0"/>
+                                <t t-set="t_isr" t-value="0"/>
+                                <t t-set="t_otd" t-value="0"/>
                                 <t t-set="t_ded" t-value="0"/>
                                 <t t-set="t_net" t-value="0"/>
                                 <tr t-foreach="run.slip_ids" t-as="slip">
-                                    <td><span t-field="slip.employee_id.barcode"/></td>
-                                    <td><span t-field="slip.employee_id.name"/></td>
-                                    <td><span t-field="slip.employee_id.l10n_gt_dpi"/></td>
-                                    <td><span t-field="slip.employee_id.department_id.name"/></td>
-                                    <td><span t-field="slip.employee_id.job_id.name"/></td>
-                                    <td class="text-end"><span t-esc="'%.2f' % slip._l10n_gt_line('SALORD')"/></td>
-                                    <td class="text-end"><span t-esc="'%.2f' % slip._l10n_gt_line('GROSS')"/></td>
-                                    <td class="text-end"><span t-esc="'%.2f' % slip._l10n_gt_lines_by_category('DED','out')"/></td>
-                                    <td class="text-end"><span t-esc="'%.2f' % slip._l10n_gt_line('NET')"/></td>
-                                    <t t-set="t_ord" t-value="t_ord + slip._l10n_gt_line('SALORD')"/>
-                                    <t t-set="t_ing" t-value="t_ing + slip._l10n_gt_line('GROSS')"/>
-                                    <t t-set="t_ded" t-value="t_ded + slip._l10n_gt_lines_by_category('DED','out')"/>
-                                    <t t-set="t_net" t-value="t_net + slip._l10n_gt_line('NET')"/>
+                                    <t t-set="ord" t-value="slip._l10n_gt_line('SALORD')"/>
+                                    <t t-set="bon" t-value="slip._l10n_gt_line('BONINC')"/>
+                                    <t t-set="he" t-value="slip._l10n_gt_line('HEXTD') + slip._l10n_gt_line('HEXTN')"/>
+                                    <t t-set="com" t-value="slip._l10n_gt_line('COMIS')"/>
+                                    <t t-set="dev" t-value="slip._l10n_gt_line('GROSS')"/>
+                                    <t t-set="otr" t-value="dev - ord - bon - he - com"/>
+                                    <t t-set="igss" t-value="-slip._l10n_gt_line('IGSSLAB')"/>
+                                    <t t-set="isr" t-value="-slip._l10n_gt_line('ISR')"/>
+                                    <t t-set="ded" t-value="slip._l10n_gt_lines_by_category('DED','out')"/>
+                                    <t t-set="otd" t-value="ded - igss - isr"/>
+                                    <t t-set="net" t-value="slip._l10n_gt_line('NET')"/>
+                                    <td style="border:0.5px solid #ccc; padding:3px; text-align:center;"><span t-esc="slip_index + 1"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:3px;"><span t-field="slip.employee_id.name"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:3px; text-align:center;"><span t-field="slip.employee_id.l10n_gt_dpi"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:3px;"><span t-field="slip.employee_id.job_id.name"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:3px; text-align:right;"><span t-esc="run._l10n_gt_money(ord)"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:3px; text-align:right;"><span t-esc="run._l10n_gt_money(bon)"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:3px; text-align:right;"><span t-esc="run._l10n_gt_money(he)"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:3px; text-align:right;"><span t-esc="run._l10n_gt_money(com)"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:3px; text-align:right;"><span t-esc="run._l10n_gt_money(otr)"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:3px; text-align:right; font-weight:bold;"><span t-esc="run._l10n_gt_money(dev)"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:3px; text-align:right;"><span t-esc="run._l10n_gt_money(igss)"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:3px; text-align:right;"><span t-esc="run._l10n_gt_money(isr)"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:3px; text-align:right;"><span t-esc="run._l10n_gt_money(otd)"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:3px; text-align:right; font-weight:bold;"><span t-esc="run._l10n_gt_money(ded)"/></td>
+                                    <td style="border:0.5px solid #ccc; padding:3px; text-align:right; font-weight:bold;"><span t-esc="run._l10n_gt_money(net)"/></td>
+                                    <t t-set="t_ord" t-value="t_ord + ord"/>
+                                    <t t-set="t_bon" t-value="t_bon + bon"/>
+                                    <t t-set="t_he" t-value="t_he + he"/>
+                                    <t t-set="t_com" t-value="t_com + com"/>
+                                    <t t-set="t_otr" t-value="t_otr + otr"/>
+                                    <t t-set="t_dev" t-value="t_dev + dev"/>
+                                    <t t-set="t_igss" t-value="t_igss + igss"/>
+                                    <t t-set="t_isr" t-value="t_isr + isr"/>
+                                    <t t-set="t_otd" t-value="t_otd + otd"/>
+                                    <t t-set="t_ded" t-value="t_ded + ded"/>
+                                    <t t-set="t_net" t-value="t_net + net"/>
                                 </tr>
-                                <tr class="fw-bold">
-                                    <td colspan="5">TOTALES</td>
-                                    <td class="text-end"><span t-esc="'%.2f' % t_ord"/></td>
-                                    <td class="text-end"><span t-esc="'%.2f' % t_ing"/></td>
-                                    <td class="text-end"><span t-esc="'%.2f' % t_ded"/></td>
-                                    <td class="text-end"><span t-esc="'%.2f' % t_net"/></td>
+                                <tr style="background:#e6e6e6; font-weight:bold;">
+                                    <td colspan="4" style="border:0.5px solid #999; padding:3px;">TOTALES</td>
+                                    <td style="border:0.5px solid #999; padding:3px; text-align:right;"><span t-esc="run._l10n_gt_money(t_ord)"/></td>
+                                    <td style="border:0.5px solid #999; padding:3px; text-align:right;"><span t-esc="run._l10n_gt_money(t_bon)"/></td>
+                                    <td style="border:0.5px solid #999; padding:3px; text-align:right;"><span t-esc="run._l10n_gt_money(t_he)"/></td>
+                                    <td style="border:0.5px solid #999; padding:3px; text-align:right;"><span t-esc="run._l10n_gt_money(t_com)"/></td>
+                                    <td style="border:0.5px solid #999; padding:3px; text-align:right;"><span t-esc="run._l10n_gt_money(t_otr)"/></td>
+                                    <td style="border:0.5px solid #999; padding:3px; text-align:right;"><span t-esc="run._l10n_gt_money(t_dev)"/></td>
+                                    <td style="border:0.5px solid #999; padding:3px; text-align:right;"><span t-esc="run._l10n_gt_money(t_igss)"/></td>
+                                    <td style="border:0.5px solid #999; padding:3px; text-align:right;"><span t-esc="run._l10n_gt_money(t_isr)"/></td>
+                                    <td style="border:0.5px solid #999; padding:3px; text-align:right;"><span t-esc="run._l10n_gt_money(t_otd)"/></td>
+                                    <td style="border:0.5px solid #999; padding:3px; text-align:right;"><span t-esc="run._l10n_gt_money(t_ded)"/></td>
+                                    <td style="border:0.5px solid #999; padding:3px; text-align:right;"><span t-esc="run._l10n_gt_money(t_net)"/></td>
                                 </tr>
                             </tbody>
                         </table>
+
+                        <t t-call="l10n_gt_payroll_report.l10n_gt_report_firma"/>
                     </div>
                 </t>
             </t>

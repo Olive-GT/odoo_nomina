@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Encabezado compartido de reportes de período. El llamador define las
+         variables antes del t-call:
+           company  (res.company)   obligatorio
+           r_title  (str)           título del reporte
+           r_period (str)           subtítulo/período (opcional)
+           r_legal  (str)           fundamento legal (opcional) -->
+    <template id="l10n_gt_report_header">
+        <div style="text-align:center; margin-bottom:8px;">
+            <div style="font-size:14px; font-weight:bold; text-transform:uppercase;">
+                <span t-esc="company.name"/>
+            </div>
+            <div t-if="company.vat" style="font-size:9px; color:#333333;">
+                NIT: <span t-esc="company.vat"/>
+            </div>
+            <div style="font-size:12px; font-weight:bold; margin-top:2px;">
+                <span t-esc="r_title"/>
+            </div>
+            <div t-if="r_period" style="font-size:10px; color:#333333;">
+                <span t-esc="r_period"/>
+            </div>
+            <div t-if="r_legal" style="font-size:8px; color:#555555; margin-top:2px;">
+                <span t-esc="r_legal"/>
+            </div>
+        </div>
+    </template>
+
+    <!-- Pie con firmas de elaboración y autorización. -->
+    <template id="l10n_gt_report_firma">
+        <table style="width:100%; margin-top:40px; border:none;">
+            <tr style="border:none;">
+                <td style="border:none; width:50%; text-align:center; font-size:9px;">
+                    <div style="border-top:1px solid #000; margin:0 20px; padding-top:3px;">
+                        Elaborado por
+                    </div>
+                </td>
+                <td style="border:none; width:50%; text-align:center; font-size:9px;">
+                    <div style="border-top:1px solid #000; margin:0 20px; padding-top:3px;">
+                        Autorizado por
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </template>
+
+</odoo>
