@@ -14,7 +14,8 @@ class TestPoliza(TransactionCase):
 
         def acc(code, name, atype):
             return Account.create({"code": code, "name": name,
-                                   "account_type": atype})
+                                   "account_type": atype,
+                                   "company_ids": [(6, 0, [cls.env.company.id])]})
 
         cls.gasto = acc("TPNG", "Gasto nómina", "expense")
         cls.pagar = acc("TPNP", "Sueldos por pagar", "liability_current")
