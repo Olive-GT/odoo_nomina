@@ -17,21 +17,27 @@ class HrPayslip(models.Model):
                 )
         return super().compute_sheet()
 
-    def _l10n_gt_isr_retencion(self):
-        """Retención mensual de ISR desde la proyección vigente (§4.10).
+    def _l10n_gt_isr_retencion(self, afecto_mes=None):
+        """Retención de ISR del mes de este recibo (§4.10, anexo 8.5).
 
-        La regla ISR únicamente LEE este valor; el cálculo vive en la proyección.
+        El cálculo vive en la proyección: proyecta la renta afecta anual (real
+        acumulada + ordinario a futuro), le resta lo ya retenido en el año y lo
+        divide entre los meses restantes. `afecto_mes` es la renta afecta viva
+        de ESTE mes (categoría GTIGSS: ordinario + horas extra + comisiones),
+        para reflejar un bono del mes en curso aunque el recibo aún no se
+        confirme. La regla ISR solo LEE este valor.
         """
         self.ensure_one()
-        if not self.employee_id.l10n_gt_isr_applies:
+        if not self.employee_id.l10n_gt_isr_applies or not self.date_to:
             return 0.0
-        year = self.date_to.year
         proj = self.env["l10n.gt.isr.projection"].search([
             ("employee_id", "=", self.employee_id.id),
-            ("year", "=", year),
+            ("year", "=", self.date_to.year),
             ("state", "=", "current"),
         ], limit=1)
-        return proj.retencion_mensual if proj else 0.0
+        if not proj:
+            return 0.0
+        return proj._retention_for_month(self.date_to.month, afecto_mes)
 
     def action_payslip_done(self):
         """Al confirmar la nómina, recalcular la proyección de ISR (§2.8, §4.10.4)."""

@@ -10,6 +10,12 @@ class HrPayslipRun(models.Model):
 
     l10n_gt_move_id = fields.Many2one("account.move", string="Asiento de nómina",
                                       copy=False)
+    l10n_gt_book_indemnizacion = fields.Boolean(
+        "Contabilizar indemnización",
+        help="Si está activo, la póliza incluye la provisión de indemnización "
+             "(topada al 8.33%: solo la base 1/12, ya que las doceavas de "
+             "aguinaldo y bono 14 se provisionan por separado). Muchas empresas "
+             "no la contabilizan; por eso es opcional.")
 
     def _l10n_gt_poliza_data(self):
         """Agrega la póliza por cuenta contable a partir de los recibos
@@ -24,6 +30,7 @@ class HrPayslipRun(models.Model):
         el reporte de póliza aunque el cliente no genere el asiento en Odoo.
         """
         self.ensure_one()
+        param = self.env["hr.rule.parameter"]._get_parameter_from_code
         acc = defaultdict(lambda: {"debit": 0.0, "credit": 0.0, "name": ""})
         for slip in self.slip_ids.filtered(lambda s: s.state in ("done", "paid")):
             for line in slip.line_ids:
@@ -35,6 +42,11 @@ class HrPayslipRun(models.Model):
                 # subtotales (GROSS/NET/TOTAL) no llevan cuentas y se ignoran.
                 if not amount or not (debit_acc and credit_acc):
                     continue
+                # Indemnización: opcional y topada al 8.33% para la póliza.
+                if rule.code == "PROVINDEM":
+                    if not self.l10n_gt_book_indemnizacion:
+                        continue
+                    amount = self._l10n_gt_indem_poliza(amount, slip.date_to, param)
                 acc[debit_acc.id]["name"] = debit_acc.display_name
                 acc[debit_acc.id]["debit"] += amount
                 acc[credit_acc.id]["name"] = credit_acc.display_name
@@ -52,6 +64,20 @@ class HrPayslipRun(models.Model):
             })
         # Débitos primero, luego créditos; alfabético dentro de cada bloque.
         return sorted(rows, key=lambda r: (r["credit"] > 0, r["name"]))
+
+    def _l10n_gt_indem_poliza(self, amount, ref_date, param):
+        """Topa la provisión de indemnización al 8.33% para la póliza. La línea
+        del recibo es 9.72% (base 1/12 + doceavas de aguinaldo y bono 14); en la
+        póliza solo se contabiliza la base 1/12, porque aguinaldo y bono 14 ya se
+        provisionan por separado."""
+        try:
+            full = param("l10n_gt_prov_indemnizacion", ref_date) or 0.097222
+            cap = param("l10n_gt_prov_indemnizacion_poliza", ref_date) or 0.083333
+        except Exception:
+            full, cap = 0.097222, 0.083333
+        if full <= 0:
+            return amount
+        return round(amount * (cap / full), 2)
 
     def action_gt_generate_move(self):
         """Genera el asiento contable (en borrador) de la nómina del lote (§2.9).

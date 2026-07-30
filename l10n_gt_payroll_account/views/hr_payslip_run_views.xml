@@ -18,6 +18,8 @@
                         type="action"
                         invisible="l10n_gt_state in ('draft','computing')"/>
                 <field name="l10n_gt_move_id" invisible="1"/>
+                <field name="l10n_gt_book_indemnizacion"
+                       invisible="l10n_gt_move_id"/>
             </field>
         </field>
     </record>

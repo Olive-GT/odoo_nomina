@@ -98,6 +98,15 @@ class TestPoliza(TransactionCase):
         self.assertIsNotNone(pagar_row)
         self.assertAlmostEqual(pagar_row["credit"], self._net(), 2)
 
+    def test_indem_poliza_cap_833(self):
+        """La indemnización se topa al 8.33% en la póliza (línea del recibo 9.72%)."""
+        param = self.env["hr.rule.parameter"]._get_parameter_from_code
+        run = self.env["hr.payslip.run"].create({
+            "name": "x", "date_start": "2026-07-01", "date_end": "2026-07-31"})
+        # 972.22 (9.72% de 10,000) -> 833.33 (8.33%)
+        capped = run._l10n_gt_indem_poliza(972.22, run.date_end, param)
+        self.assertAlmostEqual(capped, 833.33, delta=1.0)
+
     def test_generar_asiento(self):
         """El asiento se crea, cuadra y queda enlazado."""
         if not self.accounts_ready:

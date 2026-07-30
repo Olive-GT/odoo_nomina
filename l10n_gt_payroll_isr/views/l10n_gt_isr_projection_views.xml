@@ -20,6 +20,7 @@
                         <group>
                             <field name="company_id" groups="base.group_multi_company"/>
                             <field name="currency_id" invisible="1"/>
+                            <field name="isr_opening_retained"/>
                         </group>
                     </group>
                     <notebook>
@@ -53,6 +54,7 @@
                         <field name="deducciones_comprobables"/>
                         <field name="renta_imponible"/>
                         <field name="isr_anual"/>
+                        <field name="isr_retenido_ytd"/>
                         <field name="retencion_mensual" class="oe_subtotal_footer_separator"/>
                     </group>
                 </sheet>

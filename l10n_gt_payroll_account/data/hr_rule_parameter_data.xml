@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <!-- Tasa de indemnización que se contabiliza en la póliza: solo la base
+         1/12 (8.33%). La provisión del recibo/pasivo sigue siendo 9.72% (incluye
+         las doceavas de aguinaldo y bono 14, que se provisionan por separado). -->
+    <record id="rp_prov_indem_poliza" model="hr.rule.parameter">
+        <field name="name">Provisión Indemnización para póliza (tasa mensual)</field>
+        <field name="code">l10n_gt_prov_indemnizacion_poliza</field>
+    </record>
+    <record id="rpv_prov_indem_poliza" model="hr.rule.parameter.value">
+        <field name="rule_parameter_id" ref="rp_prov_indem_poliza"/>
+        <field name="date_from">2020-01-01</field>
+        <field name="parameter_value">0.083333</field>
+    </record>
+
+</odoo>

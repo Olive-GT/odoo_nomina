@@ -98,6 +98,13 @@
         <field name="date_from">2020-01-01</field>
         <field name="parameter_value">48000.0</field>
     </record>
+    <!-- Deducción personal indicada en el diseño (§4.10). Vigente desde 2024;
+         los años previos conservan el monto legal histórico. Configurable. -->
+    <record id="rpv_isr_ded_personal_2024" model="hr.rule.parameter.value">
+        <field name="rule_parameter_id" ref="rp_isr_ded_personal"/>
+        <field name="date_from">2024-01-01</field>
+        <field name="parameter_value">51024.0</field>
+    </record>
 
     <record id="rp_isr_tramo2_limite" model="hr.rule.parameter">
         <field name="name">ISR - Límite tramo 1 (Q)</field>

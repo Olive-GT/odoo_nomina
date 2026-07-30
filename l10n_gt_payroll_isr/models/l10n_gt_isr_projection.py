@@ -49,7 +49,19 @@ class L10nGtIsrProjection(models.Model):
     deducciones_comprobables = fields.Monetary(compute="_compute_amounts", store=True)
     renta_imponible = fields.Monetary(compute="_compute_amounts", store=True)
     isr_anual = fields.Monetary("ISR anual proyectado", compute="_compute_amounts", store=True)
-    retencion_mensual = fields.Monetary(compute="_compute_amounts", store=True)
+    # ISR ya retenido al ADOPTAR el sistema a mitad de año (meses previos que no
+    # se calcularon aquí). Se suma a lo retenido en recibos confirmados del año.
+    isr_opening_retained = fields.Monetary(
+        "ISR ya retenido antes de implementar",
+        help="Total de ISR retenido al trabajador durante el año, en los meses "
+             "ANTERIORES a usar este sistema. Solo para el primer año de adopción.",
+    )
+    isr_retenido_ytd = fields.Monetary(
+        "ISR retenido en el año", compute="_compute_amounts", store=True,
+        help="Saldo inicial + ISR retenido en los recibos confirmados del año.",
+    )
+    retencion_mensual = fields.Monetary(
+        "Retención del próximo mes", compute="_compute_amounts", store=True)
 
     _sql_constraints = [
         ("employee_year_uniq", "unique(employee_id, year, company_id)",
@@ -81,7 +93,7 @@ class L10nGtIsrProjection(models.Model):
 
     @api.depends(
         "line_ids.sueldo_afecto", "line_ids.igss", "line_ids.aguinaldo",
-        "line_ids.bono14",
+        "line_ids.bono14", "isr_opening_retained",
     )
     def _compute_amounts(self):
         for rec in self:
@@ -101,7 +113,83 @@ class L10nGtIsrProjection(models.Model):
                 - rec.deducciones_comprobables
             ))
             rec.isr_anual = rec._isr_from_base(rec.renta_imponible)
-            rec.retencion_mensual = rec.isr_anual / 12.0 if rec.isr_anual else 0.0
+            rec.isr_retenido_ytd = (rec.isr_opening_retained
+                                    + rec._retained_done(rec._next_month_to_pay()))
+            rec.retencion_mensual = rec._retention_for_month(rec._next_month_to_pay())
+
+    # ------------------------------------------------------------------
+    # Retención mensual: proyección anual − lo ya retenido, ÷ meses restantes
+    # ------------------------------------------------------------------
+    def _month_bounds(self, month):
+        d1 = date(self.year, month, 1)
+        d2 = date(self.year, 12, 31) if month == 12 else date(self.year, month + 1, 1)
+        return d1, d2
+
+    def _done_slips(self, month):
+        d1, d2 = self._month_bounds(month)
+        return self.env["hr.payslip"].search([
+            ("employee_id", "=", self.employee_id.id),
+            ("state", "in", ("done", "paid")),
+            ("date_from", "<=", d2), ("date_to", ">=", d1),
+        ])
+
+    def _next_month_to_pay(self):
+        """Primer mes del año sin recibo confirmado (el próximo a pagar)."""
+        self.ensure_one()
+        for m in range(1, 13):
+            if not self._done_slips(m):
+                return m
+        return 12
+
+    def _retained_done(self, before_month):
+        """ISR retenido en recibos confirmados de meses ANTERIORES a before_month."""
+        self.ensure_one()
+        total = 0.0
+        for m in range(1, before_month):
+            slips = self._done_slips(m)
+            total += -sum(l.total for s in slips for l in s.line_ids
+                          if l.code == "ISR")
+        return total
+
+    def _annual_afecto_igss(self, month, cur_afecto=None, cur_igss=None):
+        """Renta afecta e IGSS ANUALES proyectados 'as-of' el mes indicado:
+        real para meses confirmados, el mes actual con su afecto vivo (si se
+        pasa) y salario ordinario para los meses futuros (SIN asumir bonos)."""
+        self.ensure_one()
+        igss_tasa = self._get_param("l10n_gt_igss_laboral")
+        contract = self.employee_id.contract_id
+        wage = contract.wage if contract else 0.0
+        afecto = igss = 0.0
+        for m in range(1, 13):
+            slips = self._done_slips(m)
+            if m == month and cur_afecto is not None:
+                a = cur_afecto
+                g = cur_igss if cur_igss is not None else cur_afecto * igss_tasa
+            elif slips:
+                a = sum(l.total for s in slips for l in s.line_ids
+                        if l.salary_rule_id.l10n_gt_afecto_isr)
+                g = -sum(l.total for s in slips for l in s.line_ids
+                         if l.code == "IGSSLAB")
+            else:
+                a, g = wage, wage * igss_tasa
+            afecto += a
+            igss += g
+        return afecto, igss
+
+    def _retention_for_month(self, month, cur_afecto=None, cur_igss=None):
+        """Retención de ISR del mes `month` (§4.10, anexo 8.5):
+        ISR anual proyectado − ISR ya retenido en el año, entre meses restantes."""
+        self.ensure_one()
+        afecto, igss = self._annual_afecto_igss(month, cur_afecto, cur_igss)
+        ded_personal = self._get_param("l10n_gt_isr_deduccion_personal")
+        ded_comprob = sum(self.env["l10n.gt.isr.deduction"].search([
+            ("employee_id", "=", self.employee_id.id), ("year", "=", self.year),
+        ]).mapped("amount"))
+        imponible = max(0.0, afecto - ded_personal - igss - ded_comprob)
+        isr_anual = self._isr_from_base(imponible)
+        retenido_ytd = self.isr_opening_retained + self._retained_done(month)
+        remaining = max(1, 13 - month)
+        return max(0.0, round((isr_anual - retenido_ytd) / remaining, 2))
 
     # ------------------------------------------------------------------
     # Generación / recálculo de la proyección (§4.10.4)
