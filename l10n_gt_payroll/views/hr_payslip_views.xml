@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Ajustes manuales por concepto, encima de las líneas calculadas. Se aplican
+         al pulsar 'Calcular hoja' (dentro del motor de reglas, así el líquido y las
+         deducciones dependientes quedan consistentes) y sobreviven al recálculo. -->
+    <record id="view_payslip_form_gt_adjustments" model="ir.ui.view">
+        <field name="name">hr.payslip.form.gt.adjustments</field>
+        <field name="model">hr.payslip</field>
+        <field name="inherit_id" ref="hr_payroll.view_hr_payslip_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='line_ids']" position="before">
+                <group string="Ajustes manuales" name="l10n_gt_adjustments">
+                    <div colspan="2" class="text-muted small">
+                        Fija a mano el total de cualquier concepto (ISR, IGSS, salario,
+                        bonificaciones…). Escribe el total <b>con su signo</b>: las
+                        deducciones en negativo. Luego pulsa <b>Calcular hoja</b>: el
+                        total manual reemplaza al calculado y el líquido, las
+                        deducciones dependientes y la póliza se recalculan con él. Las
+                        líneas ajustadas se marcan "(ajuste manual)" en el recibo.
+                    </div>
+                    <field name="l10n_gt_adjustment_ids" nolabel="1" colspan="2"
+                           readonly="state not in ('draft', 'verify')">
+                        <list editable="bottom">
+                            <field name="salary_rule_id"
+                                   domain="[('struct_id', '=', parent.struct_id)]"
+                                   options="{'no_create': True, 'no_open': True}"/>
+                            <field name="code" optional="show"/>
+                            <field name="computed_total"/>
+                            <field name="total"/>
+                            <field name="note"/>
+                            <field name="currency_id" column_invisible="1"/>
+                        </list>
+                    </field>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_payslip_adjustment_all,payslip adjustment read all,model_l10n_gt_payslip_adjustment,base.group_user,1,0,0,0
+access_payslip_adjustment_payroll,payslip adjustment payroll user,model_l10n_gt_payslip_adjustment,hr_payroll.group_hr_payroll_user,1,1,1,1
+access_payslip_adjustment_user,payslip adjustment gt user,model_l10n_gt_payslip_adjustment,l10n_gt_payroll.group_payroll_user,1,1,1,1
+access_payslip_adjustment_manager,payslip adjustment gt manager,model_l10n_gt_payslip_adjustment,l10n_gt_payroll.group_payroll_manager,1,1,1,1
