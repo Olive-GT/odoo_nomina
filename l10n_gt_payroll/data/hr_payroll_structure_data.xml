@@ -1,10 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo noupdate="1">
 
-    <!-- Estructura de la nómina ordinaria mensual GT -->
+    <!-- Estructura de la nómina ordinaria mensual GT.
+         input_line_type_ids: Odoo 18 solo ofrece en "Otras entradas" del recibo
+         los tipos habilitados en la estructura; sin esto la lista sale vacía.
+         (Para bases ya instaladas lo completa hooks.setup_structure_inputs.) -->
     <record id="structure_gt_ordinaria" model="hr.payroll.structure">
         <field name="name">Nómina Ordinaria (Guatemala)</field>
         <field name="type_id" ref="structure_type_gt_mensual"/>
+        <field name="input_line_type_ids"
+               eval="[(6, 0, [ref('input_he_diurna'), ref('input_he_nocturna'),
+                              ref('input_comisiones'), ref('input_bonif_adicional'),
+                              ref('input_otras_deducciones')])]"/>
     </record>
 
 </odoo>

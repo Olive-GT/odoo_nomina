@@ -37,10 +37,13 @@
                         </group>
                     </group>
                     <field name="l10n_gt_vacation_taken_ids">
-                        <list editable="bottom">
+                        <list editable="bottom"
+                              decoration-info="kind == 'pagadas'">
                             <field name="date_from"/>
                             <field name="date_to"/>
+                            <field name="kind"/>
                             <field name="days"/>
+                            <field name="payslip_id" readonly="1"/>
                         </list>
                     </field>
                 </page>

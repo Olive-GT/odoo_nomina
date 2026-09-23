@@ -1,11 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <!-- 4.6 Vacaciones pagadas en dinero (no gozadas). Se alimenta del campo
+         'Días pagados (no gozados)' del recibo (junto a los días gozados, contra
+         el mismo saldo). Total = días × sueldo diario promedio. Va en la categoría
+         GTIGSS: afecta IGSS e ISR, entra al devengado y al líquido, llena la
+         columna 'Vacac.' del Libro de Salarios (código VAC) y se contabiliza con
+         las cuentas débito/crédito que se le asignen en 'Cuentas contables
+         (póliza)'. Si el contador indica que NO afecta IGSS/ISR, basta desmarcar
+         las casillas y mover la regla a la categoría ALW. -->
+    <record id="rule_vac" model="hr.salary.rule">
+        <field name="name">Vacaciones pagadas</field>
+        <field name="code">VAC</field>
+        <field name="sequence">55</field>
+        <field name="category_id" ref="l10n_gt_payroll.GTIGSS"/>
+        <field name="struct_id" ref="l10n_gt_payroll.structure_gt_ordinaria"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = payslip.l10n_gt_vacation_paid_days > 0</field>
+        <field name="amount_select">code</field>
+        <field name="l10n_gt_afecto_igss" eval="True"/>
+        <field name="l10n_gt_afecto_isr" eval="True"/>
+        <field name="amount_python_compute"><![CDATA[
+# días pagados x sueldo diario promedio; el total = result_qty(días) x result
+result_qty = payslip.l10n_gt_vacation_paid_days
+result = payslip._l10n_gt_vacation_daily_wage()
+]]></field>
+    </record>
+
     <!-- Provisiones mensuales del pasivo laboral. Se calculan sobre el salario
          ordinario afecto del mes (categories.GTIGSS = ordinario + horas extra +
-         comisiones, excluye Bonificación Incentivo). NO afectan el líquido (no
-         están en GROSS ni en DED) ni aparecen en el comprobante del empleado;
-         alimentan el reporte de pasivo laboral y (a futuro) la póliza contable. -->
+         comisiones + vacaciones pagadas, excluye Bonificación Incentivo). NO
+         afectan el líquido (no están en GROSS ni en DED) ni aparecen en el
+         comprobante del empleado; alimentan el reporte de pasivo laboral y la
+         póliza contable. -->
 
     <record id="rule_prov_aguinaldo" model="hr.salary.rule">
         <field name="name">Provisión Aguinaldo</field>

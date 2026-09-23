@@ -57,6 +57,7 @@ class HrPayslipRun(models.Model):
                 ordinario = s._l10n_gt_line("SALORD")
                 extra = s._l10n_gt_line("HEXTD") + s._l10n_gt_line("HEXTN")
                 comis = s._l10n_gt_line("COMIS")
+                vac = s._l10n_gt_line("VAC")
                 gross = s._l10n_gt_line("GROSS")
                 igss = -s._l10n_gt_line("IGSSLAB")
                 isr = -s._l10n_gt_line("ISR")
@@ -69,8 +70,9 @@ class HrPayslipRun(models.Model):
                     "extra_h": extra,
                     "ordinario": ordinario,
                     "extraordinario": extra,
-                    "otros": comis + max(0.0, gross - ordinario - s._l10n_gt_line("BONINC") - extra - comis),
-                    "vacaciones": s._l10n_gt_line("VAC"),
+                    # Las vacaciones pagadas tienen su propia columna: fuera de 'otros'.
+                    "otros": comis + max(0.0, gross - ordinario - s._l10n_gt_line("BONINC") - extra - comis - vac),
+                    "vacaciones": vac,
                     "total": gross,
                     "igss": igss,
                     "isr": isr,
@@ -109,6 +111,9 @@ class HrPayslipRun(models.Model):
                 comis += s._l10n_gt_line("COMIS")
                 dias += s._l10n_gt_worked_days()
                 bonif_adic += max(0.0, s._l10n_gt_line("BONINC") - 250.0)
+                # Vacaciones pagadas en el recibo (regla VAC) + las pagadas como
+                # prestación del Estado de Cuenta (finiquito).
+                benef["vacaciones"] += s._l10n_gt_line("VAC")
                 for p in s.l10n_gt_payment_ids:
                     if p.benefit_type in benef and p.paid:
                         benef[p.benefit_type] += p.amount

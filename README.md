@@ -70,3 +70,17 @@ Incentivo mínima Q250, ISR deducción personal **Q48,000** (ver nota), tramos I
    `report_xlsx`).
 4. **Devolución ISR / RetenISR SAT** (§5.3): pendiente de definir el formato de
    exportación SAT.
+5. **Vacaciones**: se registran en el recibo (pestaña *Días trabajados y entradas*,
+   bloque *Vacaciones*), en un solo lugar y contra el mismo saldo: **días gozados**
+   (descanso pagado, no cambian el salario) y **días pagados** (generan la línea
+   `VAC` = días × sueldo diario promedio, que llega a planilla, Libro de Salarios,
+   IGSS/ISR y póliza). `VAC` está afecta a IGSS/ISR y en la base de provisiones
+   (categoría GTIGSS); si el contador indica otro tratamiento, se ajusta en la regla.
+   Las vacaciones pendientes de un **finiquito** siguen pagándose como línea del
+   Estado de Cuenta (drenan el pasivo).
+6. **Ajustes manuales**: en el recibo (pestaña *Cálculo del salario*, bloque *Ajustes
+   manuales*) se fija a mano el total de cualquier concepto (ISR, IGSS, salario…)
+   con motivo obligatorio. Se aplican al pulsar *Calcular hoja* **dentro del motor de
+   reglas** (el líquido, deducciones dependientes y póliza salen consistentes),
+   sobreviven a los recálculos, quedan en el chatter y se bloquean al confirmar.
+   Las líneas ajustadas se marcan "(ajuste manual)".

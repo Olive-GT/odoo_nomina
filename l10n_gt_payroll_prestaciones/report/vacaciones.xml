@@ -20,7 +20,7 @@
                                 <th style="border:0.5px solid #999; padding:4px;">DPI</th>
                                 <th style="border:0.5px solid #999; padding:4px;">Fecha ingreso</th>
                                 <th style="border:0.5px solid #999; padding:4px; text-align:right;">Días acumulados</th>
-                                <th style="border:0.5px solid #999; padding:4px; text-align:right;">Días gozados</th>
+                                <th style="border:0.5px solid #999; padding:4px; text-align:right;">Días gozados / pagados</th>
                                 <th style="border:0.5px solid #999; padding:4px; text-align:right; background:#555;">Días pendientes</th>
                                 <th style="border:0.5px solid #999; padding:4px;">Último goce</th>
                             </tr>
@@ -42,7 +42,7 @@
                     </table>
                     <p style="font-size:8px; color:#555; margin-top:6px;">
                         Días acumulados = 15 por año trabajado (más el saldo de apertura
-                        configurado). Días gozados = registrados en los recibos de nómina.
+                        configurado). Días gozados / pagados = registrados en los recibos de nómina (descanso o pago en dinero).
                     </p>
                 </div>
             </t>

@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- Vacaciones gozadas del período, junto a 'Faltas' (misma lógica: solo se
-         marcan las excepciones al 'trabajó todos los días'). -->
+    <!-- Vacaciones del período en la pestaña de días, junto a 'Faltas' (misma
+         lógica: solo se marcan las excepciones al 'trabajó todos los días').
+         Gozadas y pagadas van en el mismo bloque y contra el mismo saldo; solo
+         las pagadas generan la línea VAC del recibo. -->
     <record id="view_payslip_form_gt_vacation" model="ir.ui.view">
         <field name="name">hr.payslip.form.gt.vacation</field>
         <field name="model">hr.payslip</field>
@@ -10,7 +12,17 @@
                ref="l10n_gt_payroll_report.view_payslip_form_gt_quincena"/>
         <field name="arch" type="xml">
             <field name="l10n_gt_unpaid_days" position="after">
+                <separator string="Vacaciones"/>
+                <field name="l10n_gt_vacation_balance"/>
                 <field name="l10n_gt_vacation_days"/>
+                <field name="l10n_gt_vacation_paid_days"/>
+                <div colspan="2" class="text-muted small">
+                    Ambos bajan el mismo saldo al confirmar el recibo. Solo los
+                    <b>días pagados</b> generan la línea <b>Vacaciones pagadas</b>
+                    (días × sueldo diario promedio), que se suma al líquido y llega a
+                    la planilla, al Libro de Salarios y a la póliza. Los
+                    <b>días gozados</b> son descanso pagado: no cambian el salario.
+                </div>
             </field>
         </field>
     </record>

@@ -8,7 +8,8 @@ class HrEmployee(models.Model):
     _inherit = "hr.employee"
 
     l10n_gt_vacation_taken_ids = fields.One2many(
-        "l10n.gt.vacation.taken", "employee_id", string="Vacaciones gozadas",
+        "l10n.gt.vacation.taken", "employee_id",
+        string="Vacaciones gozadas / pagadas",
     )
 
     # ------------------------------------------------------------------
@@ -167,7 +168,8 @@ class HrEmployee(models.Model):
         "Días de vacaciones acumulados", compute="_compute_vacation", store=False,
     )
     l10n_gt_vacation_taken = fields.Float(
-        "Días de vacaciones gozados", compute="_compute_vacation", store=False,
+        "Días de vacaciones gozados / pagados", compute="_compute_vacation",
+        store=False,
     )
     l10n_gt_vacation_pending = fields.Float(
         "Días de vacaciones pendientes", compute="_compute_vacation", store=False,
@@ -256,11 +258,13 @@ class HrEmployee(models.Model):
         anios = ((date_ref - start).days + 1) / 365.0
         return round(anios * 15.0, 2)
 
-    def _l10n_gt_vacation_pending_at(self, date_ref):
+    def _l10n_gt_vacation_pending_at(self, date_ref, exclude_payslip=None):
         """Días pendientes a una fecha de corte (para liquidaciones §4.6).
 
-        Con apertura, solo cuenta las gozadas posteriores a la fecha de corte (las
-        anteriores ya están netas en el saldo de apertura)."""
+        Con apertura, solo cuenta las gozadas/pagadas posteriores a la fecha de
+        corte (las anteriores ya están netas en el saldo de apertura).
+        `exclude_payslip`: no descuenta lo anotado por ese recibo (para mostrarle
+        su saldo "antes de este recibo")."""
         self.ensure_one()
         accrued = self._l10n_gt_vacation_accrued_at(date_ref)
         opening = self.l10n_gt_opening_date
@@ -268,19 +272,27 @@ class HrEmployee(models.Model):
             t.days for t in self.l10n_gt_vacation_taken_ids
             if t.date_to and t.date_to <= date_ref
             and (not opening or t.date_to >= opening)
+            and (not exclude_payslip or t.payslip_id != exclude_payslip)
         )
         return max(0.0, accrued - taken)
 
 
 class L10nGtVacationTaken(models.Model):
+    """Días de vacaciones consumidos del saldo del empleado: gozados (descanso) o
+    pagados en dinero (línea VAC del recibo). Ambos rebajan el mismo saldo."""
+
     _name = "l10n.gt.vacation.taken"
-    _description = "Período vacacional gozado"
+    _description = "Vacaciones gozadas / pagadas"
     _order = "date_from desc"
 
     employee_id = fields.Many2one("hr.employee", required=True, ondelete="cascade")
     date_from = fields.Date("Desde", required=True)
     date_to = fields.Date("Hasta", required=True)
-    days = fields.Float("Días gozados", required=True,
+    kind = fields.Selection([
+        ("gozadas", "Gozadas (descanso)"),
+        ("pagadas", "Pagadas en dinero"),
+    ], string="Tipo", required=True, default="gozadas")
+    days = fields.Float("Días", required=True,
                         help="Admite medios (0.5) y cuartos (0.25) de día.")
     payslip_id = fields.Many2one("hr.payslip", string="Recibo", ondelete="set null")
     company_id = fields.Many2one("res.company", default=lambda s: s.env.company)
