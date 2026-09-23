@@ -78,6 +78,14 @@ class HrPayslip(models.Model):
                 raise ValidationError(
                     "Los días de vacaciones no pueden ser negativos.")
 
+    def _l10n_gt_line_sources(self):
+        """En la tabla del recibo, la Cantidad de 'Vacaciones pagadas' son los
+        días pagados: editarla (o agregar/quitar la línea) escribe ese campo."""
+        sources = super()._l10n_gt_line_sources()
+        sources["VAC"] = {"kind": "field", "target": "l10n_gt_vacation_paid_days",
+                          "by": "qty", "sign": 1}
+        return sources
+
     def _l10n_gt_vacation_daily_wage(self):
         """Sueldo diario base de las vacaciones pagadas (regla VAC): promedio del
         salario ordinario de los últimos 12 meses × 12 / 365, la misma base que usa

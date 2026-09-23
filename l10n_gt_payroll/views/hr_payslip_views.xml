@@ -1,27 +1,78 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- Ajustes manuales en la MISMA tabla de 'Cálculo del salario': el Total de
-         cada concepto se edita ahí (menos los subtotales GROSS/NET). Al guardar,
-         hr.payslip.write lo convierte en ajuste del concepto y recalcula la hoja,
-         así el líquido y las deducciones dependientes quedan consistentes y el
-         valor sobrevive a futuros 'Calcular hoja'. Debajo queda el historial. -->
+    <!-- La tabla de 'Cálculo del salario' es el ÚNICO lugar de captura:
+         - editar el Total de un concepto (menos subtotales GROSS/NET),
+         - editar la Cantidad de los conceptos por horas/días (horas extra,
+           vacaciones pagadas),
+         - agregar una fila (concepto + cantidad o total) o quitarla.
+         hr.payslip.write traduce cada acción al dato del concepto (entrada,
+         días) o a un ajuste manual y recalcula la hoja. Por eso la sección
+         nativa 'Otras entradas' se oculta: sus datos se capturan aquí. -->
     <record id="view_payslip_form_gt_adjustments" model="ir.ui.view">
         <field name="name">hr.payslip.form.gt.adjustments</field>
         <field name="model">hr.payslip</field>
         <field name="inherit_id" ref="hr_payroll.view_hr_payslip_form"/>
         <field name="arch" type="xml">
+            <!-- Otras entradas: se capturan en la tabla de Cálculo del salario -->
+            <xpath expr="//separator[@string='Other Inputs']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <field name="input_line_ids" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </field>
+
+            <xpath expr="//field[@name='line_ids']/list" position="attributes">
+                <attribute name="create">1</attribute>
+                <attribute name="delete">1</attribute>
+                <attribute name="decoration-warning">l10n_gt_is_adjusted</attribute>
+            </xpath>
+            <!-- Concepto: visible (sin modo desarrollador), primera columna, y
+                 solo elegible en filas nuevas. -->
+            <xpath expr="//field[@name='line_ids']/list/field[@name='salary_rule_id']"
+                   position="attributes">
+                <attribute name="groups"></attribute>
+                <attribute name="string">Concepto</attribute>
+                <attribute name="readonly">id</attribute>
+                <attribute name="required">1</attribute>
+                <attribute name="domain">[('struct_id', '=', parent.struct_id), ('code', 'not in', ('GROSS', 'NET'))]</attribute>
+                <attribute name="options">{'no_create': True, 'no_open': True}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='line_ids']/list/field[@name='name']"
+                   position="before">
+                <xpath expr="//field[@name='line_ids']/list/field[@name='salary_rule_id']"
+                       position="move"/>
+            </xpath>
+            <xpath expr="//field[@name='line_ids']/list/field[@name='name']"
+                   position="attributes">
+                <attribute name="string">Detalle</attribute>
+                <attribute name="optional">hide</attribute>
+            </xpath>
+            <xpath expr="//field[@name='line_ids']/list/field[@name='quantity']"
+                   position="attributes">
+                <attribute name="readonly">not l10n_gt_qty_editable</attribute>
+            </xpath>
             <xpath expr="//field[@name='line_ids']/list/field[@name='total']"
                    position="attributes">
-                <attribute name="readonly">code in ('GROSS', 'NET')</attribute>
+                <attribute name="readonly">not l10n_gt_total_editable</attribute>
             </xpath>
+            <xpath expr="//field[@name='line_ids']/list/field[@name='total']"
+                   position="after">
+                <field name="l10n_gt_qty_editable" column_invisible="1"/>
+                <field name="l10n_gt_total_editable" column_invisible="1"/>
+                <field name="l10n_gt_is_adjusted" column_invisible="1"/>
+            </xpath>
+
             <xpath expr="//field[@name='line_ids']" position="before">
                 <div class="text-muted small mb-2">
-                    Para ajustar un concepto (ISR, IGSS, salario…) edita su
-                    <b>Total</b> en la tabla, con su signo (deducciones en negativo), y
-                    guarda: el recibo se recalcula con ese valor. Para deshacerlo,
-                    vuelve a escribir el valor calculado o borra el ajuste del
-                    historial.
+                    Todo se captura en esta tabla. <b>Horas extra</b> y <b>vacaciones
+                    pagadas</b>: escribe horas / días en <b>Cantidad</b>.
+                    <b>Bonificaciones, comisiones y otras deducciones</b>: escribe el
+                    monto en <b>Total</b>. Cualquier otro concepto (ISR, IGSS…): edita
+                    su <b>Total</b> con su signo (deducciones en negativo) y queda como
+                    ajuste manual (en amarillo). Usa <i>Agregar una línea</i> para un
+                    concepto que no aparece y la papelera para quitarlo. Al guardar,
+                    el recibo se recalcula.
                 </div>
             </xpath>
             <xpath expr="//field[@name='line_ids']" position="after">

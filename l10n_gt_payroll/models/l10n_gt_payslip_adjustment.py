@@ -109,15 +109,102 @@ class HrPayslip(models.Model):
         return self.l10n_gt_adjustment_ids.filtered(
             lambda a: a.salary_rule_id == rule)[:1]
 
-    def write(self, vals):
-        """Edición del Total en la tabla de líneas → ajuste manual + recálculo.
+    # ------------------------------------------------------------------
+    # Edición en la tabla de 'Cálculo del salario'
+    # ------------------------------------------------------------------
+    def _l10n_gt_line_sources(self):
+        """Conceptos cuyo valor sale de un DATO del recibo, no de un ajuste.
 
-        El formulario manda los cambios de las líneas como comandos (1, id, vals)
-        en line_ids. 'Calcular hoja' no pasa por aquí (borra y crea las líneas
-        directamente), así que estos comandos son siempre ediciones del usuario.
-        El total editado no se escribe en la línea (se perdería en el siguiente
-        cálculo): se guarda como ajuste del concepto y se recalcula la hoja, para
-        que el líquido y las deducciones dependientes queden consistentes."""
+        Editar/agregar/quitar su línea en la tabla escribe ese dato (y la regla lo
+        recalcula), en vez de fijar un total manual:
+        - by='qty': la Cantidad de la línea es el dato (horas extra → horas).
+        - by='total': el Total es el dato (monto de la entrada, con `sign`).
+        kind='input' → hr.payslip.input de ese código; kind='field' → campo del
+        recibo. Otros módulos extienden este mapa (p. ej. VAC → días pagados)."""
+        return {
+            "HEXTD": {"kind": "input", "target": "HE_DIURNA", "by": "qty", "sign": 1},
+            "HEXTN": {"kind": "input", "target": "HE_NOCTURNA", "by": "qty", "sign": 1},
+            "COMIS": {"kind": "input", "target": "COMIS", "by": "total", "sign": 1},
+            "BONIF": {"kind": "input", "target": "BONIF", "by": "total", "sign": 1},
+            "OTRDED": {"kind": "input", "target": "OTRDED", "by": "total", "sign": -1},
+        }
+
+    def _l10n_gt_set_source(self, src, value):
+        """Escribe el dato de un concepto (entrada o campo del recibo)."""
+        self.ensure_one()
+        if src["kind"] == "field":
+            self.with_context(l10n_gt_adjustment_internal=True).write(
+                {src["target"]: value})
+            return
+        inputs = self.input_line_ids.filtered(lambda i: i.code == src["target"])
+        if not value:
+            inputs.unlink()
+        elif inputs:
+            inputs[0].amount = value
+            inputs[1:].unlink()
+        else:
+            itype = self.env["hr.payslip.input.type"].search(
+                [("code", "=", src["target"])], limit=1)
+            if not itype:
+                raise UserError("No existe el tipo de entrada %s." % src["target"])
+            self.env["hr.payslip.input"].create({
+                "payslip_id": self.id, "input_type_id": itype.id, "amount": value})
+
+    def _l10n_gt_set_adjustment(self, rule, total, computed):
+        """Crea/actualiza el ajuste manual de `rule`; lo quita si `total` vuelve
+        a ser el valor calculado."""
+        self.ensure_one()
+        adj = self._l10n_gt_manual_adjustment(rule)
+        if adj and not round(total - adj.computed_total, 2):
+            adj.unlink()
+        elif adj:
+            adj.total = total
+        else:
+            self.env["l10n.gt.payslip.adjustment"].create({
+                "payslip_id": self.id, "salary_rule_id": rule.id,
+                "total": total, "computed_total": computed})
+
+    def _l10n_gt_apply_line_edit(self, action, rule, qty=None, total=None, line=None):
+        """Aplica una acción de la tabla sobre un concepto:
+        'qty'/'total' (editar la columna), 'add' (fila nueva), 'delete' (quitar)."""
+        self.ensure_one()
+        if self.state not in ("draft", "verify"):
+            raise UserError("El recibo ya está confirmado: no se puede modificar.")
+        if rule.code in SUBTOTAL_CODES:
+            raise UserError("«%s» es un subtotal: ajusta los conceptos que lo "
+                            "componen." % rule.name)
+        src = self._l10n_gt_line_sources().get(rule.code)
+        adj = self._l10n_gt_manual_adjustment(rule)
+        computed = line.total if line else 0.0
+        if action == "delete":
+            if src:
+                self._l10n_gt_set_source(src, 0.0)
+                adj.unlink()
+            else:
+                self._l10n_gt_set_adjustment(rule, 0.0, computed)
+        elif action == "qty":
+            if src and src["by"] == "qty":
+                self._l10n_gt_set_source(src, qty)
+                adj.unlink()
+        elif action == "add" and src and src["by"] == "qty":
+            self._l10n_gt_set_source(src, qty)
+            adj.unlink()
+        elif src and src["by"] == "total":  # 'total' o 'add'
+            self._l10n_gt_set_source(src, src["sign"] * total)
+            adj.unlink()
+        else:  # 'total' o 'add' de un concepto calculado → ajuste manual
+            self._l10n_gt_set_adjustment(rule, total, computed)
+
+    def write(self, vals):
+        """La tabla de 'Cálculo del salario' como único lugar de captura.
+
+        El formulario manda las ediciones de la tabla como comandos en line_ids:
+        (1, id, vals) editar, (0, 0, vals) fila nueva, (2, id) quitar. 'Calcular
+        hoja' no pasa por aquí (borra y crea las líneas directamente), así que
+        estos comandos son siempre acciones del usuario. No se escriben en las
+        líneas (se perderían en el siguiente cálculo): se traducen al dato del
+        concepto (horas, monto de entrada) o a un ajuste manual, y se recalcula la
+        hoja para que el líquido y todo lo dependiente quede consistente."""
         if self.env.context.get("l10n_gt_adjustment_internal"):
             return super().write(vals)
         if "line_ids" not in vals:
@@ -128,46 +215,49 @@ class HrPayslip(models.Model):
                    for c in vals.get("l10n_gt_adjustment_ids") or []):
                 self.filtered(lambda s: s.state in ("draft", "verify")).compute_sheet()
             return res
-        edits = []  # (línea, total nuevo)
-        commands = []
         Line = self.env["hr.payslip.line"]
+        Rule = self.env["hr.salary.rule"]
+        ops = []  # (recibo, acción, regla, kwargs)
+        commands = []
         for cmd in vals["line_ids"]:
-            if (isinstance(cmd, (list, tuple)) and len(cmd) == 3 and cmd[0] == 1
-                    and isinstance(cmd[2], dict) and "total" in cmd[2]):
-                line = Line.browse(cmd[1])
+            if not isinstance(cmd, (list, tuple)) or not cmd:
+                commands.append(cmd)
+                continue
+            if cmd[0] == 1 and len(cmd) == 3 and isinstance(cmd[2], dict):
+                line = Line.browse(cmd[1]).exists()
                 line_vals = dict(cmd[2])
-                new_total = line_vals.pop("total")
-                if line.exists() and round(new_total - line.total, 2):
-                    edits.append((line, new_total))
+                qty = line_vals.pop("quantity", None)
+                total = line_vals.pop("total", None)
+                if line and line.salary_rule_id:
+                    if qty is not None and round(qty - line.quantity, 4):
+                        ops.append((line.slip_id, "qty", line.salary_rule_id,
+                                    {"qty": qty, "line": line}))
+                    elif total is not None and round(total - line.total, 2):
+                        ops.append((line.slip_id, "total", line.salary_rule_id,
+                                    {"total": total, "line": line}))
                 if line_vals:
                     commands.append((1, cmd[1], line_vals))
                 continue
-            commands.append(cmd)
-        if not edits:
-            return super().write(vals)
-        vals = dict(vals, line_ids=commands)
-        res = super().write(vals)
-        Adjustment = self.env["l10n.gt.payslip.adjustment"]
-        slips = self.browse()
-        for line, new_total in edits:
-            slip = line.slip_id
-            rule = line.salary_rule_id
-            if not rule:
+            if cmd[0] == 0 and len(cmd) == 3 and isinstance(cmd[2], dict):
+                rule = Rule.browse(cmd[2].get("salary_rule_id") or 0).exists()
+                if rule and len(self) == 1:
+                    ops.append((self, "add", rule, {
+                        "qty": cmd[2].get("quantity", 1.0),
+                        "total": cmd[2].get("total") or 0.0}))
                 continue
-            adj = slip._l10n_gt_manual_adjustment(rule)
-            computed = adj.computed_total if adj else line.total
-            if adj and not round(new_total - adj.computed_total, 2):
-                # Volvió a escribir el valor calculado: se quita el ajuste.
-                adj.unlink()
-            elif adj:
-                adj.total = new_total
-            else:
-                Adjustment.create({
-                    "payslip_id": slip.id,
-                    "salary_rule_id": rule.id,
-                    "total": new_total,
-                    "computed_total": computed,
-                })
+            if cmd[0] == 2:
+                line = Line.browse(cmd[1]).exists()
+                if line and line.salary_rule_id:
+                    ops.append((line.slip_id, "delete", line.salary_rule_id,
+                                {"line": line}))
+                continue
+            commands.append(cmd)
+        if not ops:
+            return super().write(vals)
+        res = super().write(dict(vals, line_ids=commands))
+        slips = self.browse()
+        for slip, action, rule, kw in ops:
+            slip._l10n_gt_apply_line_edit(action, rule, **kw)
             slips |= slip
         slips.compute_sheet()
         return res

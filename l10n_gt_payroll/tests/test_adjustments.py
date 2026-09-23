@@ -139,6 +139,56 @@ class TestManualAdjustments(TransactionCase):
         self.assertFalse(self.slip.l10n_gt_adjustment_ids)
         self.assertAlmostEqual(self._line("NET"), net0, places=2)
 
+    def _rule_id(self, code):
+        return self._rule(code).id
+
+    def test_add_bonus_row_writes_input(self):
+        """Agregar 'Bonificaciones adicionales' con Total 500 en la tabla guarda la
+        entrada BONIF (no un ajuste) y el NET sube 500."""
+        net0 = self._line("NET")
+        self.slip.write({"line_ids": [(0, 0, {
+            "salary_rule_id": self._rule_id("BONIF"), "name": "x", "total": 500.0})]})
+        self.assertAlmostEqual(self._line("BONIF"), 500.0, places=2)
+        self.assertAlmostEqual(self._line("NET"), net0 + 500.0, places=2)
+        self.assertEqual(self.slip._l10n_gt_input("BONIF"), 500.0)
+        self.assertFalse(self.slip.l10n_gt_adjustment_ids)
+
+    def test_add_deduction_row_uses_sign(self):
+        """Otras deducciones: Total -80 en la tabla → entrada OTRDED = 80."""
+        net0 = self._line("NET")
+        self.slip.write({"line_ids": [(0, 0, {
+            "salary_rule_id": self._rule_id("OTRDED"), "name": "x", "total": -80.0})]})
+        self.assertEqual(self.slip._l10n_gt_input("OTRDED"), 80.0)
+        self.assertAlmostEqual(self._line("NET"), net0 - 80.0, places=2)
+
+    def test_overtime_hours_in_quantity(self):
+        """Horas extra diurnas: agregar con Cantidad 8 → 8 × 6000/240 × 1.5; luego
+        editar la Cantidad a 4 recalcula."""
+        self.slip.write({"line_ids": [(0, 0, {
+            "salary_rule_id": self._rule_id("HEXTD"), "name": "x", "quantity": 8.0})]})
+        factor = self.env["hr.rule.parameter"]._get_parameter_from_code(
+            "l10n_gt_he_diurna_factor", self.slip.date_to)
+        self.assertEqual(self.slip._l10n_gt_input("HE_DIURNA"), 8.0)
+        self.assertAlmostEqual(self._line("HEXTD"), 8 * 6000 / 240 * factor, places=2)
+        line = self.slip.line_ids.filtered(lambda l: l.code == "HEXTD")
+        self.assertTrue(line.l10n_gt_qty_editable)
+        self.slip.write({"line_ids": [(1, line.id, {"quantity": 4.0})]})
+        self.assertAlmostEqual(self._line("HEXTD"), 4 * 6000 / 240 * factor, places=2)
+
+    def test_delete_row(self):
+        """Quitar la fila de una entrada borra el dato; quitar un concepto
+        calculado (IGSS) lo fija en 0."""
+        self.slip.write({"line_ids": [(0, 0, {
+            "salary_rule_id": self._rule_id("BONIF"), "name": "x", "total": 300.0})]})
+        bonif = self.slip.line_ids.filtered(lambda l: l.code == "BONIF")
+        self.slip.write({"line_ids": [(2, bonif.id)]})
+        self.assertEqual(self._line("BONIF"), 0.0)
+        self.assertEqual(self.slip._l10n_gt_input("BONIF"), 0.0)
+        igss = self.slip.line_ids.filtered(lambda l: l.code == "IGSSLAB")
+        self.slip.write({"line_ids": [(2, igss.id)]})
+        self.assertEqual(self._line("IGSSLAB"), 0.0)
+        self.assertTrue(self.slip.l10n_gt_adjustment_ids)
+
     def test_subtotal_not_adjustable(self):
         with self.assertRaises(UserError):
             self._edit_in_table("NET", 1.0)

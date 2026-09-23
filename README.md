@@ -70,19 +70,23 @@ Incentivo mínima Q250, ISR deducción personal **Q48,000** (ver nota), tramos I
    `report_xlsx`).
 4. **Devolución ISR / RetenISR SAT** (§5.3): pendiente de definir el formato de
    exportación SAT.
-5. **Vacaciones**: se registran en el recibo (pestaña *Días trabajados y entradas*,
-   bloque *Vacaciones*), en un solo lugar y contra el mismo saldo: **días gozados**
-   (descanso pagado, no cambian el salario) y **días pagados** (generan la línea
-   `VAC` = días × sueldo diario promedio, que llega a planilla, Libro de Salarios,
-   IGSS/ISR y póliza). `VAC` está afecta a IGSS/ISR y en la base de provisiones
+5. **Vacaciones**: los **días gozados** (descanso pagado, no cambian el salario) se
+   anotan en el bloque *Vacaciones* de *Días trabajados y entradas*, junto al saldo.
+   Los **días pagados** se capturan en la tabla de *Cálculo del salario* (línea
+   *Vacaciones pagadas*, días en Cantidad) y generan `VAC` = días × sueldo diario
+   promedio, que llega a planilla, Libro de Salarios, IGSS/ISR y póliza. Ambos bajan
+   el mismo saldo. `VAC` está afecta a IGSS/ISR y en la base de provisiones
    (categoría GTIGSS); si el contador indica otro tratamiento, se ajusta en la regla.
    Las vacaciones pendientes de un **finiquito** siguen pagándose como línea del
    Estado de Cuenta (drenan el pasivo).
-6. **Ajustes manuales**: en el recibo (pestaña *Cálculo del salario*) se edita el
-   **Total** de cualquier concepto directamente en la tabla (ISR, IGSS, salario…;
-   no los subtotales). Al guardar se registra como ajuste del concepto y se
-   recalcula la hoja **dentro del motor de reglas** (el líquido, deducciones
-   dependientes y póliza salen consistentes). Sobrevive a los recálculos, queda en
-   el chatter y en el *Historial de ajustes manuales* (borrar uno o reescribir el
-   valor calculado lo deshace) y se bloquea al confirmar. Las líneas ajustadas se
-   marcan "(ajuste manual)".
+6. **Captura en una sola tabla**: en *Cálculo del salario* se captura todo. Horas
+   extra y vacaciones pagadas: horas/días en **Cantidad**. Bonificaciones,
+   comisiones y otras deducciones: monto en **Total** (se guarda como la entrada
+   del recibo; la sección nativa *Otras entradas* queda oculta). Cualquier otro
+   concepto (ISR, IGSS, salario…): editar su **Total** lo fija como **ajuste
+   manual**, aplicado dentro del motor de reglas (el líquido, deducciones
+   dependientes y póliza salen consistentes), marcado en amarillo, con historial y
+   chatter; reescribir el valor calculado o borrarlo del historial lo deshace. Se
+   agregan filas con *Agregar una línea* y se quitan con la papelera. Al guardar
+   se recalcula la hoja. Subtotales (GROSS/NET) no editables; todo se bloquea al
+   confirmar.
