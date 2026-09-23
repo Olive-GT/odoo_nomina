@@ -1,33 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- Ajustes manuales por concepto, encima de las líneas calculadas. Se aplican
-         al pulsar 'Calcular hoja' (dentro del motor de reglas, así el líquido y las
-         deducciones dependientes quedan consistentes) y sobreviven al recálculo. -->
+    <!-- Ajustes manuales en la MISMA tabla de 'Cálculo del salario': el Total de
+         cada concepto se edita ahí (menos los subtotales GROSS/NET). Al guardar,
+         hr.payslip.write lo convierte en ajuste del concepto y recalcula la hoja,
+         así el líquido y las deducciones dependientes quedan consistentes y el
+         valor sobrevive a futuros 'Calcular hoja'. Debajo queda el historial. -->
     <record id="view_payslip_form_gt_adjustments" model="ir.ui.view">
         <field name="name">hr.payslip.form.gt.adjustments</field>
         <field name="model">hr.payslip</field>
         <field name="inherit_id" ref="hr_payroll.view_hr_payslip_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//field[@name='line_ids']/list/field[@name='total']"
+                   position="attributes">
+                <attribute name="readonly">code in ('GROSS', 'NET')</attribute>
+            </xpath>
             <xpath expr="//field[@name='line_ids']" position="before">
-                <group string="Ajustes manuales" name="l10n_gt_adjustments">
-                    <div colspan="2" class="text-muted small">
-                        Fija a mano el total de cualquier concepto (ISR, IGSS, salario,
-                        bonificaciones…). Escribe el total <b>con su signo</b>: las
-                        deducciones en negativo. Luego pulsa <b>Calcular hoja</b>: el
-                        total manual reemplaza al calculado y el líquido, las
-                        deducciones dependientes y la póliza se recalculan con él. Las
-                        líneas ajustadas se marcan "(ajuste manual)" en el recibo.
-                    </div>
+                <div class="text-muted small mb-2">
+                    Para ajustar un concepto (ISR, IGSS, salario…) edita su
+                    <b>Total</b> en la tabla, con su signo (deducciones en negativo), y
+                    guarda: el recibo se recalcula con ese valor. Para deshacerlo,
+                    vuelve a escribir el valor calculado o borra el ajuste del
+                    historial.
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='line_ids']" position="after">
+                <group string="Historial de ajustes manuales" name="l10n_gt_adjustments"
+                       invisible="not l10n_gt_adjustment_ids">
                     <field name="l10n_gt_adjustment_ids" nolabel="1" colspan="2"
                            readonly="state not in ('draft', 'verify')">
-                        <list editable="bottom">
-                            <field name="salary_rule_id"
-                                   domain="[('struct_id', '=', parent.struct_id)]"
-                                   options="{'no_create': True, 'no_open': True}"/>
-                            <field name="code" optional="show"/>
+                        <list editable="bottom" create="0">
+                            <field name="salary_rule_id" readonly="1"/>
+                            <field name="code" optional="hide"/>
                             <field name="computed_total"/>
-                            <field name="total"/>
+                            <field name="total" readonly="1"/>
                             <field name="note"/>
                             <field name="currency_id" column_invisible="1"/>
                         </list>

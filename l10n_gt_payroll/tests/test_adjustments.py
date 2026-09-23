@@ -103,6 +103,46 @@ class TestManualAdjustments(TransactionCase):
         with self.assertRaises(UserError):
             self._adjust("SALORD", 1.0)
 
+    def _edit_in_table(self, code, total):
+        """Simula editar el Total en la tabla del formulario y guardar."""
+        line = self.slip.line_ids.filtered(lambda l: l.code == code)
+        self.slip.write({"line_ids": [(1, line.id, {"total": total})]})
+
+    def test_table_edit_creates_adjustment_and_recomputes(self):
+        """Editar IGSS laboral en la tabla: queda el total manual, el NET se
+        recalcula, sobrevive a otro cálculo y la línea se marca."""
+        net0 = self._line("NET")
+        igss0 = self._line("IGSSLAB")
+        self._edit_in_table("IGSSLAB", -100.0)
+        self.assertAlmostEqual(self._line("IGSSLAB"), -100.0, places=2)
+        self.assertAlmostEqual(self._line("NET"), net0 - igss0 - 100.0, places=2)
+        adj = self.slip.l10n_gt_adjustment_ids
+        self.assertEqual(len(adj), 1)
+        self.assertAlmostEqual(adj.computed_total, igss0, places=2)
+        self.slip.compute_sheet()
+        self.assertAlmostEqual(self._line("IGSSLAB"), -100.0, places=2)
+        line = self.slip.line_ids.filtered(lambda l: l.code == "IGSSLAB")
+        self.assertTrue(line.name.endswith("(ajuste manual)"))
+
+    def test_table_edit_back_to_computed_removes_adjustment(self):
+        igss0 = self._line("IGSSLAB")
+        self._edit_in_table("IGSSLAB", -100.0)
+        self._edit_in_table("IGSSLAB", igss0)
+        self.assertFalse(self.slip.l10n_gt_adjustment_ids)
+        self.assertAlmostEqual(self._line("IGSSLAB"), igss0, places=2)
+
+    def test_history_delete_recomputes(self):
+        net0 = self._line("NET")
+        self._edit_in_table("SALORD", 5000.0)
+        adj = self.slip.l10n_gt_adjustment_ids
+        self.slip.write({"l10n_gt_adjustment_ids": [(2, adj.id)]})
+        self.assertFalse(self.slip.l10n_gt_adjustment_ids)
+        self.assertAlmostEqual(self._line("NET"), net0, places=2)
+
+    def test_subtotal_not_adjustable(self):
+        with self.assertRaises(UserError):
+            self._edit_in_table("NET", 1.0)
+
     def test_chatter_logs_adjustment(self):
         before = len(self.slip.message_ids)
         self._adjust("OTRDED", -10.0, note="descuento de uniforme")

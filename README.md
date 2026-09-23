@@ -78,9 +78,11 @@ Incentivo mínima Q250, ISR deducción personal **Q48,000** (ver nota), tramos I
    (categoría GTIGSS); si el contador indica otro tratamiento, se ajusta en la regla.
    Las vacaciones pendientes de un **finiquito** siguen pagándose como línea del
    Estado de Cuenta (drenan el pasivo).
-6. **Ajustes manuales**: en el recibo (pestaña *Cálculo del salario*, bloque *Ajustes
-   manuales*) se fija a mano el total de cualquier concepto (ISR, IGSS, salario…)
-   con motivo obligatorio. Se aplican al pulsar *Calcular hoja* **dentro del motor de
-   reglas** (el líquido, deducciones dependientes y póliza salen consistentes),
-   sobreviven a los recálculos, quedan en el chatter y se bloquean al confirmar.
-   Las líneas ajustadas se marcan "(ajuste manual)".
+6. **Ajustes manuales**: en el recibo (pestaña *Cálculo del salario*) se edita el
+   **Total** de cualquier concepto directamente en la tabla (ISR, IGSS, salario…;
+   no los subtotales). Al guardar se registra como ajuste del concepto y se
+   recalcula la hoja **dentro del motor de reglas** (el líquido, deducciones
+   dependientes y póliza salen consistentes). Sobrevive a los recálculos, queda en
+   el chatter y en el *Historial de ajustes manuales* (borrar uno o reescribir el
+   valor calculado lo deshace) y se bloquea al confirmar. Las líneas ajustadas se
+   marcan "(ajuste manual)".
