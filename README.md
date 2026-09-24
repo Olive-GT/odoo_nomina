@@ -17,6 +17,7 @@ Instalar en este orden (cada uno declara sus dependencias, Odoo resuelve el orde
 | 6 | `l10n_gt_payroll_liquidacion` | l10n_gt_payroll_prestaciones | Liquidación, indemnización, finiquito (§4.16, §5) |
 | 7 | `l10n_gt_payroll_account` | l10n_gt_payroll, account | Cuentas por concepto y póliza (§2.9, §6.9) |
 | 8 | `l10n_gt_payroll_report` | l10n_gt_payroll | Boleta, planilla, IGSS, costos, Libro de Salarios, Informe del Empleador (§6) |
+| 9 | `l10n_gt_payroll_report_xlsx` | l10n_gt_payroll_report, **report_xlsx** (OCA) | Nómina de sueldos y salarios en Excel con el formato del cliente (§6.2) |
 
 > **Requiere Odoo 18 Enterprise** (el motor `hr_payroll` es Enterprise).
 
@@ -90,3 +91,11 @@ Incentivo mínima Q250, ISR deducción personal **Q48,000** (ver nota), tramos I
    agregan filas con *Agregar una línea* y se quitan con la papelera. Al guardar
    se recalcula la hoja. Subtotales (GROSS/NET) no editables; todo se bloquea al
    confirmar.
+7. **Nómina de sueldos y salarios**: desde el lote, *Imprimir → Nómina de sueldos y
+   salarios (Excel)* (módulo `l10n_gt_payroll_report_xlsx`) o *(PDF)*; mismas
+   columnas que la hoja del cliente. Firmas en *Empresa → Nómina GT*. La columna
+   "DPI" muestra el *ID de credencial* del empleado (o los últimos 4 dígitos del
+   DPI). Lo que no tiene columna propia (comisiones, vacaciones pagadas) suma en
+   *Sueldo Devengado*. Quincenas según el método del recibo; si el ingreso es
+   después del 15, todo va a la segunda. El PDF requiere `wkhtmltopdf` en el
+   servidor.

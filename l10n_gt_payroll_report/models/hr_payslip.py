@@ -241,6 +241,17 @@ class HrPayslip(models.Model):
         """
         self.ensure_one()
         net = self._l10n_gt_line("NET")
+        # Relación laboral solo en una de las dos quincenas (ingreso después del
+        # 15 o egreso antes del 16): todo el líquido va a esa quincena.
+        first_end = self._l10n_gt_quincena_dates(1)[1]
+        contracts = self._l10n_gt_contracts_in_period()
+        if contracts:
+            start = min(contracts.mapped("date_start"))
+            end = max(c.date_end or self.date_to for c in contracts)
+            if start > first_end:
+                return 0.0 if n == 1 else round(net, 2)
+            if end <= first_end:
+                return round(net, 2) if n == 1 else 0.0
         method = self.l10n_gt_quincena_method or "net_half"
         if method == "manual":
             fixed = self.l10n_gt_first_quincena_amount

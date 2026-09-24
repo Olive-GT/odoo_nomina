@@ -31,6 +31,114 @@ class HrPayslipRun(models.Model):
             d1.day, meses[d1.month - 1], d1.year,
             d2.day, meses[d2.month - 1], d2.year)
 
+    # ------------------------------------------------------------------
+    # Nómina de sueldos y salarios (formato del cliente, Excel y PDF)
+    # ------------------------------------------------------------------
+    # (clave, encabezado, es_monto, lleva_total). El orden es el de la hoja.
+    NOMINA_COLUMNS = [
+        ("n", "No.", False, False),
+        ("codigo", "DPI", False, False),
+        ("nombre", "Nombre del Empleado", False, False),
+        ("puesto", "Puesto", False, False),
+        ("ingreso", "Fecha ingreso contrato", False, False),
+        ("sueldo_mensual", "Sueldo Mensual", True, False),
+        ("bonif_mensual", "Bonificación Incentivo", True, False),
+        ("sueldo_devengado", "Sueldo Devengado", True, True),
+        ("bonif_devengada", "Bonificación Incentivo", True, True),
+        ("horas_extra", "Horas Extras", False, False),
+        ("valor_hora_extra", "Valor Hora Extra", True, False),
+        ("total_horas_extra", "Total Horas Extras", True, True),
+        ("bonif_adicional", "Bonificacion adicional", True, True),
+        ("total_devengado", "Total Devengado", True, True),
+        ("isr", "ISR", True, True),
+        ("cuota_laboral", "Cuota Laboral", True, True),
+        ("otros_descuentos", "Otros Descuentos", True, True),
+        ("total_deducciones", "Total Deducciones", True, True),
+        ("primera_quincena", "PRIMERA QUINCENA", True, True),
+        ("segunda_quincena", "SEGUNDA QUINCENA", True, True),
+        ("total_liquido", "TOTAL LÍQUIDO", True, True),
+    ]
+
+    def _l10n_gt_nomina_period_label(self):
+        """'DEL 01 AL 31 DE AGOSTO 2026' (encabezado de la nómina del cliente)."""
+        self.ensure_one()
+        meses = ("ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO",
+                 "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE")
+        d1, d2 = self.date_start, self.date_end
+        if not d1 or not d2:
+            return (self.name or "").upper()
+        if (d1.year, d1.month) == (d2.year, d2.month):
+            return "DEL %02d AL %02d DE %s %d" % (
+                d1.day, d2.day, meses[d2.month - 1], d2.year)
+        return "DEL %02d DE %s %d AL %02d DE %s %d" % (
+            d1.day, meses[d1.month - 1], d1.year,
+            d2.day, meses[d2.month - 1], d2.year)
+
+    def _l10n_gt_nomina_rows(self):
+        """Filas de la nómina de sueldos y salarios, una por recibo del lote
+        (sin cancelados), ordenadas por fecha de ingreso y nombre.
+
+        Todo sale de las líneas del recibo, así que refleja cualquier ajuste
+        manual. Las columnas de ingresos siempre suman el Total Devengado (GROSS):
+        lo que no tiene columna propia (comisiones, vacaciones pagadas…) se suma
+        al Sueldo Devengado."""
+        self.ensure_one()
+        param = self.env["hr.rule.parameter"]._get_parameter_from_code
+        slips = self.slip_ids.filtered(lambda s: s.state != "cancel")
+        slips = slips.sorted(lambda s: (
+            s.contract_id.date_start or s.date_from, s.employee_id.name or ""))
+        rows = []
+        for i, s in enumerate(slips, start=1):
+            emp, contract = s.employee_id.sudo(), s.contract_id
+            line = s._l10n_gt_line
+            hextd = s.line_ids.filtered(lambda l: l.code == "HEXTD")
+            hextn = s.line_ids.filtered(lambda l: l.code == "HEXTN")
+            he_total = line("HEXTD") + line("HEXTN")
+            bonif_inc = line("BONINC")
+            bonif_adic = line("BONIF")
+            gross = line("GROSS")
+            isr = -line("ISR")
+            igss = -line("IGSSLAB")
+            deducciones = s._l10n_gt_lines_by_category("DED", "out")
+            try:
+                factor = param("l10n_gt_he_diurna_factor", s.date_to) or 1.5
+            except Exception:
+                factor = 1.5
+            wage = contract.wage or 0.0
+            dpi = "".join(c for c in (emp.l10n_gt_dpi or "") if c.isdigit())
+            biweekly = (s.l10n_gt_payment_frequency or "monthly") == "biweekly"
+            net = line("NET")
+            rows.append({
+                "n": i,
+                "codigo": emp.barcode or dpi[-4:],
+                "nombre": emp.name or "",
+                "puesto": emp.job_title or emp.job_id.name or "",
+                "ingreso": contract.date_start,
+                "sueldo_mensual": wage,
+                "bonif_mensual": contract.l10n_gt_bonif_incentivo or 0.0,
+                "sueldo_devengado": gross - bonif_inc - he_total - bonif_adic,
+                "bonif_devengada": bonif_inc,
+                "horas_extra": sum(hextd.mapped("quantity")) + sum(hextn.mapped("quantity"))
+                               if he_total else 0.0,
+                "valor_hora_extra": wage / 240.0 * factor,
+                "total_horas_extra": he_total,
+                "bonif_adicional": bonif_adic,
+                "total_devengado": gross,
+                "isr": isr,
+                "cuota_laboral": igss,
+                "otros_descuentos": deducciones - isr - igss,
+                "total_deducciones": deducciones,
+                "primera_quincena": s._l10n_gt_quincena_amount(1) if biweekly else 0.0,
+                "segunda_quincena": s._l10n_gt_quincena_amount(2) if biweekly else net,
+                "total_liquido": net,
+            })
+        return rows
+
+    def _l10n_gt_nomina_totals(self, rows):
+        return {key: sum(r[key] for r in rows)
+                for key, _h, is_money, with_total in self.NOMINA_COLUMNS
+                if with_total}
+
     def _l10n_gt_libro_sections(self):
         """Datos del Libro de Salarios (§6.14, anexo 8.3): una sección por
         empleado con su identificación y las filas mensuales (recibos 'done'

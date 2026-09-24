@@ -64,9 +64,48 @@ class TestReports(TransactionCase):
     # ---------------- Renderizado (no debe reventar) ----------------
     def test_render_planilla(self):
         html = self._render("l10n_gt_payroll_report.report_planilla", self.batch.ids)
-        self.assertIn("PLANILLA GENERAL", html)
+        self.assertIn("NÓMINA DE SUELDOS Y SALARIOS", html)
+        self.assertIn("DEL 01 AL 30 DE JUNIO 2026", html)
         self.assertIn("Glenda", html)
-        self.assertIn("Q4,002.28", html)  # formato monetario aplicado
+        self.assertIn("4,002.28", html)
+
+    # ---------------- Nómina de sueldos y salarios (formato cliente) ----------------
+    def test_nomina_rows_add_up(self):
+        """Ingresos suman el devengado; deducciones y quincenas cuadran con el
+        líquido (anexo 8.1: IGSS 193.31, líquido 4,058.97)."""
+        rows = self.batch._l10n_gt_nomina_rows()
+        self.assertEqual(len(rows), 1)
+        r = rows[0]
+        self.assertAlmostEqual(
+            r["sueldo_devengado"] + r["bonif_devengada"] + r["total_horas_extra"]
+            + r["bonif_adicional"], r["total_devengado"], places=2)
+        self.assertAlmostEqual(r["cuota_laboral"], 193.31, places=2)
+        self.assertAlmostEqual(
+            r["total_devengado"] - r["total_deducciones"], r["total_liquido"], places=2)
+        self.assertAlmostEqual(
+            r["primera_quincena"] + r["segunda_quincena"], r["total_liquido"], places=2)
+        self.assertAlmostEqual(r["valor_hora_extra"], 4002.28 / 240 * 1.5, places=2)
+        totals = self.batch._l10n_gt_nomina_totals(rows)
+        self.assertAlmostEqual(totals["total_liquido"], r["total_liquido"], places=2)
+
+    def test_quincena_hire_after_15th(self):
+        """Ingreso el 24: sin primera quincena, todo el líquido en la segunda."""
+        emp = self.env["hr.employee"].create({"name": "Edin Prueba"})
+        contract = self.env["hr.contract"].create({
+            "name": "Contrato Edin", "employee_id": emp.id, "wage": 5000.0,
+            "l10n_gt_bonif_incentivo": 250.0, "state": "open",
+            "date_start": "2026-06-24",
+            "structure_type_id": self.structure.type_id.id,
+        })
+        slip = self.env["hr.payslip"].create({
+            "name": "Recibo Edin", "employee_id": emp.id,
+            "contract_id": contract.id, "struct_id": self.structure.id,
+            "date_from": "2026-06-01", "date_to": "2026-06-30",
+        })
+        slip.compute_sheet()
+        net = slip._l10n_gt_line("NET")
+        self.assertEqual(slip._l10n_gt_quincena_amount(1), 0.0)
+        self.assertAlmostEqual(slip._l10n_gt_quincena_amount(2), net, places=2)
 
     def test_render_igss(self):
         html = self._render("l10n_gt_payroll_report.report_igss", self.batch.ids)

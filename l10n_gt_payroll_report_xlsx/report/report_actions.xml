@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Nómina de sueldos y salarios en Excel: Imprimir → desde el lote. -->
+    <record id="action_report_nomina_xlsx" model="ir.actions.report">
+        <field name="name">Nómina de sueldos y salarios (Excel)</field>
+        <field name="model">hr.payslip.run</field>
+        <field name="report_type">xlsx</field>
+        <field name="report_name">l10n_gt_payroll_report_xlsx.nomina_xlsx</field>
+        <field name="report_file">l10n_gt_payroll_report_xlsx.nomina_xlsx</field>
+        <field name="print_report_name">'Nomina - %s' % (object.name or '')</field>
+        <field name="binding_model_id" ref="hr_payroll.model_hr_payslip_run"/>
+        <field name="binding_type">report</field>
+    </record>
+
+</odoo>
