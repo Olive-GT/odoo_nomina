@@ -94,8 +94,7 @@ Incentivo mínima Q250, ISR deducción personal **Q48,000** (ver nota), tramos I
 7. **Nómina de sueldos y salarios**: desde el lote, *Imprimir → Nómina de sueldos y
    salarios (Excel)* (módulo `l10n_gt_payroll_report_xlsx`) o *(PDF)*; mismas
    columnas que la hoja del cliente. Firmas en *Empresa → Nómina GT*. La columna
-   "DPI" muestra el *ID de credencial* del empleado (o los últimos 4 dígitos del
-   DPI). Lo que no tiene columna propia (comisiones, vacaciones pagadas) suma en
+   "DPI" muestra el DPI completo del empleado. Lo que no tiene columna propia (comisiones, vacaciones pagadas) suma en
    *Sueldo Devengado*. Quincenas según el método del recibo; si el ingreso es
    después del 15, todo va a la segunda. El PDF requiere `wkhtmltopdf` en el
    servidor.

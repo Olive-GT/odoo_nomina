@@ -7,7 +7,7 @@ NAVY = "#1F3864"
 TOTAL_FILL = "#9BC2E6"
 # Anchos de columna (caracteres), en el orden de NOMINA_COLUMNS.
 WIDTHS = {
-    "n": 4, "codigo": 6, "nombre": 34, "puesto": 12, "ingreso": 9,
+    "n": 4, "codigo": 15, "nombre": 34, "puesto": 12, "ingreso": 9,
     "horas_extra": 7,
 }
 MONEY_WIDTH = 10.5
@@ -115,6 +115,13 @@ class NominaXlsx(models.AbstractModel):
                 else:
                     sheet.write_string(r, idx, str(value or ""), fmt["text"])
             r += 1
+
+        # El DPI va como texto (13 dígitos): sin el aviso "número almacenado como
+        # texto" de Excel.
+        if rows:
+            codigo_col = [k for k, *_ in cols].index("codigo")
+            sheet.ignore_errors({"number_stored_as_text": "%s5:%s%d" % (
+                chr(65 + codigo_col), chr(65 + codigo_col), r)})
 
         # Totales
         for idx, (key, _h, _m, with_total) in enumerate(cols):

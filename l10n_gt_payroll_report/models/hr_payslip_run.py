@@ -105,12 +105,11 @@ class HrPayslipRun(models.Model):
             except Exception:
                 factor = 1.5
             wage = contract.wage or 0.0
-            dpi = "".join(c for c in (emp.l10n_gt_dpi or "") if c.isdigit())
             biweekly = (s.l10n_gt_payment_frequency or "monthly") == "biweekly"
             net = line("NET")
             rows.append({
                 "n": i,
-                "codigo": emp.barcode or dpi[-4:],
+                "codigo": emp.l10n_gt_dpi or "",
                 "nombre": emp.name or "",
                 "puesto": emp.job_title or emp.job_id.name or "",
                 "ingreso": contract.date_start,
