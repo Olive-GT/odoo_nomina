@@ -15,6 +15,9 @@ class TestVacationsFromPayslip(TransactionCase):
             "name": "Edgar Coc",
             "l10n_gt_dpi": "3013104400102",
             "l10n_gt_igss_applies": True,
+            # Sin ISR: la retención cambia de un mes a otro y las pruebas comparan
+            # recibos de meses distintos del mismo empleado.
+            "l10n_gt_isr_applies": False,
             # 10 días pendientes al corte, sin acumulación previa que estorbe.
             "l10n_gt_opening_date": "2026-08-01",
             "l10n_gt_opening_vacation_days": 10.0,

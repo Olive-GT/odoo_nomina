@@ -152,7 +152,9 @@ class TestReports(TransactionCase):
         self.assertAlmostEqual(r["total"], 4759.37, 1)
 
     def test_money_format(self):
-        self.assertEqual(self.batch._l10n_gt_money(4002.28), "Q4,002.28")
+        # Símbolo de la moneda de la empresa (Q en una base GT; $ en la de pruebas).
+        symbol = self.batch.company_id.currency_id.symbol or "Q"
+        self.assertEqual(self.batch._l10n_gt_money(4002.28), symbol + "4,002.28")
         self.assertEqual(self.batch._l10n_gt_money(1234567.5), "Q1,234,567.50")
 
     def test_period_label(self):
