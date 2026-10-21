@@ -44,9 +44,12 @@ class TestIsrReport(TransactionCase):
         self.assertIn("Heidi Vanessa Avila", html)
         self.assertIn("Retención mensual", html)
 
-    def test_retencion_es_isr_entre_12(self):
+    def test_retencion_reparte_meses_restantes(self):
+        """Sin recibos confirmados: ISR anual entre los meses que faltan desde el
+        próximo mes a pagar (en enero, /12)."""
+        restantes = 13 - self.proj._next_month_to_pay()
         self.assertAlmostEqual(
-            self.proj.retencion_mensual, self.proj.isr_anual / 12.0, 2)
+            self.proj.retencion_mensual, self.proj.isr_anual / restantes, 2)
 
     def test_lineas_doce_meses(self):
         self.assertEqual(len(self.proj.line_ids), 12)

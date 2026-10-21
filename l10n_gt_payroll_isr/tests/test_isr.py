@@ -40,8 +40,11 @@ class TestIsr(TransactionCase):
         # 120000 - 51024 - 5796 = 63180
         self.assertAlmostEqual(proj.renta_imponible, 63180.0, delta=1.0)
         self.assertAlmostEqual(proj.isr_anual, 3159.0, delta=1.0)
-        # Proyección nueva (sin recibos confirmados): retención = ISR anual / 12
-        self.assertAlmostEqual(proj.retencion_mensual, 263.25, delta=0.5)
+        # Proyección nueva (sin recibos confirmados en el año): la retención
+        # reparte el ISR anual entre los meses que faltan desde el próximo a pagar
+        # (el mes en curso, al no haber recibos; antes se asumía enero: /12).
+        restantes = 13 - proj._next_month_to_pay()
+        self.assertAlmostEqual(proj.retencion_mensual, 3159.0 / restantes, delta=0.5)
 
     def test_isr_tramo_2(self):
         """Más de Q300,000: Q15,000 fijo + 7% sobre el excedente. wage 40000/mes."""
@@ -51,7 +54,8 @@ class TestIsr(TransactionCase):
         self.assertAlmostEqual(proj.renta_imponible, 405792.0, delta=1.0)
         # 15000 + (405792-300000)*0.07 = 22405.44
         self.assertAlmostEqual(proj.isr_anual, 22405.44, delta=1.0)
-        self.assertAlmostEqual(proj.retencion_mensual, 1867.12, delta=0.5)
+        restantes = 13 - proj._next_month_to_pay()
+        self.assertAlmostEqual(proj.retencion_mensual, 22405.44 / restantes, delta=0.5)
 
     def test_deduccion_comprobable_reduce_base(self):
         """§4.10.4: deducciones comprobables reducen la renta imponible."""
