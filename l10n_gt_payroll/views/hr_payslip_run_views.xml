@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <!-- Un solo flujo en el lote: Generar recibos (asistente estándar) →
+         Calcular nómina → Confirmar → Contabilizar → Cerrar período. Los botones
+         estándar que duplican pasos (Confirm / Validate / Mark as paid / Set to
+         draft / Unpaid) se ocultan para no tener dos caminos. -->
     <record id="view_payslip_run_form_l10n_gt" model="ir.ui.view">
         <field name="name">hr.payslip.run.form.l10n.gt</field>
         <field name="model">hr.payslip.run</field>
@@ -9,12 +13,13 @@
             <header position="inside">
                 <button name="action_gt_compute" string="Calcular nómina"
                         type="object" class="btn-primary"
-                        invisible="l10n_gt_state not in ('draft', 'computing')"
+                        invisible="l10n_gt_state not in ('draft', 'computing') or payslip_count == 0"
                         groups="l10n_gt_payroll.group_payroll_user"/>
                 <button name="action_gt_confirm" string="Confirmar"
                         type="object" class="btn-primary"
                         invisible="l10n_gt_state != 'computed'"
-                        groups="l10n_gt_payroll.group_payroll_user"/>
+                        groups="l10n_gt_payroll.group_payroll_user"
+                        confirm="Se confirmarán todos los recibos del lote. ¿Continuar?"/>
                 <button name="action_gt_post" string="Contabilizar"
                         type="object"
                         invisible="l10n_gt_state != 'confirmed'"
@@ -30,6 +35,21 @@
                 <field name="l10n_gt_state" widget="statusbar"
                        statusbar_visible="draft,computed,confirmed,posted,closed"/>
             </header>
+            <xpath expr="//button[@name='action_confirm']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_validate']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_paid']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_draft']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_unpaid']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
             <field name="date_end" position="after">
                 <field name="l10n_gt_structure_type_id"/>
             </field>

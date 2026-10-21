@@ -14,4 +14,10 @@
                               ref('input_otras_deducciones')])]"/>
     </record>
 
+    <!-- Estructura por defecto del tipo: la usan "Generar recibos" del lote y
+         hr.payslip._compute_struct_id. (Bases existentes: hooks.setup_structure_type_default.) -->
+    <record id="structure_type_gt_mensual" model="hr.payroll.structure.type">
+        <field name="default_struct_id" ref="structure_gt_ordinaria"/>
+    </record>
+
 </odoo>

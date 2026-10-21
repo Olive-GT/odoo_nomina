@@ -117,10 +117,24 @@ def setup_structure_journal(env):
             struct.journal_id = journal
 
 
+def setup_structure_type_default(env):
+    """Hace de la estructura GT la estructura por defecto de su tipo de nómina.
+
+    El asistente estándar "Generar recibos" del lote (y hr.payslip._compute_struct_id)
+    toman la estructura de structure_type_id.default_struct_id; sin esto los
+    recibos generados en lote salen SIN estructura (sin líneas) y el usuario
+    termina creándolos uno por uno desde el formulario.
+    """
+    structure = _gt_structure(env)
+    if structure and structure.type_id and not structure.type_id.default_struct_id:
+        structure.type_id.default_struct_id = structure
+
+
 def setup_structure(env):
     clean_structure_rules(env)
     setup_structure_inputs(env)
     setup_structure_journal(env)
+    setup_structure_type_default(env)
 
 
 def post_init_hook(env):

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from calendar import monthrange
 from datetime import date
 
 from odoo import api, fields, models
@@ -121,8 +122,10 @@ class L10nGtIsrProjection(models.Model):
     # Retención mensual: proyección anual − lo ya retenido, ÷ meses restantes
     # ------------------------------------------------------------------
     def _month_bounds(self, month):
+        """[primer día, ÚLTIMO día] del mes (inclusive). Con el día 1 del mes
+        siguiente como límite, el recibo de ese mes se contaba dos veces."""
         d1 = date(self.year, month, 1)
-        d2 = date(self.year, 12, 31) if month == 12 else date(self.year, month + 1, 1)
+        d2 = date(self.year, month, monthrange(self.year, month)[1])
         return d1, d2
 
     def _done_slips(self, month):
@@ -134,12 +137,43 @@ class L10nGtIsrProjection(models.Model):
         ])
 
     def _next_month_to_pay(self):
-        """Primer mes del año sin recibo confirmado (el próximo a pagar)."""
+        """Mes siguiente al último con recibo confirmado (el próximo a pagar).
+        Sin recibos en el año: el mes en curso (o enero si el año es otro)."""
         self.ensure_one()
+        last = 0
         for m in range(1, 13):
-            if not self._done_slips(m):
-                return m
-        return 12
+            if self._done_slips(m):
+                last = m
+        if last:
+            return min(last + 1, 12)
+        today = fields.Date.today()
+        return today.month if today.year == self.year else 1
+
+    def _projected_wage(self, month):
+        """Salario ordinario proyectado para un mes SIN recibo confirmado: el del
+        contrato, prorrateado por los días del mes en que hay relación laboral
+        (salario diario = mensual / 30, criterio GT). Antes de la fecha de
+        ingreso o después del egreso: 0. Antes se asumía salario completo todo el
+        año, lo que inflaba el ISR de quien entró a mitad de año."""
+        self.ensure_one()
+        d1, d2 = self._month_bounds(month)
+        contracts = self.env["hr.contract"].search([
+            ("employee_id", "=", self.employee_id.id),
+            ("state", "in", ("open", "close")),
+            ("date_start", "<=", d2),
+            "|", ("date_end", "=", False), ("date_end", ">=", d1),
+        ])
+        total = 0.0
+        for c in contracts:
+            ini = max(d1, c.date_start)
+            fin = min(d2, c.date_end or d2)
+            if fin < ini:
+                continue
+            if ini == d1 and fin == d2:
+                total += c.wage
+            else:
+                total += min(c.wage, c.wage / 30.0 * ((fin - ini).days + 1))
+        return total
 
     def _retained_done(self, before_month):
         """ISR retenido en recibos confirmados de meses ANTERIORES a before_month."""
@@ -157,8 +191,6 @@ class L10nGtIsrProjection(models.Model):
         pasa) y salario ordinario para los meses futuros (SIN asumir bonos)."""
         self.ensure_one()
         igss_tasa = self._get_param("l10n_gt_igss_laboral")
-        contract = self.employee_id.contract_id
-        wage = contract.wage if contract else 0.0
         afecto = igss = 0.0
         for m in range(1, 13):
             slips = self._done_slips(m)
@@ -171,7 +203,8 @@ class L10nGtIsrProjection(models.Model):
                 g = -sum(l.total for s in slips for l in s.line_ids
                          if l.code == "IGSSLAB")
             else:
-                a, g = wage, wage * igss_tasa
+                a = self._projected_wage(m)
+                g = a * igss_tasa
             afecto += a
             igss += g
         return afecto, igss
@@ -200,20 +233,10 @@ class L10nGtIsrProjection(models.Model):
         self.ensure_one()
         self.line_ids.unlink()
         igss_tasa = self._get_param("l10n_gt_igss_laboral")
-        contract = self.employee_id.contract_id
-        wage = contract.wage if contract else 0.0
         Line = self.env["l10n.gt.isr.projection.line"]
         vals = []
         for month in range(1, 13):
-            mfrom = date(self.year, month, 1)
-            mto = date(self.year + (month // 12), (month % 12) + 1, 1) if month < 12 \
-                else date(self.year, 12, 31)
-            slips = self.env["hr.payslip"].search([
-                ("employee_id", "=", self.employee_id.id),
-                ("state", "=", "done"),
-                ("date_from", "<=", mto),
-                ("date_to", ">=", mfrom),
-            ])
+            slips = self._done_slips(month)
             if slips:
                 afecto = sum(
                     l.total for s in slips for l in s.line_ids
@@ -223,8 +246,8 @@ class L10nGtIsrProjection(models.Model):
                     l.total for s in slips for l in s.line_ids if l.code == "IGSSLAB"
                 )
             else:
-                afecto = wage
-                igss = wage * igss_tasa
+                afecto = self._projected_wage(month)
+                igss = afecto * igss_tasa
             vals.append({
                 "projection_id": self.id,
                 "month": month,

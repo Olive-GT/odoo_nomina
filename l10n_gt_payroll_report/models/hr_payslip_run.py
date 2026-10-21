@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-from odoo import models
+from odoo import api, fields, models
+from odoo.exceptions import UserError
 
 
 class HrPayslipRun(models.Model):
@@ -137,6 +138,70 @@ class HrPayslipRun(models.Model):
         return {key: sum(r[key] for r in rows)
                 for key, _h, is_money, with_total in self.NOMINA_COLUMNS
                 if with_total}
+
+    # ------------------------------------------------------------------
+    # Pagos en lote: marcar una quincena pagada para todos los recibos
+    # ------------------------------------------------------------------
+    l10n_gt_q1_pending_count = fields.Integer(
+        compute="_compute_l10n_gt_pending_payments",
+        help="Recibos del lote con la 1ª quincena pendiente de marcar.")
+    l10n_gt_q2_pending_count = fields.Integer(
+        compute="_compute_l10n_gt_pending_payments",
+        help="Recibos del lote con la 2ª quincena (o pago del mes) pendiente.")
+    l10n_gt_no_schedule_count = fields.Integer(
+        compute="_compute_l10n_gt_pending_payments",
+        help="Recibos confirmados sin programación de pagos.")
+
+    def _l10n_gt_quincena_payments(self, n):
+        """Pagos de salario PENDIENTES de la quincena n en todo el lote:
+        1 = fecha de pago hasta el 15; 2 = del 16 en adelante (incluye el 'Pago
+        del mes' de contratos mensuales y las semanas 3-4)."""
+        payments = self.slip_ids.filtered(
+            lambda s: s.state != "cancel").l10n_gt_payment_ids
+        return payments.filtered(
+            lambda p: not p.paid and p.benefit_type == "salary"
+            and p.date and (p.date.day <= 15) == (n == 1))
+
+    @api.depends("slip_ids.l10n_gt_payment_ids.paid",
+                 "slip_ids.l10n_gt_payment_ids.date", "slip_ids.state")
+    def _compute_l10n_gt_pending_payments(self):
+        for run in self:
+            run.l10n_gt_q1_pending_count = len(run._l10n_gt_quincena_payments(1).payslip_id)
+            run.l10n_gt_q2_pending_count = len(run._l10n_gt_quincena_payments(2).payslip_id)
+            run.l10n_gt_no_schedule_count = len(run.slip_ids.filtered(
+                lambda s: s.state in ("verify", "done", "paid")
+                and not s.l10n_gt_payment_ids.filtered(
+                    lambda p: p.benefit_type == "salary")))
+
+    def action_gt_generar_pagos(self):
+        """Programación de pagos para los recibos del lote que no la tienen."""
+        for run in self:
+            slips = run.slip_ids.filtered(
+                lambda s: s.state in ("verify", "done", "paid")
+                and not s.l10n_gt_payment_ids.filtered(
+                    lambda p: p.benefit_type == "salary"))
+            slips.with_context(l10n_gt_skip_regen=True).action_l10n_gt_generar_pagos()
+        return True
+
+    def _l10n_gt_pay_quincena(self, n):
+        self.ensure_one()
+        self.action_gt_generar_pagos()
+        payments = self._l10n_gt_quincena_payments(n)
+        label = "1ª quincena" if n == 1 else "2ª quincena / pago del mes"
+        if not payments:
+            raise UserError("No hay pagos pendientes de la %s en este lote." % label)
+        payments.write({"paid": True})
+        self.message_post(body=(
+            "Marcados como pagados %d pagos de la %s (%s %s)." % (
+                len(payments), label, self.company_id.currency_id.symbol or "Q",
+                "{:,.2f}".format(sum(payments.mapped("amount"))))))
+        return True
+
+    def action_gt_pay_quincena_1(self):
+        return self._l10n_gt_pay_quincena(1)
+
+    def action_gt_pay_quincena_2(self):
+        return self._l10n_gt_pay_quincena(2)
 
     def _l10n_gt_libro_sections(self):
         """Datos del Libro de Salarios (§6.14, anexo 8.3): una sección por

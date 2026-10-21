@@ -55,7 +55,9 @@ class HrPayslipRun(models.Model):
         for run in self:
             if not run.slip_ids:
                 raise UserError("No hay recibos en el período para calcular.")
-            run.slip_ids.filtered(lambda s: s.state == "draft").compute_sheet()
+            # También los 'En espera': los que crea "Generar recibos" nacen así y
+            # deben recalcularse si se capturaron faltas/vacaciones después.
+            run.slip_ids.filtered(lambda s: s.state in ("draft", "verify")).compute_sheet()
             run.l10n_gt_state = "computed"
 
     def action_gt_confirm(self):
@@ -68,6 +70,20 @@ class HrPayslipRun(models.Model):
                 )
             run.slip_ids.filtered(lambda s: s.state in ("draft", "verify")).action_payslip_done()
             run.l10n_gt_state = "confirmed"
+            # Estado estándar del lote en sintonía (la lista lo muestra).
+            if run.state == "draft":
+                run.state = "verify"
+
+    def action_validate(self):
+        """El 'Validar' / 'Crear asiento en borrador' estándar del lote (el de
+        hr_payroll_account no se puede ocultar desde aquí) hace lo mismo que
+        nuestro 'Confirmar': un solo flujo."""
+        for run in self:
+            if run.l10n_gt_state in ("draft", "computing"):
+                run.action_gt_compute()
+            if run.l10n_gt_state == "computed":
+                run.action_gt_confirm()
+        return True
 
     def action_gt_post(self):
         self.l10n_gt_state = "posted"

@@ -72,8 +72,6 @@ class HrPayslip(models.Model):
         store=True, default="none",
     )
 
-    @api.depends("line_ids.total", "line_ids.code", "l10n_gt_payment_ids.amount",
-                 "l10n_gt_payment_ids.paid", "l10n_gt_payment_ids.benefit_type")
     def _l10n_gt_recover_total(self):
         """Total de recuperación de anticipos capturada en el recibo (líneas de
         tipo 'anticipo_recover'). Reduce el líquido a pagar del mes."""
@@ -95,7 +93,11 @@ class HrPayslip(models.Model):
                         l10n_gt_skip_regen=True).action_l10n_gt_generar_pagos()
         return res
 
+    @api.depends("line_ids.total", "line_ids.code", "l10n_gt_payment_ids.amount",
+                 "l10n_gt_payment_ids.paid", "l10n_gt_payment_ids.benefit_type")
     def _compute_l10n_gt_estado_cuenta(self):
+        # (El decorador estuvo sobre _l10n_gt_recover_total: estos campos nunca
+        # se recalculaban y todos los recibos quedaban "Sin pagar".)
         for slip in self:
             net = slip._l10n_gt_line("NET")
             # La recuperación de anticipos reduce el líquido a pagar (se descuenta
@@ -118,6 +120,17 @@ class HrPayslip(models.Model):
                 slip.l10n_gt_payment_state = "paid"
             else:
                 slip.l10n_gt_payment_state = "partial"
+
+    def action_payslip_done(self):
+        """Al confirmar, deja lista la programación de pagos (quincenas/semanas/
+        mes) si el recibo aún no la tiene: así en el lote solo queda marcar los
+        pagos, sin entrar a cada recibo."""
+        res = super().action_payslip_done()
+        for slip in self:
+            if not slip.l10n_gt_payment_ids.filtered(
+                    lambda p: p.benefit_type == "salary"):
+                slip.with_context(l10n_gt_skip_regen=True).action_l10n_gt_generar_pagos()
+        return res
 
     def action_l10n_gt_generar_pagos(self):
         """Genera la programación de pagos según la frecuencia y el método ya
