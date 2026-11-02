@@ -152,7 +152,9 @@ def gt_structure_types(env):
 
 def fix_slips_without_structure(env):
     """Recibos en borrador / en espera SIN estructura cuyo contrato es de un tipo
-    GT: se les asigna la estructura GT y se recalculan (salían en 0)."""
+    GT: se les asigna la estructura GT (salían en 0). No los recalcula: las reglas
+    usan campos de submódulos (p. ej. VAC de prestaciones) que aún no están
+    cargados mientras se actualiza este módulo; ver recompute_empty_slips."""
     structure = _gt_structure(env)
     if not structure:
         return
@@ -163,6 +165,20 @@ def fix_slips_without_structure(env):
     ])
     if slips:
         slips.write({"struct_id": structure.id})
+
+
+def recompute_empty_slips(env):
+    """Recalcula los recibos GT abiertos que no tienen líneas (con todos los
+    módulos ya cargados: se llama desde un end-migrate)."""
+    structure = _gt_structure(env)
+    if not structure:
+        return
+    slips = env["hr.payslip"].search([
+        ("struct_id", "=", structure.id),
+        ("state", "in", ("draft", "verify")),
+        ("line_ids", "=", False),
+    ])
+    if slips:
         slips.compute_sheet()
 
 
