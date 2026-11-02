@@ -76,10 +76,11 @@ class HrPayslip(models.Model):
     def _l10n_gt_default_struct(self):
         """Hereda la estructura de cálculo del contrato (auto-rellena la Estructura
         del recibo), para no tener que seleccionarla a mano."""
+        from ..hooks import gt_structure_types
         structure = self.env.ref(
             "l10n_gt_payroll.structure_gt_ordinaria", raise_if_not_found=False)
         if (structure and self.contract_id and not self.struct_id
-                and self.contract_id.structure_type_id == structure.type_id):
+                and self.contract_id.structure_type_id in gt_structure_types(self.env)):
             self.struct_id = structure
 
     @api.constrains("employee_id", "date_from", "date_to", "struct_id", "state")

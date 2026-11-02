@@ -35,6 +35,12 @@ GT_RULE_XMLIDS = [
     "l10n_gt_payroll_prestaciones.rule_prov_indemnizacion",
 ]
 
+# Tipos de nómina GT: todos usan la estructura ordinaria GT.
+GT_STRUCTURE_TYPE_XMLIDS = [
+    "l10n_gt_payroll.structure_type_gt_mensual",
+    "l10n_gt_payroll.structure_type_gt_quincenal",
+]
+
 # Tipos de "Otras entradas" (novedades) que el recibo ordinario debe ofrecer.
 GT_INPUT_TYPE_XMLIDS = [
     "l10n_gt_payroll.input_he_diurna",
@@ -126,8 +132,38 @@ def setup_structure_type_default(env):
     termina creándolos uno por uno desde el formulario.
     """
     structure = _gt_structure(env)
-    if structure and structure.type_id and not structure.type_id.default_struct_id:
-        structure.type_id.default_struct_id = structure
+    if not structure:
+        return
+    # Ambos tipos GT calculan por MES con la misma estructura (el pago quincenal
+    # es la frecuencia del contrato, no otra estructura). Sin esto, los contratos
+    # con tipo "Nómina Quincenal" generaban recibos en 0.
+    for xmlid in GT_STRUCTURE_TYPE_XMLIDS:
+        stype = env.ref(xmlid, raise_if_not_found=False)
+        if stype and not stype.default_struct_id:
+            stype.default_struct_id = structure
+
+
+def gt_structure_types(env):
+    types = env["hr.payroll.structure.type"]
+    for xmlid in GT_STRUCTURE_TYPE_XMLIDS:
+        types |= env.ref(xmlid, raise_if_not_found=False) or types.browse()
+    return types
+
+
+def fix_slips_without_structure(env):
+    """Recibos en borrador / en espera SIN estructura cuyo contrato es de un tipo
+    GT: se les asigna la estructura GT y se recalculan (salían en 0)."""
+    structure = _gt_structure(env)
+    if not structure:
+        return
+    slips = env["hr.payslip"].search([
+        ("struct_id", "=", False),
+        ("state", "in", ("draft", "verify")),
+        ("contract_id.structure_type_id", "in", gt_structure_types(env).ids),
+    ])
+    if slips:
+        slips.write({"struct_id": structure.id})
+        slips.compute_sheet()
 
 
 def setup_structure(env):

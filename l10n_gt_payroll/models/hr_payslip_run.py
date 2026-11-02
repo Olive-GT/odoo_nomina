@@ -57,6 +57,16 @@ class HrPayslipRun(models.Model):
                 raise UserError("No hay recibos en el período para calcular.")
             # También los 'En espera': los que crea "Generar recibos" nacen así y
             # deben recalcularse si se capturaron faltas/vacaciones después.
+            # Red de seguridad: recibo GT sin estructura (saldría en 0).
+            from ..hooks import gt_structure_types
+            structure = self.env.ref(
+                "l10n_gt_payroll.structure_gt_ordinaria", raise_if_not_found=False)
+            types = gt_structure_types(self.env)
+            sin_estructura = run.slip_ids.filtered(
+                lambda s: s.state in ("draft", "verify") and not s.struct_id
+                and s.contract_id.structure_type_id in types)
+            if structure and sin_estructura:
+                sin_estructura.write({"struct_id": structure.id})
             run.slip_ids.filtered(lambda s: s.state in ("draft", "verify")).compute_sheet()
             run.l10n_gt_state = "computed"
 
