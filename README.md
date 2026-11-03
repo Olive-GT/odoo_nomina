@@ -17,6 +17,7 @@ Instalar en este orden (cada uno declara sus dependencias, Odoo resuelve el orde
 | 6 | `l10n_gt_payroll_liquidacion` | l10n_gt_payroll_prestaciones | Liquidación, indemnización, finiquito (§4.16, §5) |
 | 7 | `l10n_gt_payroll_account` | l10n_gt_payroll, account | Cuentas por concepto y póliza (§2.9, §6.9) |
 | 8 | `l10n_gt_payroll_report` | l10n_gt_payroll | Boleta, planilla, IGSS, costos, Libro de Salarios, Informe del Empleador (§6) |
+| 10 | `l10n_gt_payroll_attendance` | l10n_gt_payroll, hr_attendance | Horas extra detectadas por asistencia como recomendación en el recibo y en la lista del lote |
 | 9 | `l10n_gt_payroll_report_xlsx` | l10n_gt_payroll_report, **report_xlsx** (OCA) | Nómina de sueldos y salarios en Excel con el formato del cliente (§6.2) |
 
 > **Requiere Odoo 18 Enterprise** (el motor `hr_payroll` es Enterprise).
@@ -98,3 +99,11 @@ Incentivo mínima Q250, ISR deducción personal **Q48,000** (ver nota), tramos I
    *Sueldo Devengado*. Quincenas según el método del recibo; si el ingreso es
    después del 15, todo va a la segunda. El PDF requiere `wkhtmltopdf` en el
    servidor.
+8. **Horas extra detectadas por asistencia** (`l10n_gt_payroll_attendance`): el
+   recibo muestra, encima de la tabla, las horas extra que registra la asistencia
+   día por día contra el **horario del contrato** (horas registradas − horas que
+   el horario prevé ese día; excesos de menos de 15 minutos se ignoran), con el
+   detalle por día. La lista de recibos del lote muestra *HE asistencia* vs *HE en
+   recibo*. Es solo una recomendación: nunca se suman solas al recibo, porque el
+   cálculo de horas extra de Odoo usa su propia regla y depende de que el horario
+   del contrato sea la jornada real.
