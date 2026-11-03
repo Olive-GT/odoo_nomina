@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from dateutil.relativedelta import relativedelta
+
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
@@ -47,6 +49,37 @@ class HrPayslipRun(models.Model):
                         overlap.name, run.l10n_gt_structure_type_id.name,
                     )
                 )
+
+    # ------------------------------------------------------------------
+    # Un lote GT = un mes calendario (IGSS e ISR son mensuales)
+    # ------------------------------------------------------------------
+    @api.onchange("date_start")
+    def _l10n_gt_onchange_date_start(self):
+        """Al elegir el inicio, el fin pasa al último día de ese mes. (Odoo pone por
+        defecto el fin del mes EN CURSO: si se crea en noviembre el lote de octubre
+        y solo se cambia el inicio, quedaba del 01/10 al 30/11.)"""
+        if self.date_start:
+            self.date_end = self.date_start + relativedelta(day=31)
+
+    def _l10n_gt_check_single_month(self):
+        for run in self:
+            if run.date_start and run.date_end and (
+                    (run.date_start.year, run.date_start.month)
+                    != (run.date_end.year, run.date_end.month)):
+                raise UserError(
+                    "El lote «%s» va del %s al %s y abarca más de un mes. La nómina "
+                    "GT se calcula por mes: corrige la fecha final del lote al último "
+                    "día del mes (%s) y vuelve a generar los recibos." % (
+                        run.name, run.date_start.strftime("%d/%m/%Y"),
+                        run.date_end.strftime("%d/%m/%Y"),
+                        (run.date_start + relativedelta(day=31)).strftime("%d/%m/%Y")))
+
+    @api.constrains("date_start", "date_end")
+    def _l10n_gt_constrain_single_month(self):
+        try:
+            self._l10n_gt_check_single_month()
+        except UserError as e:
+            raise ValidationError(e.args[0])
 
     # ------------------------------------------------------------------
     # Transiciones de estado (§7.9.1)

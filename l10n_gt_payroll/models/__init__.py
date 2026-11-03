@@ -3,3 +3,4 @@ from . import hr_payslip
 from . import hr_payslip_run
 from . import l10n_gt_payslip_adjustment
 from . import hr_payslip_line
+from . import hr_payslip_employees
