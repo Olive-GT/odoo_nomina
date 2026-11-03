@@ -15,13 +15,16 @@ class TestOvertimeDetected(TransactionCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.calendar = cls.env["resource.calendar"].create({
-            "name": "Lunes a viernes 8-12 / 13-17",
+            "name": "Lunes a viernes 8-17 con almuerzo",
             "tz": "America/Guatemala",
             "attendance_ids": [(5, 0, 0)] + [
                 (0, 0, {"name": "d%s %s" % (d, p), "dayofweek": str(d),
                         "hour_from": f, "hour_to": t, "day_period": p})
                 for d in range(5)
-                for f, t, p in ((8, 12, "morning"), (13, 17, "afternoon"))],
+                # Con la franja de almuerzo, como el horario real de MRO: la
+                # asistencia la descuenta de las horas registradas.
+                for f, t, p in ((8, 12, "morning"), (12, 13, "lunch"),
+                                (13, 17, "afternoon"))],
         })
         cls.structure = cls.env.ref("l10n_gt_payroll.structure_gt_ordinaria")
         cls.emp = cls.env["hr.employee"].create({
