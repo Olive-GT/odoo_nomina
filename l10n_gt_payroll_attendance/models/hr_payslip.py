@@ -14,6 +14,19 @@ DAILY_TOLERANCE_HOURS = 0.25
 MIN_WORKED_HOURS = 1.0
 
 
+class ResCompany(models.Model):
+    _inherit = "res.company"
+
+    l10n_gt_rest_day_rule = fields.Selection(
+        [("sunday", "Domingo"), ("seventh", "7.º día seguido de trabajo")],
+        string="Día de descanso semanal (horas extra)", default="sunday", required=True,
+        help="Qué día trabajado se considera descanso semanal trabajado, cuyas horas "
+             "se recomiendan TODAS como extra (Código de Trabajo arts. 126 y 128):\n"
+             "- Domingo: el descanso es el domingo (costumbre general).\n"
+             "- 7.º día seguido: para rotaciones (p. ej. 11x3), el 7.º, 14.º… día "
+             "consecutivo trabajado.")
+
+
 class HrContract(models.Model):
     _inherit = "hr.contract"
 
@@ -33,8 +46,8 @@ class HrPayslip(models.Model):
     - Asueto (día festivo configurado en Odoo): el salario del mes ya lo paga;
       el tiempo trabajado se paga como extraordinario → todas sus horas (en
       medio asueto, lo que pase de la media jornada).
-    - Descanso semanal trabajado: el 7.º día seguido de trabajo (y el 14.º…)
-      → todas sus horas.
+    - Descanso semanal trabajado (domingo, o el 7.º día seguido según la
+      empresa) → todas sus horas.
     - Contrato que "compensa horas": las horas de más de los días normales
       primero reponen lo no trabajado (sábados de estudio, días cortos).
 
@@ -122,7 +135,11 @@ class HrPayslip(models.Model):
                 continue
             base = self._l10n_gt_planned_hours(calendar, tz, day)
             planned = self._l10n_gt_planned_hours(calendar, tz, day, leaves=True)
-            if streak.get(day, 0) % 7 == 0:
+            if self.company_id.l10n_gt_rest_day_rule == "seventh":
+                rest = streak.get(day, 0) % 7 == 0
+            else:
+                rest = day.weekday() == 6
+            if rest:
                 kind, planned = "descanso", 0.0
             elif planned < base:
                 kind = "asueto"
@@ -161,7 +178,7 @@ class HrPayslip(models.Model):
                  "input_line_ids.amount", "input_line_ids.input_type_id")
     def _compute_l10n_gt_overtime(self):
         notes = {
-            "descanso": "7.º día seguido: descanso trabajado, todo es extra",
+            "descanso": "Descanso semanal trabajado: todo es extra",
             "asueto": "Asueto: el tiempo trabajado es extra",
         }
         for slip in self:

@@ -34,7 +34,7 @@
                         <field name="l10n_gt_holiday_worked" class="oe_inline mx-1" readonly="1"/> asueto(s)
                         (<field name="l10n_gt_holiday_worked_dates" class="oe_inline" readonly="1"/>) y
                         <field name="l10n_gt_rest_worked" class="oe_inline mx-1" readonly="1"/> descanso(s)
-                        trabajado(s) (7.º día seguido): por ley ese tiempo se paga como extraordinario.
+                        semanal(es) trabajado(s): por ley ese tiempo se paga como extraordinario.
                     </div>
                     <div class="small text-muted">
                         No se suman solas: verifica y captura lo que corresponda
@@ -74,6 +74,28 @@
             <field name="resource_calendar_id" position="after">
                 <field name="l10n_gt_overtime_compensates"/>
             </field>
+        </field>
+    </record>
+
+    <!-- Regla del día de descanso semanal, por empresa. -->
+    <record id="view_company_form_gt_overtime" model="ir.ui.view">
+        <field name="name">res.company.form.gt.overtime</field>
+        <field name="model">res.company</field>
+        <field name="inherit_id" ref="base.view_company_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Horas extra (asistencia)" name="l10n_gt_overtime">
+                    <group>
+                        <field name="l10n_gt_rest_day_rule" widget="radio"/>
+                    </group>
+                    <div class="text-muted small">
+                        Recomendación de horas extra en el recibo: en días normales, lo que
+                        pase de la jornada del contrato; en asuetos (días festivos
+                        configurados) y en el día de descanso semanal trabajado, todo el
+                        tiempo trabajado (Código de Trabajo, arts. 121 y 126-129).
+                    </div>
+                </page>
+            </xpath>
         </field>
     </record>
 

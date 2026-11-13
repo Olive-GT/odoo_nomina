@@ -116,8 +116,9 @@ class TestOvertimeDetected(TransactionCase):
         self.assertIn("asueto", slip.l10n_gt_overtime_detail)
 
     def test_septimo_dia_es_descanso_trabajado(self):
-        """Siete días seguidos de jornada normal: el 7.º es descanso trabajado y
-        todas sus horas son extra; los otros seis no generan nada."""
+        """Regla '7.º día seguido': de siete días seguidos de jornada normal, el 7.º
+        es descanso trabajado y todas sus horas son extra."""
+        self.env.company.l10n_gt_rest_day_rule = "seventh"
         self._all_week_calendar()
         atts = self.env["hr.attendance"]
         for day in range(19, 26):  # lun 19 a dom 25
@@ -131,6 +132,7 @@ class TestOvertimeDetected(TransactionCase):
     def test_racha_viene_del_mes_anterior(self):
         """La racha se cuenta desde antes del período: si trabajó del 26 al 30 de
         septiembre, el 2 de octubre ya es el 7.º día seguido."""
+        self.env.company.l10n_gt_rest_day_rule = "seventh"
         self._all_week_calendar()
         def att_sep(day):
             local = self.tz.localize(datetime(2026, 9, day, 8, 0))
@@ -146,9 +148,24 @@ class TestOvertimeDetected(TransactionCase):
         self.assertEqual(slip.l10n_gt_rest_worked, 1)
         self.assertAlmostEqual(slip.l10n_gt_overtime_detected, round(a2.worked_hours, 2), places=2)
 
+    def test_domingo_es_descanso_trabajado(self):
+        """Regla 'Domingo' (por defecto): las horas de un domingo trabajado son
+        todas extra; de lunes a sábado, solo lo que pase de la jornada."""
+        self.env.company.l10n_gt_rest_day_rule = "sunday"
+        self._all_week_calendar()
+        atts = self.env["hr.attendance"]
+        for day in range(19, 26):  # lun 19 a dom 25
+            atts |= self._att(day, 8.0, 17.0)
+        slip = self._slip()
+        domingo = atts.filtered(lambda a: a.check_in.day in (25, 26))
+        self.assertEqual(slip.l10n_gt_rest_worked, 1)
+        self.assertAlmostEqual(slip.l10n_gt_overtime_detected, round(domingo.worked_hours, 2), places=2)
+
     def test_compensa_horas_estudiante(self):
         """Quien compensa: las horas de más reponen primero el sábado no trabajado
         (viernes y domingo sí trabajó); solo lo que sobra es extra."""
+        # (Regla del 7.º día: el domingo 25 cuenta como día normal de la rotación.)
+        self.env.company.l10n_gt_rest_day_rule = "seventh"
         self._all_week_calendar()
         self.contract.l10n_gt_overtime_compensates = True
         # Lun 19 a dom 25: 6 días de 12 h de jornada (11 h efectivas = +3 h c/u),
