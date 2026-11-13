@@ -29,4 +29,4 @@ class TestAsueto(TransactionCase):
         rate = self.env["hr.rule.parameter"]._get_parameter_from_code(
             "l10n_gt_igss_laboral", slip.date_to)
         net = sum(slip.line_ids.filtered(lambda l: l.code == "NET").mapped("total"))
-        self.assertAlmostEqual(net - net0, 150.0 * (1 - rate), places=2)
+        self.assertAlmostEqual(net - net0, 150.0 * (1 - rate), delta=0.01)  # IGSS redondeado a centavos
