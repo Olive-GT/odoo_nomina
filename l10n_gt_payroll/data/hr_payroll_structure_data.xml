@@ -11,8 +11,7 @@
         <field name="input_line_type_ids"
                eval="[(6, 0, [ref('input_he_diurna'), ref('input_he_nocturna'),
                               ref('input_comisiones'), ref('input_bonif_adicional'),
-                              ref('input_otras_deducciones'),
-                              ref('input_asueto')])]"/>
+                              ref('input_otras_deducciones')])]"/>
     </record>
 
     <!-- Estructura por defecto del tipo: la usan "Generar recibos" del lote y

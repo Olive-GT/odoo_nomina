@@ -124,7 +124,6 @@ class HrPayslip(models.Model):
         return {
             "HEXTD": {"kind": "input", "target": "HE_DIURNA", "by": "qty", "sign": 1},
             "HEXTN": {"kind": "input", "target": "HE_NOCTURNA", "by": "qty", "sign": 1},
-            "ASUETO": {"kind": "input", "target": "ASUETO", "by": "qty", "sign": 1},
             "COMIS": {"kind": "input", "target": "COMIS", "by": "total", "sign": 1},
             "BONIF": {"kind": "input", "target": "BONIF", "by": "total", "sign": 1},
             "OTRDED": {"kind": "input", "target": "OTRDED", "by": "total", "sign": -1},

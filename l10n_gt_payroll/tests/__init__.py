@@ -4,4 +4,3 @@ from . import test_validations
 from . import test_adjustments
 from . import test_structure_types
 from . import test_batch_generation
-from . import test_asueto

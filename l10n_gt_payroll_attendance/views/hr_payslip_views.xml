@@ -10,7 +10,7 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='line_ids']" position="before">
                 <div class="alert alert-info mb-2" role="status"
-                     invisible="not l10n_gt_overtime_detected and not l10n_gt_overtime_captured and not l10n_gt_holiday_worked and not l10n_gt_holiday_captured">
+                     invisible="not l10n_gt_overtime_detected and not l10n_gt_overtime_captured">
                     <div>
                         <b>Horas extra según asistencia (recomendación):</b>
                         <field name="l10n_gt_overtime_detected" class="oe_inline mx-1" readonly="1"/> h
@@ -29,17 +29,16 @@
                         primero reponen los sábados no trabajados; solo lo que sobra se
                         recomienda como hora extra.
                     </div>
-                    <div invisible="not l10n_gt_holiday_worked and not l10n_gt_holiday_captured">
-                        <b>Asuetos trabajados según asistencia:</b>
-                        <field name="l10n_gt_holiday_worked" class="oe_inline mx-1" readonly="1"/> día(s)
-                        (<field name="l10n_gt_holiday_worked_dates" class="oe_inline" readonly="1"/>).
-                        Capturados en este recibo:
-                        <field name="l10n_gt_holiday_captured" class="oe_inline mx-1" readonly="1"/>.
+                    <div invisible="not l10n_gt_holiday_worked and not l10n_gt_rest_worked" class="small">
+                        Incluye todas las horas de
+                        <field name="l10n_gt_holiday_worked" class="oe_inline mx-1" readonly="1"/> asueto(s)
+                        (<field name="l10n_gt_holiday_worked_dates" class="oe_inline" readonly="1"/>) y
+                        <field name="l10n_gt_rest_worked" class="oe_inline mx-1" readonly="1"/> descanso(s)
+                        trabajado(s) (7.º día seguido): por ley ese tiempo se paga como extraordinario.
                     </div>
                     <div class="small text-muted">
-                        No se suman solos: verifica y captura lo que corresponda
-                        (<i>Agregar una línea → Horas extra</i> con las horas, o
-                        <i>Asueto trabajado</i> con los días, en Cantidad).
+                        No se suman solas: verifica y captura lo que corresponda
+                        (<i>Agregar una línea → Horas extra</i>, horas en Cantidad).
                     </div>
                     <details invisible="not l10n_gt_overtime_detail" class="mt-1">
                         <summary>Detalle por día</summary>
@@ -60,9 +59,8 @@
                 <field name="l10n_gt_overtime_detected" optional="show" string="HE asistencia"
                        decoration-warning="l10n_gt_overtime_detected != l10n_gt_overtime_captured"/>
                 <field name="l10n_gt_overtime_captured" optional="show" string="HE en recibo"/>
-                <field name="l10n_gt_holiday_worked" optional="show" string="Asuetos asist."
-                       decoration-warning="l10n_gt_holiday_worked != l10n_gt_holiday_captured"/>
-                <field name="l10n_gt_holiday_captured" optional="show" string="Asuetos recibo"/>
+                <field name="l10n_gt_holiday_worked" optional="hide" string="Asuetos trabajados"/>
+                <field name="l10n_gt_rest_worked" optional="hide" string="Descansos trabajados"/>
             </xpath>
         </field>
     </record>
