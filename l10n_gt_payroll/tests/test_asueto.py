@@ -9,7 +9,8 @@ class TestAsueto(TransactionCase):
 
     def test_asueto_desde_la_tabla(self):
         structure = self.env.ref("l10n_gt_payroll.structure_gt_ordinaria")
-        emp = self.env["hr.employee"].create({"name": "Asueto", "l10n_gt_igss_applies": True})
+        emp = self.env["hr.employee"].create({"name": "Asueto", "l10n_gt_igss_applies": True,
+            "l10n_gt_isr_applies": False})
         contract = self.env["hr.contract"].create({
             "name": "c", "employee_id": emp.id, "wage": 4500.0,
             "l10n_gt_bonif_incentivo": 250.0, "state": "open", "date_start": "2026-01-01",
