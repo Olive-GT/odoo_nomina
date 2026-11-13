@@ -69,7 +69,7 @@ class TestOvertimeDetected(TransactionCase):
         self.assertAlmostEqual(slip.l10n_gt_overtime_detected, round(esperado, 2), places=2)
         self.assertEqual(slip.l10n_gt_overtime_detected_days, 2)
         self.assertEqual(slip.l10n_gt_overtime_calendar_id, self.calendar)
-        self.assertIn("Extra", slip.l10n_gt_overtime_detail)
+        self.assertIn("Diferencia", slip.l10n_gt_overtime_detail)
 
     def test_es_solo_recomendacion(self):
         """Con horas detectadas, el recibo NO incluye horas extra hasta que se
@@ -89,3 +89,46 @@ class TestOvertimeDetected(TransactionCase):
         self.assertFalse(slip.l10n_gt_overtime_detail)
         action = slip.action_l10n_gt_view_attendances()
         self.assertEqual(action["res_model"], "hr.attendance")
+
+    def test_asueto_trabajado_detectado(self):
+        """Un día festivo configurado con asistencia se recomienda como asueto
+        trabajado; sin asistencia, no."""
+        self.env["resource.calendar.leaves"].create({
+            "name": "Día de la Revolución",
+            "date_from": datetime(2026, 10, 20, 6, 0), "date_to": datetime(2026, 10, 21, 5, 59),
+            "company_id": self.env.company.id,
+        })
+        self.env["resource.calendar.leaves"].create({
+            "name": "Todos los Santos",
+            "date_from": datetime(2026, 11, 1, 6, 0), "date_to": datetime(2026, 11, 2, 5, 59),
+            "company_id": self.env.company.id,
+        })
+        self._att(20, 7.0, 16.0)
+        self._att(21, 7.0, 16.0)
+        slip = self._slip()
+        self.assertEqual(slip.l10n_gt_holiday_worked, 1)
+        self.assertEqual(slip.l10n_gt_holiday_worked_dates, "20/10")
+        self.assertEqual(slip.l10n_gt_holiday_captured, 0.0)
+
+    def test_compensa_horas_estudiante(self):
+        """Quien compensa: las horas de más reponen primero el sábado no trabajado
+        (viernes y domingo sí trabajó); solo lo que sobra es extra."""
+        self.calendar.write({"attendance_ids": [
+            (0, 0, {"name": "d%s %s" % (d, p), "dayofweek": str(d),
+                    "hour_from": f, "hour_to": t, "day_period": p})
+            for d in (5, 6)
+            for f, t, p in ((8, 12, "morning"), (12, 13, "lunch"), (13, 17, "afternoon"))]})
+        self.contract.l10n_gt_overtime_compensates = True
+        # Lun 19 a dom 25: 6 días de 12 h de jornada (11 h efectivas = +3 h c/u),
+        # sábado 24 sin asistencia (estudia) → 6 x 3 = 18 h de más − 8 h = 10 h.
+        atts = self.env["hr.attendance"]
+        for day in (19, 20, 21, 22, 23, 25):
+            atts |= self._att(day, 7.0, 19.0)
+        slip = self._slip()
+        extra = sum(a.worked_hours for a in atts) - 8.0 * 6
+        self.assertAlmostEqual(slip.l10n_gt_overtime_detected, round(extra - 8.0, 2), places=2)
+        self.assertIn("se repone", slip.l10n_gt_overtime_detail)
+        # Sin la marca, se recomiendan todas las horas de más.
+        self.contract.l10n_gt_overtime_compensates = False
+        slip.invalidate_recordset()
+        self.assertAlmostEqual(slip.l10n_gt_overtime_detected, round(extra, 2), places=2)

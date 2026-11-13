@@ -68,8 +68,9 @@
 
             <xpath expr="//field[@name='line_ids']" position="before">
                 <div class="text-muted small mb-2">
-                    Todo se captura en esta tabla. <b>Horas extra</b> y <b>vacaciones
-                    pagadas</b>: escribe horas / días en <b>Cantidad</b>.
+                    Todo se captura en esta tabla. <b>Horas extra</b>, <b>vacaciones
+                    pagadas</b> y <b>asuetos trabajados</b>: escribe horas / días en
+                    <b>Cantidad</b>.
                     <b>Bonificaciones, comisiones y otras deducciones</b>: escribe el
                     monto en <b>Total</b>. Cualquier otro concepto (ISR, IGSS…): edita
                     su <b>Total</b> con su signo (deducciones en negativo) y queda como

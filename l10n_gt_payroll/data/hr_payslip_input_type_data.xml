@@ -18,6 +18,11 @@
         <field name="name">Bonificaciones adicionales</field>
         <field name="code">BONIF</field>
     </record>
+    <!-- Días de asueto (feriado) trabajados: se pagan aparte del salario del mes. -->
+    <record id="input_asueto" model="hr.payslip.input.type">
+        <field name="name">Asueto trabajado (días)</field>
+        <field name="code">ASUETO</field>
+    </record>
     <record id="input_otras_deducciones" model="hr.payslip.input.type">
         <field name="name">Otras deducciones</field>
         <field name="code">OTRDED</field>

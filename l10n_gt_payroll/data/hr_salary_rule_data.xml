@@ -86,6 +86,26 @@ result = valor_hora * factor
 ]]></field>
     </record>
 
+    <!-- Asueto trabajado: días × salario diario (mensual / 30) × factor. Afecto a
+         IGSS e ISR (es salario). Cantidad = días, capturada en la tabla del recibo. -->
+    <record id="rule_asueto" model="hr.salary.rule">
+        <field name="name">Asueto trabajado</field>
+        <field name="code">ASUETO</field>
+        <field name="sequence">45</field>
+        <field name="category_id" ref="GTIGSS"/>
+        <field name="struct_id" ref="structure_gt_ordinaria"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = payslip._l10n_gt_input('ASUETO') > 0</field>
+        <field name="amount_select">code</field>
+        <field name="l10n_gt_afecto_igss" eval="True"/>
+        <field name="l10n_gt_afecto_isr" eval="True"/>
+        <field name="amount_python_compute"><![CDATA[
+factor = payslip._l10n_gt_param('l10n_gt_asueto_factor')
+result_qty = payslip._l10n_gt_input('ASUETO')
+result = contract.wage / 30.0 * factor
+]]></field>
+    </record>
+
     <!-- 4.5 Comisiones -->
     <record id="rule_comis" model="hr.salary.rule">
         <field name="name">Comisiones</field>

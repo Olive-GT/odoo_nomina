@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- Recomendación de horas extra en el recibo, justo encima de la tabla donde
-         se capturan. Solo informa: la captura sigue siendo manual. -->
+    <!-- Recomendación de horas extra y asuetos en el recibo, justo encima de la
+         tabla donde se capturan. Solo informa: la captura sigue siendo manual. -->
     <record id="view_payslip_form_gt_overtime" model="ir.ui.view">
         <field name="name">hr.payslip.form.gt.overtime</field>
         <field name="model">hr.payslip</field>
@@ -10,7 +10,7 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='line_ids']" position="before">
                 <div class="alert alert-info mb-2" role="status"
-                     invisible="not l10n_gt_overtime_detected and not l10n_gt_overtime_captured">
+                     invisible="not l10n_gt_overtime_detected and not l10n_gt_overtime_captured and not l10n_gt_holiday_worked and not l10n_gt_holiday_captured">
                     <div>
                         <b>Horas extra según asistencia (recomendación):</b>
                         <field name="l10n_gt_overtime_detected" class="oe_inline mx-1" readonly="1"/> h
@@ -23,12 +23,25 @@
                         <button name="action_l10n_gt_view_attendances" type="object"
                                 string="Ver asistencias" class="btn-link p-0 ms-2"/>
                     </div>
-                    <div class="small text-muted">
-                        No se suman solas: verifica que el horario del contrato sea la
-                        jornada real y captura las horas que correspondan
-                        (<i>Agregar una línea → Horas extra</i>, horas en Cantidad).
+                    <div invisible="not l10n_gt_overtime_compensates" class="small">
+                        <field name="l10n_gt_overtime_compensates" invisible="1"/>
+                        Este contrato <b>compensa horas</b>: las horas de más del período
+                        primero reponen los sábados no trabajados; solo lo que sobra se
+                        recomienda como hora extra.
                     </div>
-                    <details invisible="not l10n_gt_overtime_detected" class="mt-1">
+                    <div invisible="not l10n_gt_holiday_worked and not l10n_gt_holiday_captured">
+                        <b>Asuetos trabajados según asistencia:</b>
+                        <field name="l10n_gt_holiday_worked" class="oe_inline mx-1" readonly="1"/> día(s)
+                        (<field name="l10n_gt_holiday_worked_dates" class="oe_inline" readonly="1"/>).
+                        Capturados en este recibo:
+                        <field name="l10n_gt_holiday_captured" class="oe_inline mx-1" readonly="1"/>.
+                    </div>
+                    <div class="small text-muted">
+                        No se suman solos: verifica y captura lo que corresponda
+                        (<i>Agregar una línea → Horas extra</i> con las horas, o
+                        <i>Asueto trabajado</i> con los días, en Cantidad).
+                    </div>
+                    <details invisible="not l10n_gt_overtime_detail" class="mt-1">
                         <summary>Detalle por día</summary>
                         <field name="l10n_gt_overtime_detail" readonly="1" nolabel="1"/>
                     </details>
@@ -47,7 +60,22 @@
                 <field name="l10n_gt_overtime_detected" optional="show" string="HE asistencia"
                        decoration-warning="l10n_gt_overtime_detected != l10n_gt_overtime_captured"/>
                 <field name="l10n_gt_overtime_captured" optional="show" string="HE en recibo"/>
+                <field name="l10n_gt_holiday_worked" optional="show" string="Asuetos asist."
+                       decoration-warning="l10n_gt_holiday_worked != l10n_gt_holiday_captured"/>
+                <field name="l10n_gt_holiday_captured" optional="show" string="Asuetos recibo"/>
             </xpath>
+        </field>
+    </record>
+
+    <!-- Marca en el contrato para quien repone horas (p. ej. estudia los sábados). -->
+    <record id="view_contract_form_gt_overtime" model="ir.ui.view">
+        <field name="name">hr.contract.form.gt.overtime</field>
+        <field name="model">hr.contract</field>
+        <field name="inherit_id" ref="hr_contract.hr_contract_view_form"/>
+        <field name="arch" type="xml">
+            <field name="resource_calendar_id" position="after">
+                <field name="l10n_gt_overtime_compensates"/>
+            </field>
         </field>
     </record>
 

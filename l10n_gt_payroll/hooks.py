@@ -21,6 +21,7 @@ GT_RULE_XMLIDS = [
     "l10n_gt_payroll.rule_hextn",
     "l10n_gt_payroll.rule_comis",
     "l10n_gt_payroll.rule_bonif",
+    "l10n_gt_payroll.rule_asueto",
     "l10n_gt_payroll.rule_gross",
     "l10n_gt_payroll.rule_igsslab",
     "l10n_gt_payroll.rule_otrded",
@@ -48,6 +49,7 @@ GT_INPUT_TYPE_XMLIDS = [
     "l10n_gt_payroll.input_comisiones",
     "l10n_gt_payroll.input_bonif_adicional",
     "l10n_gt_payroll.input_otras_deducciones",
+    "l10n_gt_payroll.input_asueto",
 ]
 
 

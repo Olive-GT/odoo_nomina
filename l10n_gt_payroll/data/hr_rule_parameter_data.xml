@@ -146,4 +146,19 @@
         <field name="parameter_value">15000.0</field>
     </record>
 
+    <!-- ============ Asueto trabajado ============
+         Días adicionales de salario ordinario por cada día de asueto trabajado,
+         ENCIMA del salario del mes (que ya incluye el asueto como día pagado).
+         1.0 = el día se paga doble. Confirmar con el contador (Código de Trabajo,
+         asuetos) y ajustar aquí sin tocar código. -->
+    <record id="rp_asueto_factor" model="hr.rule.parameter">
+        <field name="name">Asueto trabajado: días adicionales por día trabajado</field>
+        <field name="code">l10n_gt_asueto_factor</field>
+    </record>
+    <record id="rpv_asueto_factor" model="hr.rule.parameter.value">
+        <field name="rule_parameter_id" ref="rp_asueto_factor"/>
+        <field name="date_from">2020-01-01</field>
+        <field name="parameter_value">1.0</field>
+    </record>
+
 </odoo>
