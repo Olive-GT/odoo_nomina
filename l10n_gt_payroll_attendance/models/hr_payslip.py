@@ -152,7 +152,12 @@ class HrPayslip(models.Model):
         """Horas que el horario prevé ese día. Con leaves=True descuenta los días
         festivos (globales) configurados en Odoo."""
         d1 = tz.localize(datetime.combine(day, time.min))
-        return calendar.get_work_hours_count(d1, d1 + timedelta(days=1), compute_leaves=leaves)
+        # Solo los días festivos de la empresa del recibo (o sin empresa): sin
+        # este filtro, Odoo descuenta los de cualquier empresa de la base.
+        domain = [("time_type", "=", "leave"),
+                  ("company_id", "in", [False, self.company_id.id])]
+        return calendar.get_work_hours_count(
+            d1, d1 + timedelta(days=1), compute_leaves=leaves, domain=domain)
 
     def _l10n_gt_study_saturdays(self, worked_days):
         """Sábados con horario previsto, sin asistencia, dentro de un bloque de
